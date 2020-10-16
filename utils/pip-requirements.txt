@@ -3,7 +3,7 @@ matplotlib
 keras
 h5py
 pandas
-numpy
+numpy<1.19
 scipy
 tensorflow-gpu
 # keras_contrib # installed using pip3 install git+https://www.github.com/keras-team/keras-contrib.git
