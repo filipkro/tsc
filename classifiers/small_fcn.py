@@ -13,7 +13,7 @@ from utils.utils import calculate_metrics
 class Classifier_FCN:
 
     def __init__(self, output_directory, input_shape, nb_classes,
-                 verbose=False, build=True):
+                 verbose=2, build=True):
         self.output_directory = output_directory
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
@@ -24,24 +24,25 @@ class Classifier_FCN:
         return
 
     def build_model(self, input_shape, nb_classes):
+        print('building model')
         input_layer = keras.layers.Input(input_shape)
 
-        conv1 = keras.layers.Conv1D(filters=128, kernel_size=8,
+        conv1 = keras.layers.Conv1D(filters=32, kernel_size=8,
                                     padding='same')(input_layer)
         conv1 = keras.layers.BatchNormalization()(conv1)
         conv1 = keras.layers.Activation(activation='relu')(conv1)
 
-        conv2 = keras.layers.Conv1D(filters=256, kernel_size=5,
+        conv2 = keras.layers.Conv1D(filters=64, kernel_size=5,
                                     padding='same')(conv1)
         conv2 = keras.layers.BatchNormalization()(conv2)
-        conv2 = keras.layers.Activation('relu')(conv2)
+        # conv2 = keras.layers.Activation('relu')(conv2)
+        #
+        # conv3 = keras.layers.Conv1D(filters=128, kernel_size=3,
+        #                             padding='same')(conv2)
+        # conv3 = keras.layers.BatchNormalization()(conv3)
+        # conv3 = keras.layers.Activation('relu')(conv3)
 
-        conv3 = keras.layers.Conv1D(filters=128, kernel_size=3,
-                                    padding='same')(conv2)
-        conv3 = keras.layers.BatchNormalization()(conv3)
-        conv3 = keras.layers.Activation('relu')(conv3)
-
-        gap_layer = keras.layers.GlobalAveragePooling1D()(conv3)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(conv2)
 
         output_layer = keras.layers.Dense(nb_classes,
                                           activation='softmax')(gap_layer)
@@ -66,12 +67,13 @@ class Classifier_FCN:
         return model
 
     def fit(self, x_train, y_train, x_val, y_val, y_true):
+        print('TRAINING')
         if not tf.test.is_gpu_available:
             print('error')
-            exit()
+            # exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
-        batch_size = 16
-        nb_epochs = 2000
+        batch_size = 1
+        nb_epochs = 1000
 
         mini_batch_size = int(min(x_train.shape[0] / 10, batch_size))
 
