@@ -24,10 +24,10 @@ def fit_classifier():
 
     x = dataset['mts']
     y = dataset['labels']
-    x_train = x[:-2, ...]
-    x_test = x[-2:, ...]
-    y_train = y[:-2]
-    y_test = y[-2:]
+    x_train = x[:-3, ...]
+    x_test = x[-3:, ...]
+    y_train = y[:-3]
+    y_test = y[-3:]
 
     nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
 
