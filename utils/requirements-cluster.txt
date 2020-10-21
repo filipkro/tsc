@@ -1,5 +1,5 @@
-sklearn --prefix $pythonpath
-keras --prefix $pythonpath
-h5py --prefix $pythonpath
-pandas --prefix $pythonpath
+sklearn
+keras
+h5py
+pandas
 # keras_contrib # installed using pip3 install git+https://www.github.com/keras-team/keras-contrib.git
