@@ -1,4 +1,4 @@
-from utils.utils import generate_results_csv
+
 from utils.utils import create_directory
 from utils.utils import read_dataset
 from utils.utils import transform_mts_to_ucr_format
@@ -84,6 +84,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return mlp.Classifier_MLP(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'resnet':
         from classifiers import resnet
+        return resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose)
+    if classifier_name == 'masked-resnet':
+        from classifiers import masked_resnet
         return resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'mcnn':
         from classifiers import mcnn
