@@ -115,13 +115,15 @@ root_dir = sys.argv[1]
 archive_name = sys.argv[2]
 dataset_path = sys.argv[3]
 classifier_name = sys.argv[4]
+
+rate = dataset_path.split('-')[-1].split('.')[0]
 itr = sys.argv[5]
 
 if itr == '_itr_0':
     itr = ''
 
 output_directory = root_dir + '/results/' + \
-    classifier_name + '/' + archive_name + itr + '/'
+    classifier_name + '/' + rate + '/' + archive_name + itr + '/'
 
 test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
