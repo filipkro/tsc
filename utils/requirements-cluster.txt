@@ -1,5 +1,2 @@
-#sklearn
-#keras
-h5py
+sklearn
 #pandas
-# keras_contrib # installed using pip3 install git+https://www.github.com/keras-team/keras-contrib.git
