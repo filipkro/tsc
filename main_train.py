@@ -128,8 +128,7 @@ itr = sys.argv[5]
 if itr == '_itr_0':
     itr = ''
 
-output_directory = root_dir + '/results/' + \
-    classifier_name + '/' + rate + '/' + archive_name + itr + '/'
+output_directory = root_dir + '/' + rate + '-' + archive_name + itr + '/'
 
 test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
