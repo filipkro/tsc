@@ -1,28 +1,15 @@
-
 from utils.utils import create_directory
-from utils.utils import read_dataset
-from utils.utils import transform_mts_to_ucr_format
-from utils.utils import visualize_filter
-from utils.utils import viz_for_survey_paper
-from utils.utils import viz_cam
 import os
 import numpy as np
 import sys
 import sklearn
 import utils
-from utils.constants import CLASSIFIERS
-from utils.constants import ARCHIVE_NAMES
-from utils.constants import ITERATIONS
-from utils.utils import read_all_datasets
-
-# import matplotlib.pyplot as plt
+from argparse import ArgumentParser
 
 
-def fit_classifier():
-    # x_train = datasets_dict[dataset_name][0]
-    # y_train = datasets_dict[dataset_name][1]
-    # x_test = datasets_dict[dataset_name][2]
-    # y_test = datasets_dict[dataset_name][3]
+def fit_classifier(dp, tp, classifier_name, output_directory):
+
+    dataset = np.load(dp)
 
     x = dataset['mts']
     y = dataset['labels']
@@ -31,18 +18,14 @@ def fit_classifier():
 
     train_size = int(np.round(0.9 * len(y)))
 
-    train_idx = np.random.choice(len(y), train_size, replace=False)
-    train_idx
+    train_idx = np.load(tp) if tp != '' else np.random.choice(len(y),
+                                                              train_size,
+                                                              replace=False)
+
     x_train = x[train_idx, ...]
     x_test = np.delete(x, train_idx, axis=0)
     y_train = y[train_idx]
     y_test = np.delete(y, train_idx)
-
-
-    # plt.plot(x_train[33, :, 0])
-    # plt.plot(x_train[33, :, 1])
-    # print(y_train[33])
-    # plt.show()
 
     nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
     print(nb_classes)
@@ -114,39 +97,42 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
-    if classifier_name == 'inception_simple':
+    if classifier_name == 'inception-simple':
         from classifiers import inception_simple
         return inception_simple.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
 
 
-root_dir = sys.argv[1]
-archive_name = sys.argv[2]
-dataset_path = sys.argv[3]
-train_fp = sys.argv[4]
-classifier_name = sys.argv[5]
+def main(args):
+    classifier_name = args.classifier.replace('_', '-')
+    rate = args.dataset.split('-')[-1].split('.')[0]
 
-rate = dataset_path.split('-')[-1].split('.')[0]
-itr = sys.argv[5]
+    if args.itr == '_itr_0':
+        args.itr = ''
 
-if itr == '_itr_0':
-    itr = ''
+    output_directory = args.root + '/' + classifier_name + '/' + rate + '-' \
+        + args.archive + args.itr + '/'
 
-output_directory = root_dir + '/' + classifier_name + '/' + rate + '-' + archive_name + itr + '/'
+    test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
-test_dir_df_metrics = output_directory + 'df_metrics.csv'
+    print('Method: ',  args.archive, args.dataset, classifier_name, args.itr)
 
-print('Method: ', archive_name, dataset_path, classifier_name, itr)
+    if os.path.exists(test_dir_df_metrics):
+        print('Already done')
+    else:
+        create_directory(output_directory)
+        fit_classifier(args.dataset, args.train_fp, classifier_name,
+                       output_directory)
+        print('DONE')
 
-if os.path.exists(test_dir_df_metrics):
-    print('Already done')
-else:
+        create_directory(output_directory + '/DONE')
 
-    create_directory(output_directory)
-    # datasets_dict = read_dataset(root_dir, archive_name, dataset_name)
-    dataset = np.load(dataset_path)
-    fit_classifier()
 
-    print('DONE')
-
-    # the creation of this directory means
-    create_directory(output_directory + '/DONE')
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('root')
+    parser.add_argument('dataset')
+    parser.add_argument('classifier')
+    parser.add_argument('idx')
+    parser.add_argument('--train_idx', default='')
+    parser.add_argument('--archive', defaullt='VA')
+    main(args)
