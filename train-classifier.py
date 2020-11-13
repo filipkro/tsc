@@ -21,7 +21,6 @@ def fit_classifier(dp, tp, classifier_name, output_directory):
     train_idx = np.load(tp) if tp != '' else np.random.choice(len(y),
                                                               train_size,
                                                               replace=False)
-
     x_train = x[train_idx, ...]
     x_test = np.delete(x, train_idx, axis=0)
     y_train = y[train_idx]
@@ -132,7 +131,7 @@ if __name__ == '__main__':
     parser.add_argument('root')
     parser.add_argument('dataset')
     parser.add_argument('classifier')
-    parser.add_argument('idx')
+    parser.add_argument('itr')
     parser.add_argument('--train_idx', default='')
     parser.add_argument('--archive', defaullt='VA')
     main(args)
