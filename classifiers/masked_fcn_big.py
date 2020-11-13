@@ -25,9 +25,10 @@ class Classifier_FCN:
 
     def build_model(self, input_shape, nb_classes):
         input_layer = keras.layers.Input(input_shape)
+        masked_layer = keras.layers.Masking(mask_value=-1000)(input_layer)
 
         conv1 = keras.layers.Conv1D(filters=128, kernel_size=8,
-                                    padding='same')(input_layer)
+                                    padding='same')(masked_layer)
         conv1 = keras.layers.BatchNormalization()(conv1)
         conv1 = keras.layers.Activation(activation='relu')(conv1)
 

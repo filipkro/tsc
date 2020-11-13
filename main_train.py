@@ -73,6 +73,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
         return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
+    if classifier_name == 'masked-fcn-big':
+        from classifiers import masked_fcn_big
+        return masked_fcn_big.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'fcn':
         from classifiers import fcn
         return fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
