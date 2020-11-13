@@ -28,8 +28,10 @@ class Classifier_FCN:
         print('building model')
         input_layer = keras.layers.Input(input_shape)
 
+        masked_layer = keras.layers.Masking(mask_value=-1000)(input_layer)
+
         conv1 = keras.layers.Conv1D(filters=4, kernel_size=20,
-                                    padding='same')(input_layer)
+                                    padding='same')(masked_layer)
         # conv1 = keras.layers.Conv1D(filters=4, kernel_size=15,
         #                             padding='same')(input_layer)
         # conv1 = keras.layers.Conv1D(filters=3, kernel_size=15,
