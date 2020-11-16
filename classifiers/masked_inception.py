@@ -7,6 +7,7 @@ import pickle
 from utils.utils import save_logs
 from utils.utils import calculate_metrics
 from utils.utils import save_test_duration
+import os
 
 
 class Classifier_INCEPTION:
@@ -34,7 +35,7 @@ class Classifier_INCEPTION:
                        'bottleneck_size': self.bottleneck_size,
                        'classes': nb_classes, 'input_shape': input_shape}
 
-        f = open(self.output_directory + hyperparams.pkl, "wb")
+        f = open(os.path.joint(self.output_directory, 'hyperparams.pkl', "wb")
         pickle.dump(model_hyper, f)
         f.close()
 
