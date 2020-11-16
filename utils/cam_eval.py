@@ -54,13 +54,16 @@ def main(args):
 
     model_path = os.path.join(args.root, 'best_model.hdf5')
     model = keras.models.load_model(model_path)
-    y_pred_like = model.predict(x)
-    print(model)
+    y_pred_like, cam = model.predict(x)
+
     y_pred = np.argmax(y_pred_like, axis=1)
 
     print('correct:', y)
     print('predicted:', y_pred)
     print('predicted:', y_pred_like)
+
+    print(cam)
+    print(cam.shape)
 
     cnf_matrix = confusion_matrix(y, y_pred)
     np.set_printoptions(precision=2)

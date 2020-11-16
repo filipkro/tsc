@@ -13,7 +13,7 @@ import os
 class Classifier_INCEPTION:
 
     def __init__(self, output_directory, input_shape, nb_classes, verbose=False, build=True, batch_size=64, lr=0.001,
-                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=1500):
+                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=5):
 
         self.output_directory = output_directory
 
@@ -99,14 +99,15 @@ class Classifier_INCEPTION:
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
-        gap_layer = keras.layers.GlobalAveragePooling1D(name='cam')(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x)
+        cam = keras.layers.GlobalAveragePooling1D(data_format='channels_first', name='cam')(x)
 
         output_layer = keras.layers.Dense(
             nb_classes, activation='softmax', name='result')(gap_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, gap_layer])
+                                   outputs=[output_layer, cam])
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
@@ -176,4 +177,4 @@ class Classifier_INCEPTION:
             test_duration = time.time() - start_time
             save_test_duration(self.output_directory +
                                'test_duration.csv', test_duration)
-            return y_pred
+            return y_pred, cam
