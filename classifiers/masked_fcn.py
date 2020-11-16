@@ -12,9 +12,13 @@ from utils.utils import calculate_metrics
 
 class Classifier_FCN:
 
-    def __init__(self, output_directory, input_shape, nb_classes,
-                 verbose=2, build=True):
+    def __init__(self, output_directory, input_shape, nb_classes, nb_layers=4,
+                 kernel_size=21, filters=64 verbose=2, build=True):
         self.output_directory = output_directory
+        self.nb_layers = nb_layers
+        self.kernel_size = kernel_size
+        self.filters = filters
+
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
             if(verbose == True):
@@ -25,44 +29,21 @@ class Classifier_FCN:
 
     def build_model(self, input_shape, nb_classes,
                     channel_order='channels_first'):
+
+        kernel_size_s = [self.kernel_size // i for i
+                         in np.linspace(self.kernel_size, 1, self.nb_layers)]
         print('building model')
         input_layer = keras.layers.Input(input_shape)
 
-        masked_layer = keras.layers.Masking(mask_value=-1000)(input_layer)
+        x = keras.layers.Masking(mask_value=-1000)(input_layer)
 
-        conv1 = keras.layers.Conv1D(filters=4, kernel_size=20,
-                                    padding='same')(masked_layer)
-        # conv1 = keras.layers.Conv1D(filters=4, kernel_size=15,
-        #                             padding='same')(input_layer)
-        # conv1 = keras.layers.Conv1D(filters=3, kernel_size=15,
-        #                             padding='same')(input_layer)
-        conv1 = keras.layers.BatchNormalization()(conv1)
-        conv1 = keras.layers.Activation(activation='relu')(conv1)
+        for kern in kernel_size_s:
+            x = keras.layers.Conv1D(filters=self.filters, kernel_size=kern,
+                                    padding='same')(x)
+            x = keras.layers.BatchNormalization()(x)
+            x = keras.layers.Activation(activation='relu')(x)
 
-        conv2 = keras.layers.Conv1D(filters=6, kernel_size=5,
-                                    padding='same')(conv1)
-        # conv2 = keras.layers.Conv1D(filters=5, kernel_size=5,
-        #                             padding='same')(conv1)
-        # conv2 = keras.layers.Conv1D(filters=3, kernel_size=6,
-        #                             padding='same')(conv1)
-        conv2 = keras.layers.BatchNormalization()(conv2)
-        conv2 = keras.layers.Activation('relu')(conv2)
-
-        conv3 = keras.layers.Conv1D(filters=8, kernel_size=3,
-                                    padding='same')(conv2)
-        # conv3 = keras.layers.Conv1D(filters=10, kernel_size=3,
-        #                             padding='same')(conv2)
-        # conv3 = keras.layers.Conv1D(filters=4, kernel_size=4,
-        #                             padding='same')(conv2)
-        conv3 = keras.layers.BatchNormalization()(conv3)
-        conv3 = keras.layers.Activation('relu')(conv3)
-
-        # conv4 = keras.layers.Conv1D(filters=7, kernel_size=3,
-        #                             padding='same')(conv3)
-        # conv4 = keras.layers.BatchNormalization()(conv4)
-        # conv4 = keras.layers.Activation('relu')(conv4)
-
-        gap_layer = keras.layers.GlobalAveragePooling1D()(conv3)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x)
 
         output_layer = keras.layers.Dense(nb_classes,
                                           activation='softmax')(gap_layer)
