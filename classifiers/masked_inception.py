@@ -2,6 +2,7 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 import time
+import pickle
 
 from utils.utils import save_logs
 from utils.utils import calculate_metrics
@@ -27,6 +28,16 @@ class Classifier_INCEPTION:
         self.lr = lr
         self.verbose = verbose
 
+        model_hyper = {'filters': nb_filters, 'residuals': use_residual,
+                       'bottleneck': use_bottleneck, 'depth': depth,
+                       'kernel_size': kernel_size, 'batch_size': batch_size,
+                       'bottleneck_size': self.bottleneck_size,
+                       'classes': nb_classes, 'input_shape': input_shape}
+
+        f = open(self.output_directory + hyperparams.pkl, "wb")
+        pickle.dump(model_hyper, f)
+        f.close()
+
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
             if (verbose == True):
@@ -51,7 +62,8 @@ class Classifier_INCEPTION:
                                                  strides=stride, padding='same', activation=activation, use_bias=False)(
                 input_inception))
 
-        max_pool_1 = keras.layers.MaxPool1D(pool_size=3, strides=stride, padding='same')(input_tensor)
+        max_pool_1 = keras.layers.MaxPool1D(
+            pool_size=3, strides=stride, padding='same')(input_tensor)
 
         conv_6 = keras.layers.Conv1D(filters=self.nb_filters, kernel_size=1,
                                      padding='same', activation=activation, use_bias=False)(max_pool_1)
@@ -88,7 +100,8 @@ class Classifier_INCEPTION:
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(x)
 
-        output_layer = keras.layers.Dense(nb_classes, activation='softmax')(gap_layer)
+        output_layer = keras.layers.Dense(
+            nb_classes, activation='softmax')(gap_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -136,7 +149,8 @@ class Classifier_INCEPTION:
         # convert the predicted from binary to integer
         y_pred = np.argmax(y_pred, axis=1)
 
-        df_metrics = save_logs(self.output_directory, hist, y_pred, y_true, duration)
+        df_metrics = save_logs(self.output_directory,
+                               hist, y_pred, y_true, duration)
 
         keras.backend.clear_session()
 
@@ -153,5 +167,6 @@ class Classifier_INCEPTION:
             return df_metrics
         else:
             test_duration = time.time() - start_time
-            save_test_duration(self.output_directory + 'test_duration.csv', test_duration)
+            save_test_duration(self.output_directory +
+                               'test_duration.csv', test_duration)
             return y_pred

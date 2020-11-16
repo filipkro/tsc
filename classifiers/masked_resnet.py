@@ -5,6 +5,7 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 import time
+import pickle
 
 import matplotlib
 from utils.utils import save_test_duration
@@ -20,6 +21,13 @@ class Classifier_RESNET:
 
     def __init__(self, output_directory, input_shape, nb_classes, verbose=False, build=True, load_weights=False):
         self.output_directory = output_directory
+
+        # TBC
+        model_hyper = {'classes': nb_classes, 'input_shape': input_shape}
+
+        f = open(self.output_directory + hyperparams.pkl, "wb")
+        pickle.dump(model_hyper, f)
+        f.close()
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
             if (verbose == True):

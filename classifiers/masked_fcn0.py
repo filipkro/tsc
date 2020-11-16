@@ -5,7 +5,6 @@ import tensorflow.keras as keras
 import tensorflow as tf
 import numpy as np
 import time
-import pickle
 
 from utils.utils import save_logs
 from utils.utils import calculate_metrics
@@ -14,16 +13,8 @@ from utils.utils import calculate_metrics
 class Classifier_FCN:
 
     def __init__(self, output_directory, input_shape, nb_classes,
-                 verbose=False, build=True):
+                 verbose=2, build=True):
         self.output_directory = output_directory
-
-        # TBC
-        model_hyper = {'classes': nb_classes, 'input_shape': input_shape}
-
-        f = open(self.output_directory + hyperparams.pkl, "wb")
-        pickle.dump(model_hyper, f)
-        f.close()
-
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
             if(verbose == True):
@@ -32,24 +23,44 @@ class Classifier_FCN:
             self.model.save_weights(self.output_directory + 'model_init.hdf5')
         return
 
-    def build_model(self, input_shape, nb_classes):
+    def build_model(self, input_shape, nb_classes,
+                    channel_order='channels_first'):
+        print('building model')
         input_layer = keras.layers.Input(input_shape)
+
         masked_layer = keras.layers.Masking(mask_value=-1000)(input_layer)
 
-        conv1 = keras.layers.Conv1D(filters=128, kernel_size=8,
+        conv1 = keras.layers.Conv1D(filters=4, kernel_size=20,
                                     padding='same')(masked_layer)
+        # conv1 = keras.layers.Conv1D(filters=4, kernel_size=15,
+        #                             padding='same')(input_layer)
+        # conv1 = keras.layers.Conv1D(filters=3, kernel_size=15,
+        #                             padding='same')(input_layer)
         conv1 = keras.layers.BatchNormalization()(conv1)
         conv1 = keras.layers.Activation(activation='relu')(conv1)
 
-        conv2 = keras.layers.Conv1D(filters=256, kernel_size=5,
+        conv2 = keras.layers.Conv1D(filters=6, kernel_size=5,
                                     padding='same')(conv1)
+        # conv2 = keras.layers.Conv1D(filters=5, kernel_size=5,
+        #                             padding='same')(conv1)
+        # conv2 = keras.layers.Conv1D(filters=3, kernel_size=6,
+        #                             padding='same')(conv1)
         conv2 = keras.layers.BatchNormalization()(conv2)
         conv2 = keras.layers.Activation('relu')(conv2)
 
-        conv3 = keras.layers.Conv1D(filters=128, kernel_size=3,
+        conv3 = keras.layers.Conv1D(filters=8, kernel_size=3,
                                     padding='same')(conv2)
+        # conv3 = keras.layers.Conv1D(filters=10, kernel_size=3,
+        #                             padding='same')(conv2)
+        # conv3 = keras.layers.Conv1D(filters=4, kernel_size=4,
+        #                             padding='same')(conv2)
         conv3 = keras.layers.BatchNormalization()(conv3)
         conv3 = keras.layers.Activation('relu')(conv3)
+
+        # conv4 = keras.layers.Conv1D(filters=7, kernel_size=3,
+        #                             padding='same')(conv3)
+        # conv4 = keras.layers.BatchNormalization()(conv4)
+        # conv4 = keras.layers.Activation('relu')(conv4)
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(conv3)
 
@@ -76,11 +87,12 @@ class Classifier_FCN:
         return model
 
     def fit(self, x_train, y_train, x_val, y_val, y_true):
+        print('TRAINING')
         if not tf.test.is_gpu_available:
             print('error')
-            exit()
+            # exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
-        batch_size = 16
+        batch_size = 4
         nb_epochs = 2000
 
         mini_batch_size = int(min(x_train.shape[0] / 10, batch_size))
