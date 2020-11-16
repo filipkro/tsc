@@ -176,4 +176,4 @@ class Classifier_INCEPTION:
             test_duration = time.time() - start_time
             save_test_duration(self.output_directory +
                                'test_duration.csv', test_duration)
-            return y_pred
+            return y_pred, cam
