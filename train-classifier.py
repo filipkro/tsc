@@ -56,7 +56,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return small_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
-        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
+        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose)
     if classifier_name == 'masked-fcn-big':
         from classifiers import masked_fcn_big
         return masked_fcn_big.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
@@ -98,7 +98,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'inception-simple':
         from classifiers import inception_simple
-        return inception_simple.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
+        return inception_simple.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, kernel_size=31)
 
 
 def main(args):

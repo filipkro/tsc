@@ -113,7 +113,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
-        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
+        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, nb_filters=16)
     if classifier_name == 'inception_simple':
         from classifiers import inception_simple
         return inception_simple.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
