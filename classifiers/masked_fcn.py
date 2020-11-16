@@ -43,7 +43,8 @@ class Classifier_FCN:
             x = keras.layers.BatchNormalization()(x)
             x = keras.layers.Activation(activation='relu')(x)
 
-        gap_layer = keras.layers.GlobalAveragePooling1D(name='cam')(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x)
+        cam = keras.layers.GlobalAveragePooling1D(data_format='channels_first', name='cam')(x)
 
         output_layer = keras.layers.Dense(nb_classes,
                                           activation='softmax', name='result')(gap_layer)
@@ -52,7 +53,7 @@ class Classifier_FCN:
         # model.compile(loss='categorical_crossentropy',
         #               optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, gap_layer])
+                                   outputs=[output_layer, cam])
 
         model.compile(loss=['categorical_crossentropy', None],
                       optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
