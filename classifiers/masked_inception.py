@@ -29,15 +29,15 @@ class Classifier_INCEPTION:
         self.lr = lr
         self.verbose = verbose
 
-        model_hyper = {'filters': nb_filters, 'residuals': use_residual,
-                       'bottleneck': use_bottleneck, 'depth': depth,
-                       'kernel_size': kernel_size, 'batch_size': batch_size,
-                       'bottleneck_size': self.bottleneck_size,
-                       'classes': nb_classes, 'input_shape': input_shape}
+        #model_hyper = {'filters': nb_filters, 'residuals': use_residual,
+        #               'bottleneck': use_bottleneck, 'depth': depth,
+        #               'kernel_size': kernel_size, 'batch_size': batch_size,
+        #               'bottleneck_size': self.bottleneck_size,
+        #               'classes': nb_classes, 'input_shape': input_shape}
 
-        f = open(os.path.joint(self.output_directory, 'hyperparams.pkl', "wb")
-        pickle.dump(model_hyper, f)
-        f.close()
+        #f = open(os.path.joint(self.output_directory, 'hyperparams.pkl', "wb")
+        #pickle.dump(model_hyper, f)
+        #f.close()
 
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)

@@ -56,7 +56,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return small_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
-        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
+        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose)
     if classifier_name == 'masked-fcn-big':
         from classifiers import masked_fcn_big
         return masked_fcn_big.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
@@ -98,7 +98,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'inception-simple':
         from classifiers import inception_simple
-        return inception_simple.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
+        return inception_simple.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, kernel_size=31)
 
 
 def main(args):
@@ -119,7 +119,7 @@ def main(args):
         print('Already done')
     else:
         create_directory(output_directory)
-        fit_classifier(args.dataset, args.train_fp, classifier_name,
+        fit_classifier(args.dataset, args.train_idx, classifier_name,
                        output_directory)
         print('DONE')
 
@@ -133,5 +133,6 @@ if __name__ == '__main__':
     parser.add_argument('classifier')
     parser.add_argument('itr')
     parser.add_argument('--train_idx', default='')
-    parser.add_argument('--archive', defaullt='VA')
+    parser.add_argument('--archive', default='VA')
+    args = parser.parse_args()
     main(args)

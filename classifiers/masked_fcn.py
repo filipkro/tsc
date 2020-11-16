@@ -13,7 +13,7 @@ from utils.utils import calculate_metrics
 class Classifier_FCN:
 
     def __init__(self, output_directory, input_shape, nb_classes, nb_layers=4,
-                 kernel_size=21, filters=64 verbose=2, build=True):
+                 kernel_size=21, filters=64, verbose=2, build=True):
         self.output_directory = output_directory
         self.nb_layers = nb_layers
         self.kernel_size = kernel_size
@@ -30,7 +30,7 @@ class Classifier_FCN:
     def build_model(self, input_shape, nb_classes,
                     channel_order='channels_first'):
 
-        kernel_size_s = [self.kernel_size // i for i
+        kernel_size_s = [int(self.kernel_size // i) for i
                          in np.linspace(self.kernel_size, 1, self.nb_layers)]
         print('building model')
         input_layer = keras.layers.Input(input_shape)
