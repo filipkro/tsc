@@ -43,12 +43,14 @@ class Classifier_FCN:
             x = keras.layers.BatchNormalization()(x)
             x = keras.layers.Activation(activation='relu')(x)
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D(name='cam')(x)
 
         output_layer = keras.layers.Dense(nb_classes,
-                                          activation='softmax')(gap_layer)
+                                          activation='softmax', name='result')(gap_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        # model.compile(loss='categorical_crossentropy',
+        #               optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
         model = keras.models.Model(inputs=input_layer,
                                    outputs=[output_layer, gap_layer])
 
@@ -75,12 +77,17 @@ class Classifier_FCN:
             print('error')
             # exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
-        batch_size = 4
+        batch_size = 256
         nb_epochs = 2000
 
         mini_batch_size = int(min(x_train.shape[0] / 10, batch_size))
 
         start_time = time.time()
+
+        # hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size,
+        #                       epochs=nb_epochs, verbose=self.verbose,
+        #                       validation_data=(x_val, y_val),
+        #                       callbacks=self.callbacks)
 
         hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size,
                               epochs=nb_epochs, verbose=self.verbose,
@@ -94,11 +101,13 @@ class Classifier_FCN:
         model = keras.models.load_model(
             self.output_directory + 'best_model.hdf5')
 
-        y_pred = model.predict(x_val)
+        y_pred, gap = model.predict(x_val)
 
+        print(gap.shape)
+        # print(hist.accuracy)
         # convert the predicted from binary to integer
         y_pred = np.argmax(y_pred, axis=1)
-
+        print(y_pred)
         save_logs(self.output_directory, hist, y_pred, y_true, duration)
 
         keras.backend.clear_session()

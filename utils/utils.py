@@ -1,32 +1,28 @@
+from scipy.io import loadmat
+from scipy.interpolate import interp1d
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import accuracy_score
+from utils.constants import MTS_DATASET_NAMES
+from utils.constants import ITERATIONS
+from utils.constants import CLASSIFIERS
+from utils.constants import ARCHIVE_NAMES as ARCHIVE_NAMES
+from utils.constants import UNIVARIATE_DATASET_NAMES_2018 as DATASET_NAMES_2018
+from utils.constants import UNIVARIATE_DATASET_NAMES as DATASET_NAMES
+import utils
+import operator
+import os
+import matplotlib.pyplot as plt
 from builtins import print
 import numpy as np
 import pandas as pd
 import matplotlib
 
 matplotlib.use('agg')
-import matplotlib.pyplot as plt
 
 matplotlib.rcParams['font.family'] = 'sans-serif'
 matplotlib.rcParams['font.sans-serif'] = 'Arial'
-import os
-import operator
-
-import utils
-
-from utils.constants import UNIVARIATE_DATASET_NAMES as DATASET_NAMES
-from utils.constants import UNIVARIATE_DATASET_NAMES_2018 as DATASET_NAMES_2018
-from utils.constants import ARCHIVE_NAMES  as ARCHIVE_NAMES
-from utils.constants import CLASSIFIERS
-from utils.constants import ITERATIONS
-from utils.constants import MTS_DATASET_NAMES
-
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.preprocessing import LabelEncoder
-
-from scipy.interpolate import interp1d
-from scipy.io import loadmat
 
 
 def readucr(filename):
@@ -49,7 +45,8 @@ def create_directory(directory_path):
 
 
 def create_path(root_dir, classifier_name, archive_name):
-    output_directory = root_dir + '/results/' + classifier_name + '/' + archive_name + '/'
+    output_directory = root_dir + '/results/' + \
+        classifier_name + '/' + archive_name + '/'
     if os.path.exists(output_directory):
         return None
     else:
@@ -62,7 +59,8 @@ def read_dataset(root_dir, archive_name, dataset_name):
     cur_root_dir = root_dir.replace('-temp', '')
 
     if archive_name == 'mts_archive':
-        file_name = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
+        file_name = cur_root_dir + '/archives/' + \
+            archive_name + '/' + dataset_name + '/'
         x_train = np.load(file_name + 'x_train.npy')
         y_train = np.load(file_name + 'y_train.npy')
         x_test = np.load(file_name + 'x_test.npy')
@@ -72,10 +70,13 @@ def read_dataset(root_dir, archive_name, dataset_name):
                                        y_test.copy())
 
     elif archive_name == 'UCRArchive_2018':
-        root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
-        df_train = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TRAIN.tsv', sep='\t', header=None)
+        root_dir_dataset = cur_root_dir + '/archives/' + \
+            archive_name + '/' + dataset_name + '/'
+        df_train = pd.read_csv(
+            root_dir_dataset + '/' + dataset_name + '_TRAIN.tsv', sep='\t', header=None)
 
-        df_test = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TEST.tsv', sep='\t', header=None)
+        df_test = pd.read_csv(root_dir_dataset + '/' +
+                              dataset_name + '_TEST.tsv', sep='\t', header=None)
 
         y_train = df_train.values[:, 0]
         y_test = df_test.values[:, 0]
@@ -101,7 +102,8 @@ def read_dataset(root_dir, archive_name, dataset_name):
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
                                        y_test.copy())
     else:
-        file_name = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/' + dataset_name
+        file_name = cur_root_dir + '/archives/' + \
+            archive_name + '/' + dataset_name + '/' + dataset_name
         x_train, y_train = readucr(file_name + '_TRAIN')
         x_test, y_test = readucr(file_name + '_TEST')
         datasets_dict[dataset_name] = (x_train.copy(), y_train.copy(), x_test.copy(),
@@ -118,7 +120,8 @@ def read_all_datasets(root_dir, archive_name, split_val=False):
     if archive_name == 'mts_archive':
 
         for dataset_name in MTS_DATASET_NAMES:
-            root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
+            root_dir_dataset = cur_root_dir + '/archives/' + \
+                archive_name + '/' + dataset_name + '/'
 
             x_train = np.load(root_dir_dataset + 'x_train.npy')
             y_train = np.load(root_dir_dataset + 'y_train.npy')
@@ -129,11 +132,14 @@ def read_all_datasets(root_dir, archive_name, split_val=False):
                                            y_test.copy())
     elif archive_name == 'UCRArchive_2018':
         for dataset_name in DATASET_NAMES_2018:
-            root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
+            root_dir_dataset = cur_root_dir + '/archives/' + \
+                archive_name + '/' + dataset_name + '/'
 
-            df_train = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TRAIN.tsv', sep='\t', header=None)
+            df_train = pd.read_csv(
+                root_dir_dataset + '/' + dataset_name + '_TRAIN.tsv', sep='\t', header=None)
 
-            df_test = pd.read_csv(root_dir_dataset + '/' + dataset_name + '_TEST.tsv', sep='\t', header=None)
+            df_test = pd.read_csv(
+                root_dir_dataset + '/' + dataset_name + '_TEST.tsv', sep='\t', header=None)
 
             y_train = df_train.values[:, 0]
             y_test = df_test.values[:, 0]
@@ -161,7 +167,8 @@ def read_all_datasets(root_dir, archive_name, split_val=False):
 
     else:
         for dataset_name in DATASET_NAMES:
-            root_dir_dataset = cur_root_dir + '/archives/' + archive_name + '/' + dataset_name + '/'
+            root_dir_dataset = cur_root_dir + '/archives/' + \
+                archive_name + '/' + dataset_name + '/'
             file_name = root_dir_dataset + dataset_name
             x_train, y_train = readucr(file_name + '_TRAIN')
             x_test, y_test = readucr(file_name + '_TEST')
@@ -308,7 +315,7 @@ def generate_results_csv(output_file_name, root_dir):
                     curr_archive_name = curr_archive_name + '_itr_' + str(it)
                 for dataset_name in datasets_dict.keys():
                     output_dir = root_dir + '/results/' + classifier_name + '/' \
-                                 + curr_archive_name + '/' + dataset_name + '/' + 'df_metrics.csv'
+                        + curr_archive_name + '/' + dataset_name + '/' + 'df_metrics.csv'
                     if not os.path.exists(output_dir):
                         continue
                     df_metrics = pd.read_csv(output_dir)
@@ -369,7 +376,8 @@ def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_
     hist_df = pd.DataFrame(hist.history)
     hist_df.to_csv(output_directory + 'history.csv', index=False)
 
-    df_metrics = calculate_metrics(y_true, y_pred, duration, y_true_val, y_pred_val)
+    df_metrics = calculate_metrics(
+        y_true, y_pred, duration, y_true_val, y_pred_val)
     df_metrics.to_csv(output_directory + 'df_metrics.csv', index=False)
 
     index_best_model = hist_df['loss'].idxmin()
@@ -381,8 +389,12 @@ def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_
 
     df_best_model['best_model_train_loss'] = row_best_model['loss']
     df_best_model['best_model_val_loss'] = row_best_model['val_loss']
-    df_best_model['best_model_train_acc'] = row_best_model['accuracy']
-    df_best_model['best_model_val_acc'] = row_best_model['val_accuracy']
+    if 'result_accuracy' in row_best_model.keys():
+        df_best_model['best_model_train_acc'] = row_best_model['result_accuracy']
+        df_best_model['best_model_val_acc'] = row_best_model['val_result_accuracy']
+    else:
+        df_best_model['best_model_train_acc'] = row_best_model['accuracy']
+        df_best_model['best_model_val_acc'] = row_best_model['val_accuracy']
     if lr == True:
         df_best_model['best_model_learning_rate'] = row_best_model['lr']
     df_best_model['best_model_nb_epoch'] = index_best_model
@@ -418,12 +430,15 @@ def visualize_filter(root_dir):
     new_input_layer = model.inputs
     new_output_layer = [model.layers[1].output]
 
-    new_feed_forward = keras.backend.function(new_input_layer, new_output_layer)
+    new_feed_forward = keras.backend.function(
+        new_input_layer, new_output_layer)
 
     classes = np.unique(y_train)
 
-    colors = [(255 / 255, 160 / 255, 14 / 255), (181 / 255, 87 / 255, 181 / 255)]
-    colors_conv = [(210 / 255, 0 / 255, 0 / 255), (27 / 255, 32 / 255, 101 / 255)]
+    colors = [(255 / 255, 160 / 255, 14 / 255),
+              (181 / 255, 87 / 255, 181 / 255)]
+    colors_conv = [(210 / 255, 0 / 255, 0 / 255),
+                   (27 / 255, 32 / 255, 101 / 255)]
 
     idx = 10
     idx_filter = 1
@@ -438,8 +453,10 @@ def visualize_filter(root_dir):
 
         idx_c = int(c) - 1
 
-        plt.plot(c_x_train[idx], color=colors[idx_c], label='class' + str(idx_c) + '-raw')
-        plt.plot(convolved_filter_1[idx, :, idx_filter], color=colors_conv[idx_c], label='class' + str(idx_c) + '-conv')
+        plt.plot(c_x_train[idx], color=colors[idx_c],
+                 label='class' + str(idx_c) + '-raw')
+        plt.plot(convolved_filter_1[idx, :, idx_filter],
+                 color=colors_conv[idx_c], label='class' + str(idx_c) + '-conv')
         plt.legend()
 
     plt.savefig(root_dir + 'convolution-' + dataset_name + '.pdf')
@@ -471,7 +488,8 @@ def viz_perf_themes(root_dir, df):
 def viz_perf_train_size(root_dir, df):
     df_size = df.copy()
     train_sizes = []
-    datasets_dict_ucr = read_all_datasets(root_dir, archive_name='UCR_TS_Archive_2015')
+    datasets_dict_ucr = read_all_datasets(
+        root_dir, archive_name='UCR_TS_Archive_2015')
     datasets_dict_mts = read_all_datasets(root_dir, archive_name='mts_archive')
     datasets_dict = dict(datasets_dict_ucr, **datasets_dict_mts)
 
@@ -496,7 +514,8 @@ def viz_perf_train_size(root_dir, df):
 def viz_perf_classes(root_dir, df):
     df_classes = df.copy()
     class_numbers = []
-    datasets_dict_ucr = read_all_datasets(root_dir, archive_name='UCR_TS_Archive_2015')
+    datasets_dict_ucr = read_all_datasets(
+        root_dir, archive_name='UCR_TS_Archive_2015')
     datasets_dict_mts = read_all_datasets(root_dir, archive_name='mts_archive')
     datasets_dict = dict(datasets_dict_ucr, **datasets_dict_mts)
 
@@ -521,7 +540,8 @@ def viz_perf_classes(root_dir, df):
 def viz_perf_length(root_dir, df):
     df_lengths = df.copy()
     lengths = []
-    datasets_dict_ucr = read_all_datasets(root_dir, archive_name='UCR_TS_Archive_2015')
+    datasets_dict_ucr = read_all_datasets(
+        root_dir, archive_name='UCR_TS_Archive_2015')
     datasets_dict_mts = read_all_datasets(root_dir, archive_name='mts_archive')
     datasets_dict = dict(datasets_dict_ucr, **datasets_dict_mts)
 
@@ -546,7 +566,8 @@ def viz_perf_length(root_dir, df):
 def viz_plot(root_dir, df):
     df_lengths = df.copy()
     lengths = []
-    datasets_dict_ucr = read_all_datasets(root_dir, archive_name='UCR_TS_Archive_2015')
+    datasets_dict_ucr = read_all_datasets(
+        root_dir, archive_name='UCR_TS_Archive_2015')
     datasets_dict_mts = read_all_datasets(root_dir, archive_name='mts_archive')
     datasets_dict = dict(datasets_dict_ucr, **datasets_dict_mts)
 
@@ -615,14 +636,16 @@ def viz_cam(root_dir):
         root_dir + 'results/' + classifier + '/' + archive_name + '/' + dataset_name + '/best_model.hdf5')
 
     # filters
-    w_k_c = model.layers[-1].get_weights()[0]  # weights for each filter k for each class c
+    # weights for each filter k for each class c
+    w_k_c = model.layers[-1].get_weights()[0]
 
     # the same input
     new_input_layer = model.inputs
     # output is both the original as well as the before last layer
     new_output_layer = [model.layers[-3].output, model.layers[-1].output]
 
-    new_feed_forward = keras.backend.function(new_input_layer, new_output_layer)
+    new_feed_forward = keras.backend.function(
+        new_input_layer, new_output_layer)
 
     classes = np.unique(y_train)
 
@@ -655,7 +678,8 @@ def viz_cam(root_dir):
                 #     continue
                 f = interp1d(range(ts.shape[1]), cas)
                 cas = f(x).astype(int)
-                plt.scatter(x=x, y=y, c=cas, cmap='jet', marker='.', s=2, vmin=0, vmax=100, linewidths=0.0)
+                plt.scatter(x=x, y=y, c=cas, cmap='jet', marker='.',
+                            s=2, vmin=0, vmax=100, linewidths=0.0)
                 if dataset_name == 'Gun_Point':
                     if c == 1:
                         plt.yticks([-1.0, 0.0, 1.0, 2.0])

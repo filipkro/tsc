@@ -99,15 +99,19 @@ class Classifier_INCEPTION:
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D(name='cam')(x)
 
         output_layer = keras.layers.Dense(
-            nb_classes, activation='softmax')(gap_layer)
+            nb_classes, activation='softmax', name='result')(gap_layer)
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = keras.models.Model(inputs=input_layer,
+                                   outputs=[output_layer, gap_layer])
 
-        model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
-                      metrics=['accuracy'])
+        # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
+        #               metrics=['accuracy'])
+        model.compile(loss=['categorical_crossentropy', None],
+                      optimizer=keras.optimizers.Adam(self.lr), metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50,
                                                       min_lr=0.0001)
@@ -141,7 +145,7 @@ class Classifier_INCEPTION:
 
         self.model.save(self.output_directory + 'last_model.hdf5')
 
-        y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
+        y_pred, gap = self.predict(x_val, y_true, x_train, y_train, y_val,
                               return_df_metrics=False)
 
         # save predictions
@@ -161,7 +165,7 @@ class Classifier_INCEPTION:
         start_time = time.time()
         model_path = self.output_directory + 'best_model.hdf5'
         model = keras.models.load_model(model_path)
-        y_pred = model.predict(x_test, batch_size=self.batch_size)
+        y_pred, gap = model.predict(x_test, batch_size=self.batch_size)
 
         if return_df_metrics:
             y_pred = np.argmax(y_pred, axis=1)
