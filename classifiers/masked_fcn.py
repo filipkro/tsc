@@ -13,7 +13,7 @@ from utils.utils import calculate_metrics
 class Classifier_FCN:
 
     def __init__(self, output_directory, input_shape, nb_classes, nb_layers=4,
-                 kernel_size=21, filters=64 verbose=2, build=True):
+                 kernel_size=21, filters=64, verbose=2, build=True):
         self.output_directory = output_directory
         self.nb_layers = nb_layers
         self.kernel_size = kernel_size
@@ -48,9 +48,11 @@ class Classifier_FCN:
         output_layer = keras.layers.Dense(nb_classes,
                                           activation='softmax')(gap_layer)
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = keras.models.Model(inputs=input_layer,
+                                   outputs=[output_layer, gap_layer])
 
-        model.compile(loss='categorical_crossentropy',
+        model.compile(loss=['categorical_crossentropy', None],
                       optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
@@ -106,6 +108,7 @@ class Classifier_FCN:
         model_path = self.output_directory + 'best_model.hdf5'
         model = keras.models.load_model(model_path)
         y_pred = model.predict(x_test)
+
         if return_df_metrics:
             y_pred = np.argmax(y_pred, axis=1)
             df_metrics = calculate_metrics(y_true, y_pred, 0.0)

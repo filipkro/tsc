@@ -119,7 +119,7 @@ def main(args):
         print('Already done')
     else:
         create_directory(output_directory)
-        fit_classifier(args.dataset, args.train_fp, classifier_name,
+        fit_classifier(args.dataset, args.train_idx, classifier_name,
                        output_directory)
         print('DONE')
 
@@ -133,5 +133,6 @@ if __name__ == '__main__':
     parser.add_argument('classifier')
     parser.add_argument('itr')
     parser.add_argument('--train_idx', default='')
-    parser.add_argument('--archive', defaullt='VA')
+    parser.add_argument('--archive', default='VA')
+    args = parser.parse_args()
     main(args)
