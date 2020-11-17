@@ -8,6 +8,7 @@ from utils.utils import save_logs
 from utils.utils import calculate_metrics
 from utils.utils import save_test_duration
 import os
+from keras.utils.layer_utils import count_params
 
 
 class Classifier_INCEPTION:
@@ -29,21 +30,24 @@ class Classifier_INCEPTION:
         self.lr = lr
         self.verbose = verbose
 
-        model_hyper = {'filters': nb_filters, 'residuals': use_residual,
-                       'bottleneck': use_bottleneck, 'depth': depth,
-                       'kernel_size': kernel_size, 'batch_size': batch_size,
-                       'bottleneck_size': self.bottleneck_size,
-                       'classes': nb_classes, 'input_shape': input_shape}
-
-        f = open(os.path.join(self.output_directory, 'hyperparams.txt'), "w")
-        f.write(str(model_hyper))
-        f.close()
-
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
             if (verbose == True):
                 self.model.summary()
             self.model.save_weights(self.output_directory + 'model_init.hdf5')
+
+        trainable_count = count_params(self.model.trainable_weights)
+
+        model_hyper = {'filters': nb_filters, 'residuals': use_residual,
+                       'bottleneck': use_bottleneck, 'depth': depth,
+                       'kernel_size': kernel_size, 'batch_size': batch_size,
+                       'bottleneck_size': self.bottleneck_size,
+                       'classes': nb_classes, 'input_shape': input_shape,
+                       'trainable_params': trainable_count}
+
+        f = open(os.path.join(self.output_directory, 'hyperparams.txt'), "w")
+        f.write(str(model_hyper))
+        f.close()
 
     def _inception_module(self, input_tensor, stride=1, activation='linear'):
 

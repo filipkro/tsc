@@ -14,6 +14,7 @@ def plot_confusion_matrix(cm, classes,
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
+    plt.figure()
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
@@ -55,17 +56,28 @@ def main(args):
     train_idx = np.load(args.train)
     x = dataset['mts']
     y = dataset['labels']
-    x = np.delete(x, train_idx, axis=0)
-    y = np.delete(y, train_idx)
+    x_tv = np.delete(x, train_idx, axis=0)
+    y_tv = np.delete(y, train_idx)
 
+    if args.test_idx != '':
+        test_idx = np.load(args.test_idx)
+        x_test = x_tv[test_idx, ...]
+        y_test = y_tv[test_idx]
+
+
+    x = x_test
+    y = y_test
     print(x.shape)
     print(y.shape)
+    plot_all = False
 
     model_path = os.path.join(args.root, 'best_model.hdf5')
     model = keras.models.load_model(model_path)
     y_pred_like, cam = model.predict(x)
+    y_pred_like_tv, cam_tv = model.predict(x_tv)
 
     y_pred = np.argmax(y_pred_like, axis=1)
+    y_pred_tv = np.argmax(y_pred_like_tv, axis=1)
 
     print('correct:', y)
     print('predicted:', y_pred)
@@ -82,31 +94,36 @@ def main(args):
     plot_confusion_matrix(cnf_matrix, classes=['0','1','2'],
                           title='Confusion matrix, without normalization')
 
-    for i in range(len(y)//2):
-        fig, axs = plt.subplots(x.shape[2])
-        # print(axs)
-        # if x.shape[2] <= 1:
-        #     axs = np.array(axs)
-        # print(axs)
-        max_idx = np.where(x[i, :, 0] < -900)[0][0]
-        # plt.plot(x[:max_idx,0])
-        if x.shape[2] > 1:
-            for j in range(x.shape[2]):
-                axs[j].plot(x[i,:max_idx,j])
-                sc = axs[j].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,j], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
-                axs[j].set_axis_off()
-            cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
-        else:
-            axs.plot(x[i,:max_idx,0])
-            sc = axs.scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,0], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
-            axs.set_axis_off()
-            cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
+    cnf_matrix = confusion_matrix(y_tv, y_pred_tv)
+    np.set_printoptions(precision=2)
+    plot_confusion_matrix(cnf_matrix, classes=['0','1','2'],
+                          title='Confusion matrix, without normalization')
+    if plot_all:
+        for i in range(len(y)//2):
+            fig, axs = plt.subplots(x.shape[2])
+            # print(axs)
+            # if x.shape[2] <= 1:
+            #     axs = np.array(axs)
+            # print(axs)
+            max_idx = np.where(x[i, :, 0] < -900)[0][0]
+            # plt.plot(x[:max_idx,0])
+            if x.shape[2] > 1:
+                for j in range(x.shape[2]):
+                    axs[j].plot(x[i,:max_idx,j])
+                    sc = axs[j].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,j], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+                    axs[j].set_axis_off()
+                cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+            else:
+                axs.plot(x[i,:max_idx,0])
+                sc = axs.scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,0], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+                axs.set_axis_off()
+                cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
 
 
-        # sc.set_clim(0,1)
-        # sc.set_cmap('cool')
+            # sc.set_clim(0,1)
+            # sc.set_cmap('cool')
 
-        plt.title('Class {}, predicted as {}'.format(y[i], y_pred[i]))
+            plt.title('Class {}, predicted as {}'.format(y[i], y_pred[i]))
 
     plt.show()
 
@@ -127,5 +144,6 @@ if __name__ == '__main__':
     parser.add_argument('dataset')
     parser.add_argument('train')
     parser.add_argument('root')
+    parser.add_argument('--test_idx', default='')
     args = parser.parse_args()
     main(args)
