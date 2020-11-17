@@ -7,7 +7,7 @@ import utils
 from argparse import ArgumentParser
 
 
-def fit_classifier(dp, tp, classifier_name, output_directory):
+def fit_classifier(dp, trp, tep, classifier_name, output_directory):
 
     dataset = np.load(dp)
 
@@ -16,15 +16,22 @@ def fit_classifier(dp, tp, classifier_name, output_directory):
 
     print('x shape::', x.shape)
 
-    train_size = int(np.round(0.9 * len(y)))
+    train_size = int(np.round(0.85 * len(y)))
 
-    train_idx = np.load(tp) if tp != '' else np.random.choice(len(y),
-                                                              train_size,
-                                                              replace=False)
+    train_idx = np.load(trp) if trp != '' else np.random.choice(len(y),
+                                                                train_size,
+                                                                replace=False)
+    train_idx = np.random.choice(len(y), train_size, replace=False)
     x_train = x[train_idx, ...]
-    x_test = np.delete(x, train_idx, axis=0)
+    x = np.delete(x, train_idx, axis=0)
     y_train = y[train_idx]
-    y_test = np.delete(y, train_idx)
+    y = np.delete(y, train_idx)
+    test_size = int(np.round(0.5 * len(y)))
+    test_idx = np.load(tep) if tep != '' else np.random.choice(len(y),
+                                                               test_size,
+                                                               replace=False)
+    y_test = np.delete(y, test_idx)
+    x_test = np.delete(x, test_idx, axis=0)
 
     nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
     print(nb_classes)
@@ -121,8 +128,8 @@ def main(args):
         print('Already done')
     else:
         create_directory(output_directory)
-        fit_classifier(args.dataset, args.train_idx, classifier_name,
-                       output_directory)
+        fit_classifier(args.dataset, args.train_idx, args.test_idx,
+                       classifier_name, output_directory)
         print('DONE')
 
         create_directory(output_directory + '/DONE')
@@ -135,6 +142,7 @@ if __name__ == '__main__':
     parser.add_argument('classifier')
     parser.add_argument('itr')
     parser.add_argument('--train_idx', default='')
+    parser.add_argument('--test_idx', default='')
     parser.add_argument('--archive', default='VA')
     args = parser.parse_args()
     main(args)

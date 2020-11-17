@@ -39,7 +39,6 @@ class Classifier_INCEPTION:
         f.write(str(model_hyper))
         f.close()
 
-
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
             if (verbose == True):
@@ -101,10 +100,11 @@ class Classifier_INCEPTION:
                 input_res = x
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(x)
-        cam = keras.layers.GlobalAveragePooling1D(data_format='channels_first', name='cam')(x)
+        cam = keras.layers.GlobalAveragePooling1D(
+            data_format='channels_first', name='cam')(x)
 
         output_layer = keras.layers.Dense(
-            nb_classes, activation='softmax', name='result')(gap_layer)
+            nb_classes, activation='softmax', name='result')(cam)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
@@ -120,7 +120,7 @@ class Classifier_INCEPTION:
 
         file_path = self.output_directory + 'best_model.hdf5'
 
-        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='loss',
+        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_result_accuracy',
                                                            save_best_only=True)
 
         self.callbacks = [reduce_lr, model_checkpoint]
@@ -148,7 +148,7 @@ class Classifier_INCEPTION:
         self.model.save(self.output_directory + 'last_model.hdf5')
 
         y_pred, cam = self.predict(x_val, y_true, x_train, y_train, y_val,
-                              return_df_metrics=False)
+                                   return_df_metrics=False)
 
         # save predictions
         np.save(self.output_directory + 'y_pred.npy', y_pred)
