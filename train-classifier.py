@@ -103,13 +103,17 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
 
 def main(args):
     classifier_name = args.classifier.replace('_', '-')
-    rate = args.dataset.split('-')[-1].split('.')[0]
-
+    # rate = args.dataset.split('-')[-1].split('.')[0]
+    lit = os.path.basename(args.dataset).split('_')[1].split('.')[0]
     if args.itr == '_itr_0':
         args.itr = ''
 
-    output_directory = args.root + '/' + classifier_name + '/' + rate + '-' \
-        + args.archive + args.itr + '/'
+
+
+    output_directory = args.root + '/' + classifier_name + '/' + lit + '/' \
+        + lit + args.itr + '/'
+
+    print(output_directory)
 
     test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
