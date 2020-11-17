@@ -25,7 +25,7 @@ class Classifier_INCEPTION:
         self.kernel_size = kernel_size - 1
         self.callbacks = None
         self.batch_size = batch_size
-        self.bottleneck_size = 32
+        self.bottleneck_size = 16 
         self.nb_epochs = nb_epochs
         self.lr = lr
         self.verbose = verbose
