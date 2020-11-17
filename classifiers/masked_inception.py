@@ -13,7 +13,7 @@ import os
 class Classifier_INCEPTION:
 
     def __init__(self, output_directory, input_shape, nb_classes, verbose=False, build=True, batch_size=64, lr=0.001,
-                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=5):
+                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=2000):
 
         self.output_directory = output_directory
 
@@ -29,15 +29,16 @@ class Classifier_INCEPTION:
         self.lr = lr
         self.verbose = verbose
 
-        # model_hyper = {'filters': nb_filters, 'residuals': use_residual,
-        #                'bottleneck': use_bottleneck, 'depth': depth,
-        #                'kernel_size': kernel_size, 'batch_size': batch_size,
-        #                'bottleneck_size': self.bottleneck_size,
-        #                'classes': nb_classes, 'input_shape': input_shape}
-        #
-        # f = open(os.path.joint(self.output_directory, 'hyperparams.pkl', "wb")
-        # pickle.dump(model_hyper, f)
-        # f.close()
+        model_hyper = {'filters': nb_filters, 'residuals': use_residual,
+                       'bottleneck': use_bottleneck, 'depth': depth,
+                       'kernel_size': kernel_size, 'batch_size': batch_size,
+                       'bottleneck_size': self.bottleneck_size,
+                       'classes': nb_classes, 'input_shape': input_shape}
+
+        f = open(os.path.join(self.output_directory, 'hyperparams.txt'), "w")
+        f.write(str(model_hyper))
+        f.close()
+
 
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)

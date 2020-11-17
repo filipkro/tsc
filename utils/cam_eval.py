@@ -40,6 +40,15 @@ def plot_confusion_matrix(cm, classes,
     plt.xlabel('Predicted label')
 
 
+def plot_w_cam(x, cam, y_pred, y_true):
+    max_idx = np.where(x[:, 0] < -900)[0][0]
+    # plt.plot(x[:max_idx,0])
+    plt.plot(x[:max_idx,0])
+    sc = plt.scatter(np.linspace(0, max_idx-1, max_idx),x[:max_idx,0], c=cam[:max_idx])
+    plt.colorbar(sc)
+    plt.show()
+
+
 
 def main(args):
     dataset = np.load(args.dataset)
@@ -64,19 +73,46 @@ def main(args):
 
     print(cam)
     print(cam.shape)
+    cam = cam / (np.max(cam) - np.min(cam)) - np.min(cam)
+
+    # plot_w_cam(x[3,...], cam[3,:], y_pred[1], y[1])
 
     cnf_matrix = confusion_matrix(y, y_pred)
     np.set_printoptions(precision=2)
 
-    # Plot non-normalized confusion matrix
-    plt.figure()
-    plot_confusion_matrix(cnf_matrix, classes=['0','1','2'],
-                          title='Confusion matrix, without normalization')
+    for i in range(len(y)//2):
+        fig, axs = plt.subplots(2)
+        max_idx = np.where(x[i, :, 0] < -900)[0][0]
+        # plt.plot(x[:max_idx,0])
+        axs[0].plot(x[i,:max_idx,0])
+        axs[1].plot(x[i,:max_idx,1])
+        sc = axs[0].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,0], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+        axs[0].set_axis_off()
+        # sc.set_clim(0,1)
+        # sc.set_cmap('cool')
+        # fig.colorbar(sc)
+        sc = axs[1].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,1], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+        axs[0].set_axis_off()
 
-    plt.figure()
-    plt.plot(x[:,:,0].T)
+
+        cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+        # sc.set_clim(0,1)
+        # sc.set_cmap('cool')
+    
+        plt.title('Class {}, predicted as {}'.format(y[i], y_pred[i]))
 
     plt.show()
+
+
+    # Plot non-normalized confusion matrix
+    # plt.figure()
+    # plot_confusion_matrix(cnf_matrix, classes=['0','1','2'],
+    #                       title='Confusion matrix, without normalization')
+    #
+    # plt.figure()
+    # plt.plot(x[:,:,0].T)
+    #
+    # plt.show()
 
 
 if __name__ == '__main__':
