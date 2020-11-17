@@ -14,7 +14,7 @@ from keras.utils.layer_utils import count_params
 class Classifier_INCEPTION:
 
     def __init__(self, output_directory, input_shape, nb_classes, verbose=False, build=True, batch_size=64, lr=0.001,
-                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=2000):
+                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=2000, bottle_neck_size=32):
 
         self.output_directory = output_directory
 
@@ -25,7 +25,7 @@ class Classifier_INCEPTION:
         self.kernel_size = kernel_size - 1
         self.callbacks = None
         self.batch_size = batch_size
-        self.bottleneck_size = 32
+        self.bottleneck_size = bottle_neck_size
         self.nb_epochs = nb_epochs
         self.lr = lr
         self.verbose = verbose
