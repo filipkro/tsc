@@ -13,8 +13,10 @@ from keras.utils.layer_utils import count_params
 
 class Classifier_INCEPTION:
 
-    def __init__(self, output_directory, input_shape, nb_classes, verbose=False, build=True, batch_size=64, lr=0.001,
-                 nb_filters=32, use_residual=True, use_bottleneck=True, depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32):
+    def __init__(self, output_directory, input_shape, nb_classes,
+                 verbose=False, build=True, batch_size=64, lr=0.001,
+                 nb_filters=32, use_residual=True, use_bottleneck=True,
+                 depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32):
 
         self.output_directory = output_directory
 
@@ -117,14 +119,14 @@ class Classifier_INCEPTION:
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
         model.compile(loss=['categorical_crossentropy', None],
-                      optimizer=keras.optimizers.Adam(self.lr), metrics=['accuracy'])
+                      optimizer=keras.optimizers.Adam(self.lr), metrics=['accuracy', [None]])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50,
                                                       min_lr=0.0001)
 
         file_path = self.output_directory + 'best_model.hdf5'
 
-        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_result_accuracy',
+        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_loss',
                                                            save_best_only=True)
 
         self.callbacks = [reduce_lr, model_checkpoint]

@@ -69,7 +69,7 @@ def main(args):
     y = y_test
     print(x.shape)
     print(y.shape)
-    plot_all = False
+    plot_all = True
 
     model_path = os.path.join(args.root, 'best_model.hdf5')
     model = keras.models.load_model(model_path)
@@ -111,12 +111,12 @@ def main(args):
                 for j in range(x.shape[2]):
                     axs[j].plot(x[i,:max_idx,j])
                     sc = axs[j].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,j], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
-                    axs[j].set_axis_off()
+                    # axs[j].set_axis_off()
                 cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
             else:
                 axs.plot(x[i,:max_idx,0])
                 sc = axs.scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,0], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
-                axs.set_axis_off()
+                # axs.set_axis_off()
                 cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
 
 
