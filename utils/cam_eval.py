@@ -79,26 +79,33 @@ def main(args):
 
     cnf_matrix = confusion_matrix(y, y_pred)
     np.set_printoptions(precision=2)
+    plot_confusion_matrix(cnf_matrix, classes=['0','1','2'],
+                          title='Confusion matrix, without normalization')
 
     for i in range(len(y)//2):
-        fig, axs = plt.subplots(2)
+        fig, axs = plt.subplots(x.shape[2])
+        # print(axs)
+        # if x.shape[2] <= 1:
+        #     axs = np.array(axs)
+        # print(axs)
         max_idx = np.where(x[i, :, 0] < -900)[0][0]
         # plt.plot(x[:max_idx,0])
-        axs[0].plot(x[i,:max_idx,0])
-        axs[1].plot(x[i,:max_idx,1])
-        sc = axs[0].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,0], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
-        axs[0].set_axis_off()
-        # sc.set_clim(0,1)
-        # sc.set_cmap('cool')
-        # fig.colorbar(sc)
-        sc = axs[1].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,1], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
-        axs[0].set_axis_off()
+        if x.shape[2] > 1:
+            for j in range(x.shape[2]):
+                axs[j].plot(x[i,:max_idx,j])
+                sc = axs[j].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,j], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+                axs[j].set_axis_off()
+            cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+        else:
+            axs.plot(x[i,:max_idx,0])
+            sc = axs.scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,0], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+            axs.set_axis_off()
+            cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
 
 
-        cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
         # sc.set_clim(0,1)
         # sc.set_cmap('cool')
-    
+
         plt.title('Class {}, predicted as {}'.format(y[i], y_pred[i]))
 
     plt.show()
