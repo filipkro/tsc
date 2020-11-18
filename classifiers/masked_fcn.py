@@ -31,8 +31,8 @@ class Classifier_FCN:
             self.model.save_weights(self.output_directory + 'model_init.hdf5')
 
         trainable_count = count_params(self.model.trainable_weights)
-        model_hyper = {'model': 'masked-fcn', 'filters': nb_filters,
-                       'depth': deoth, 'kernel_size': kernel_size,
+        model_hyper = {'model': 'masked-fcn', 'filters': filters,
+                       'depth': depth, 'kernel_size': kernel_size,
                        'batch_size': batch_size, 'classes': nb_classes,
                        'input_shape': input_shape, 'epochs': nb_epochs,
                        'trainable_params': trainable_count}
