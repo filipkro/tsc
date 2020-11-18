@@ -59,21 +59,23 @@ class Classifier_RESNET:
     def build_model(self, input_shape, nb_classes):
 
         input_layer = keras.layers.Input(input_shape)
-        x = keras.layers.Masking(mask_value=-1000)(input_layer)
+        masked_layer = keras.layers.Masking(mask_value=-1000,
+                                            name='mask')(input_layer)
+        x = masked_layer
         # BLOCK 1
-        for i in range(depth):
-            conv_x = keras.layers.Conv1D(ilters=self.n_feature_maps,
+        for i in range(self.depth):
+            conv_x = keras.layers.Conv1D(filters=self.n_feature_maps,
                                          kernel_size=8,
                                          padding='same')(x)
             conv_x = keras.layers.BatchNormalization()(conv_x)
             conv_x = keras.layers.Activation('relu')(conv_x)
 
-            conv_y = keras.layers.Conv1D(ilters=self.n_feature_maps,
+            conv_y = keras.layers.Conv1D(filters=self.n_feature_maps,
                                          kernel_size=5, padding='same')(conv_x)
             conv_y = keras.layers.BatchNormalization()(conv_y)
             conv_y = keras.layers.Activation('relu')(conv_y)
 
-            conv_z = keras.layers.Conv1D(ilters=self.n_feature_maps,
+            conv_z = keras.layers.Conv1D(filters=self.n_feature_maps,
                                          kernel_size=3, padding='same')(conv_y)
             conv_z = keras.layers.BatchNormalization()(conv_z)
 
@@ -96,9 +98,9 @@ class Classifier_RESNET:
                                           activation='softmax')(gap_layer)
 
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, cam])
+                                   outputs=[output_layer, cam, masked_layer])
 
-        model.compile(loss=['categorical_crossentropy', None],
+        model.compile(loss=['categorical_crossentropy', None, None],
                       optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
@@ -132,8 +134,10 @@ class Classifier_RESNET:
 
         self.model.save(self.output_directory + 'last_model.hdf5')
 
-        y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
-                              return_df_metrics=False)
+        y_pred, cam, mask = model.predict(x_val)
+
+        # y_pred, cam, mask = self.predict(x_val, y_true, x_train, y_train, y_val,
+        #                       return_df_metrics=False)
 
         # save predictions
         np.save(self.output_directory + 'y_pred.npy', y_pred)

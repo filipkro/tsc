@@ -51,8 +51,9 @@ class Classifier_FCN:
         print('building model')
         input_layer = keras.layers.Input(input_shape)
 
-        x = keras.layers.Masking(mask_value=-1000)(input_layer)
-
+        masked_layer = keras.layers.Masking(mask_value=-1000,
+                                            name='mask')(input_layer)
+        x = masked_layer
         for kern in kernel_size_s:
             x = keras.layers.Conv1D(filters=self.filters, kernel_size=kern,
                                     padding='same')(x)
@@ -71,9 +72,9 @@ class Classifier_FCN:
         # model.compile(loss='categorical_crossentropy',
         #               optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, cam])
+                                   outputs=[output_layer, cam, masked_layer])
 
-        model.compile(loss=['categorical_crossentropy', None],
+        model.compile(loss=['categorical_crossentropy', None, None],
                       optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
@@ -118,9 +119,9 @@ class Classifier_FCN:
         model = keras.models.load_model(
             self.output_directory + 'best_model.hdf5')
 
-        y_pred, gap = model.predict(x_val)
+        y_pred, cam, mask = model.predict(x_val)
 
-        print(gap.shape)
+        # print(gap.shape)
         # print(hist.accuracy)
         # convert the predicted from binary to integer
         y_pred = np.argmax(y_pred, axis=1)

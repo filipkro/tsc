@@ -100,7 +100,8 @@ class Classifier_INCEPTION:
 
     def build_model(self, input_shape, nb_classes):
         input_layer = keras.layers.Input(input_shape)
-        masked_layer = keras.layers.Masking(mask_value=-1000)(input_layer)
+        masked_layer = keras.layers.Masking(mask_value=-1000,
+                                            name='mask')(input_layer)
         x = masked_layer
         input_res = masked_layer
 
@@ -121,11 +122,11 @@ class Classifier_INCEPTION:
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, cam])
+                                   outputs=[output_layer, cam, masked_layer])
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        model.compile(loss=['categorical_crossentropy', None],
+        model.compile(loss=['categorical_crossentropy', None, None],
                       optimizer=keras.optimizers.Adam(self.lr),
                       metrics=['accuracy'])
 
@@ -165,7 +166,7 @@ class Classifier_INCEPTION:
 
         self.model.save(self.output_directory + 'last_model.hdf5')
 
-        y_pred, cam = self.predict(x_val, y_true, x_train, y_train, y_val,
+        y_pred, cam, gap = self.predict(x_val, y_true, x_train, y_train, y_val,
                                    return_df_metrics=False)
 
         # save predictions
@@ -187,7 +188,7 @@ class Classifier_INCEPTION:
         start_time = time.time()
         model_path = self.output_directory + 'best_model.hdf5'
         model = keras.models.load_model(model_path)
-        y_pred, cam = model.predict(x_test, batch_size=self.batch_size)
+        y_pred, cam, gap = model.predict(x_test, batch_size=self.batch_size)
 
         if return_df_metrics:
             y_pred = np.argmax(y_pred, axis=1)
@@ -197,4 +198,4 @@ class Classifier_INCEPTION:
             test_duration = time.time() - start_time
             save_test_duration(self.output_directory +
                                'test_duration.csv', test_duration)
-            return y_pred, cam
+            return y_pred, cam, gap
