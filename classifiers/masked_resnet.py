@@ -44,7 +44,7 @@ class Classifier_RESNET:
 
         trainable_count = count_params(self.model.trainable_weights)
         model_hyper = {'model': 'masked-resnet', 'classes': nb_classes,
-                       'input_shape': input_shape, 'depth': depth
+                       'input_shape': input_shape, 'depth': depth,
                        'feature_maps': n_feature_maps, 'epochs': nb_epochs,
                        'trainable_params': trainable_count,
                        'batch_size': batch_size}
