@@ -110,7 +110,7 @@ class Classifier_INCEPTION:
             data_format='channels_first', name='cam')(x)
 
         output_layer = keras.layers.Dense(
-            nb_classes, activation='softmax', name='result')(cam)
+            nb_classes, activation='softmax', name='result')(gap_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
@@ -119,15 +119,15 @@ class Classifier_INCEPTION:
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
         model.compile(loss=['categorical_crossentropy', None],
-                      optimizer=keras.optimizers.Adam(self.lr), metrics=['accuracy', [None]])
+                      optimizer=keras.optimizers.Adam(self.lr), metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5, patience=50,
                                                       min_lr=0.0001)
 
         file_path = self.output_directory + 'best_model.hdf5'
 
-        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_loss',
-                                                           save_best_only=True)
+        model_checkpoint = keras.callbacks.ModelCheckpoint(filepath=file_path, monitor='val_result_accuracy',
+                                                           save_best_only=True, mode='max')
 
         self.callbacks = [reduce_lr, model_checkpoint]
 
