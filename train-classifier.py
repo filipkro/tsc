@@ -113,17 +113,27 @@ def main(args):
     classifier_name = args.classifier.replace('_', '-')
     # rate = args.dataset.split('-')[-1].split('.')[0]
     lit = os.path.basename(args.dataset).split('_')[1].split('.')[0]
-    if args.itr == '_itr_0':
-        args.itr = ''
 
-    output_directory = args.root + '/' + classifier_name + '/' + lit + '/' \
-                + lit + args.itr + '/'
+    root_dir = args.root + '/' + classifier_name + '/' + lit + '/'
+    itr = 0
+    for prev in os.listdir(root_dir):
+        if lit in prev:
+            prev_itr = int(prev.split('_')[2])
+            itr = np.max((itr, prev_itr + 1))
+
+    sitr = '_itr_' + str(itr)
+    if sitr == '_itr_0':
+        sitr = ''
+
+    print(sitr)
+
+    output_directory = root_dir + lit + sitr + '/'
 
     print(output_directory)
 
     test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
-    print('Method: ',  args.archive, args.dataset, classifier_name, args.itr)
+    print('Method: ',  args.archive, args.dataset, classifier_name, sitr)
 
     if os.path.exists(test_dir_df_metrics):
         print('Already done')
@@ -141,7 +151,7 @@ if __name__ == '__main__':
     parser.add_argument('root')
     parser.add_argument('dataset')
     parser.add_argument('classifier')
-    parser.add_argument('itr')
+    # parser.add_argument('itr')
     parser.add_argument('--train_idx', default='')
     parser.add_argument('--test_idx', default='')
     parser.add_argument('--archive', default='VA')
