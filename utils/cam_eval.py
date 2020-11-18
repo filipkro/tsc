@@ -83,9 +83,23 @@ def main(args):
     print('predicted:', y_pred)
     print('predicted:', y_pred_like)
 
+
+    print(np.where(x[0, :, 0] < -900)[0][0])
+    plt.plot(cam[0,:])
+    plt.show()
+
     print(cam)
     print(cam.shape)
-    cam = cam / (np.max(cam) - np.min(cam)) - np.min(cam)
+
+    cmin = 10
+    cmax = -10
+    for i in range(x.shape[0]):
+        idx = np.where(x[i, :, 0] < -900)[0][0]
+        cmin = np.min((cmin, np.min(cam[i,:idx])))
+        cmax = np.max((cmax, np.max(cam[i,:idx])))
+
+    cam = cam / (cmax - cmin) - cmin
+    # print(cam)
 
     # plot_w_cam(x[3,...], cam[3,:], y_pred[1], y[1])
 
