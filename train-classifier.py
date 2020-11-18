@@ -136,7 +136,7 @@ def main(args):
 
     test_dir_df_metrics = output_directory + 'df_metrics.csv'
 
-    print('Method: ',  args.archive, args.dataset, classifier_name, sitr)
+    print('Method: ', args.dataset, classifier_name, sitr)
 
     if os.path.exists(test_dir_df_metrics):
         print('Already done')
