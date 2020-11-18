@@ -25,6 +25,8 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
     x_train = x[train_idx, ...]
     x = np.delete(x, train_idx, axis=0)
     y_train = y[train_idx]
+
+
     y = np.delete(y, train_idx)
     test_size = int(np.round(0.5 * len(y)))
     test_idx = np.load(tep) if tep != '' else np.random.choice(len(y),
@@ -35,12 +37,18 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
 
     nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
     print(nb_classes)
+    print(x_train.shape)
+    print(y_train.shape)
 
     # transform the labels from integers to one hot vectors
     enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
     y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
     y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
+
+    # print(x_train.shape)
+    # print(y_train.shape)
+    # assert False
 
     # save orignal y because later we will use binary
     y_true = np.argmax(y_test, axis=1)
@@ -54,13 +62,15 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
     classifier = create_classifier(
         classifier_name, input_shape, nb_classes, output_directory)
     print('created classifier')
+    print(x_train.shape)
+    print(y_train.shape)
     classifier.fit(x_train, y_train, x_test, y_test, y_true)
 
 
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=2):
     if classifier_name == 'fcn-simple':
         from classifiers import small_fcn
-        return small_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
+        return small_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose, nb_epochs=2)
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
         return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose)
@@ -103,7 +113,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=10000, bottleneck_size=8)
-        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=60000, bottleneck_size=32)
+        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
     if classifier_name == 'inception-simple':
         from classifiers import inception_simple
         return inception_simple.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, kernel_size=31)

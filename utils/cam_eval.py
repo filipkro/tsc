@@ -73,9 +73,27 @@ def main(args):
 
     model_path = os.path.join(args.root, 'best_model.hdf5')
     model = keras.models.load_model(model_path)
-    y_pred_like, cam = model.predict(x)
-    y_pred_like_tv, cam_tv = model.predict(x_tv)
+    # y_pred_like, cam = model.predict(x)
+    # y_pred_like_tv, cam_tv = model.predict(x_tv)
+    result = model.predict(x)
+    result_tv = model.predict(x_tv)
 
+    y_pred_like = result[0]
+    cam = result[1]
+
+    y_pred_like_tv = result_tv[0]
+    cam_tv = result_tv[1]
+
+    masked = False
+    if len(result) > 2:
+        mask = result[2]
+        mask_tv = result_tv[2]
+        masked = True
+
+    print(mask.shape)
+    print(np.where(x[0, :, 0] < -900)[0][0])
+    plt.plot(mask[0,:])
+    plt.show()
     y_pred = np.argmax(y_pred_like, axis=1)
     y_pred_tv = np.argmax(y_pred_like_tv, axis=1)
 

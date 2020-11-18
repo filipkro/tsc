@@ -51,6 +51,10 @@ def fit_classifier():
     y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
     y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
 
+    print(x_train.shape)
+    print(y_train.shape)
+    # assert False
+
     # save orignal y because later we will use binary
     y_true = np.argmax(y_test, axis=1)
 
