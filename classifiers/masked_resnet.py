@@ -20,10 +20,12 @@ class Classifier_RESNET:
 
     def __init__(self, output_directory, input_shape, nb_classes,
                  verbose=False, build=True, load_weights=False,
-                 n_feature_maps=64, depth=3):
+                 n_feature_maps=64, depth=3, nb_epochs=1500, batch_size=64):
         self.output_directory = output_directory
         self.n_feature_maps = n_feature_maps
         self.depth = depth
+        self.nb_epochs = nb_epochs
+        self.batch_size = batch_size
 
         if build == True:
             self.model = self.build_model(input_shape, nb_classes)
@@ -42,8 +44,9 @@ class Classifier_RESNET:
         trainable_count = count_params(self.model.trainable_weights)
         model_hyper = {'model': 'masked-resnet', 'classes': nb_classes,
                        'input_shape': input_shape, 'depth': depth
-                       'feature_maps': n_feature_maps,
-                       'trainable_params': trainable_count}
+                       'feature_maps': n_feature_maps, 'epochs': nb_epochs,
+                       'trainable_params': trainable_count,
+                       'batch_size': batch_size}
 
         f = open(os.path.join(self.output_directory, 'hyperparams.txt'), "w")
         f.write(str(model_hyper))
@@ -115,14 +118,12 @@ class Classifier_RESNET:
             print('error')
             exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
-        batch_size = 64
-        nb_epochs = 1500
 
-        mini_batch_size = int(min(x_train.shape[0] / 10, batch_size))
+        mini_batch_size = int(min(x_train.shape[0] / 10, self.batch_size))
 
         start_time = time.time()
 
-        hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size, epochs=nb_epochs,
+        hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size, epochs=self.nb_epochs,
                               verbose=self.verbose, validation_data=(x_val, y_val), callbacks=self.callbacks)
 
         duration = time.time() - start_time
