@@ -40,9 +40,10 @@ class Classifier_INCEPTION:
 
         trainable_count = count_params(self.model.trainable_weights)
 
-        model_hyper = {'filters': nb_filters, 'residuals': use_residual,
-                       'bottleneck': use_bottleneck, 'depth': depth,
-                       'kernel_size': kernel_size, 'batch_size': batch_size,
+        model_hyper = {'model': 'masked-inception', 'filters': nb_filters,
+                       'residuals': use_residual, 'bottleneck': use_bottleneck,
+                       'depth': depth, 'kernel_size': kernel_size,
+                       'batch_size': batch_size,
                        'bottleneck_size': self.bottleneck_size,
                        'classes': nb_classes, 'input_shape': input_shape,
                        'trainable_params': trainable_count}
