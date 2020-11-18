@@ -63,13 +63,13 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return small_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
-        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose)
+        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
     if classifier_name == 'masked-fcn-big':
         from classifiers import masked_fcn_big
         return masked_fcn_big.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'fcn':
         from classifiers import fcn
-        return fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose, nb_epochs=10000)
+        return fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'mlp':
         from classifiers import mlp
         return mlp.Classifier_MLP(output_directory, input_shape, nb_classes, verbose)
@@ -78,7 +78,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-resnet':
         from classifiers import masked_resnet
-        return masked_resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose, nb_epochs=10000)
+        return masked_resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose, nb_epochs=20000)
     if classifier_name == 'mcnn':
         from classifiers import mcnn
         return mcnn.Classifier_MCNN(output_directory, verbose)
