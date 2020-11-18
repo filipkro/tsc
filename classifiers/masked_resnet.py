@@ -61,19 +61,19 @@ class Classifier_RESNET:
         input_layer = keras.layers.Input(input_shape)
         x = keras.layers.Masking(mask_value=-1000)(input_layer)
         # BLOCK 1
-        for i in range(depth):
-            conv_x = keras.layers.Conv1D(ilters=self.n_feature_maps,
+        for i in range(self.depth):
+            conv_x = keras.layers.Conv1D(filters=self.n_feature_maps,
                                          kernel_size=8,
                                          padding='same')(x)
             conv_x = keras.layers.BatchNormalization()(conv_x)
             conv_x = keras.layers.Activation('relu')(conv_x)
 
-            conv_y = keras.layers.Conv1D(ilters=self.n_feature_maps,
+            conv_y = keras.layers.Conv1D(filters=self.n_feature_maps,
                                          kernel_size=5, padding='same')(conv_x)
             conv_y = keras.layers.BatchNormalization()(conv_y)
             conv_y = keras.layers.Activation('relu')(conv_y)
 
-            conv_z = keras.layers.Conv1D(ilters=self.n_feature_maps,
+            conv_z = keras.layers.Conv1D(filters=self.n_feature_maps,
                                          kernel_size=3, padding='same')(conv_y)
             conv_z = keras.layers.BatchNormalization()(conv_z)
 
