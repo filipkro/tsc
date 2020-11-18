@@ -12,6 +12,7 @@ import pickle
 
 import matplotlib
 from utils.utils import save_test_duration
+from keras.utils.layer_utils import count_params
 
 matplotlib.use('agg')
 

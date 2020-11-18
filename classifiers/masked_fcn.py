@@ -8,6 +8,7 @@ import time
 
 from utils.utils import save_logs
 from utils.utils import calculate_metrics
+from keras.utils.layer_utils import count_params
 
 
 class Classifier_FCN:
