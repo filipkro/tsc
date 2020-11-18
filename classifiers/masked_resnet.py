@@ -9,6 +9,7 @@ import tensorflow as tf
 import numpy as np
 import time
 import pickle
+import os
 
 import matplotlib
 from utils.utils import save_test_duration
@@ -91,7 +92,7 @@ class Classifier_RESNET:
         cam = keras.layers.GlobalAveragePooling1D(data_format='channels_first',
                                                   name='cam')(x)
 
-        output_layer = keras.layers.Dense(nb_classes, name='result'
+        output_layer = keras.layers.Dense(nb_classes, name='result',
                                           activation='softmax')(gap_layer)
 
         model = keras.models.Model(inputs=input_layer,
