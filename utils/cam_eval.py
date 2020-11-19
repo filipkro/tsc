@@ -52,7 +52,14 @@ def plot_w_cam(x, cam, y_pred, y_true):
 
 
 def main(args):
-    dataset = np.load(args.dataset)
+    if args.dataset != '':
+        dataset = np.load(args.dataset)
+    else:
+        print(os.path.basename(args.root).split('_')[0])
+        lit = os.path.basename(args.root).split('_')[0]
+        dp = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '.npz'
+        dataset = np.load(dp)
+
     train_idx = np.load(args.train)
     x = dataset['mts']
     y = dataset['labels']
@@ -90,10 +97,10 @@ def main(args):
         mask_tv = result_tv[2]
         masked = True
 
-    print(mask.shape)
-    print(np.where(x[0, :, 0] < -900)[0][0])
-    plt.plot(mask[0,:])
-    plt.show()
+        print(mask.shape)
+        print(np.where(x[0, :, 0] < -900)[0][0])
+        plt.plot(mask[0,:])
+        plt.show()
     y_pred = np.argmax(y_pred_like, axis=1)
     y_pred_tv = np.argmax(y_pred_like_tv, axis=1)
 
@@ -173,9 +180,9 @@ def main(args):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('dataset')
     parser.add_argument('train')
     parser.add_argument('root')
+    parser.add_argument('--dataset', default='')
     parser.add_argument('--test_idx', default='')
     args = parser.parse_args()
     main(args)

@@ -50,6 +50,7 @@ class Classifier_FCN:
                          in np.linspace(self.kernel_size, 1, self.depth)]
         print('building model')
         input_layer = keras.layers.Input(input_shape)
+        mask_test = keras.layers.Masking(mask_value=-1000)(input_layer)
 
         masked_layer = keras.layers.Masking(mask_value=-1000,
                                             name='mask')(input_layer)
@@ -60,7 +61,7 @@ class Classifier_FCN:
             x = keras.layers.BatchNormalization()(x)
             x = keras.layers.Activation(activation='relu')(x)
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
         cam = keras.layers.GlobalAveragePooling1D(data_format='channels_first',
                                                   name='cam')(x)
 
@@ -72,9 +73,9 @@ class Classifier_FCN:
         # model.compile(loss='categorical_crossentropy',
         #               optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, cam, masked_layer])
+                                   outputs=[output_layer, cam])
 
-        model.compile(loss=['categorical_crossentropy', None, None],
+        model.compile(loss=['categorical_crossentropy', None],
                       optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
@@ -119,9 +120,9 @@ class Classifier_FCN:
         model = keras.models.load_model(
             self.output_directory + 'best_model.hdf5')
 
-        y_pred, cam, mask = model.predict(x_val)
+        y_pred, gap = model.predict(x_val)
 
-        # print(gap.shape)
+        print(gap.shape)
         # print(hist.accuracy)
         # convert the predicted from binary to integer
         y_pred = np.argmax(y_pred, axis=1)
