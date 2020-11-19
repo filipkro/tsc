@@ -23,9 +23,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
 
     x = dataset['mts']
     y = dataset['labels']
-
+    print(trp)
     print('x shape::', x.shape)
-    if trp.split('.')[-1] == '.npz':
+    if trp.split('.')[-1] == 'npz':
         ind = np.load(trp)
         test_idx = ind['test_idx']
         train_idx = ind['train_idx']
