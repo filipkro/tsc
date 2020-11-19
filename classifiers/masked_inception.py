@@ -122,11 +122,11 @@ class Classifier_INCEPTION:
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, cam, masked_layer])
+                                   outputs=[output_layer, cam])
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        model.compile(loss=['categorical_crossentropy', None, None],
+        model.compile(loss=['categorical_crossentropy', None],
                       optimizer=keras.optimizers.Adam(self.lr),
                       metrics=['accuracy'])
 

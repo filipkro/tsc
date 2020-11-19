@@ -27,13 +27,13 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
     print('x shape::', x.shape)
     if trp.split('.')[-1] == 'npz':
         ind = np.load(trp)
-        test_idx = ind['test_idx']
-        train_idx = ind['train_idx']
-        val_idx = ind['val_idx']
+        test_idx = ind['test_idx'].astype(np.int)
+        train_idx = ind['train_idx'].astype(np.int)
+        val_idx = ind['val_idx'].astype(np.int)
         x_train = x[train_idx, ...]
         y_train = y[train_idx]
         x_val = x[val_idx]
-        y_val = v[val_idx]
+        y_val = y[val_idx]
     else:
         train_size = int(np.round(0.85 * len(y)))
         train_idx = np.load(trp) if trp != '' else np.random.choice(len(y),
