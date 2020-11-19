@@ -113,7 +113,7 @@ class Classifier_INCEPTION:
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
         cam = keras.layers.GlobalAveragePooling1D(
             data_format='channels_first', name='cam')(x)
 
@@ -166,7 +166,7 @@ class Classifier_INCEPTION:
 
         self.model.save(self.output_directory + 'last_model.hdf5')
 
-        y_pred, cam = self.predict(x_val, y_true, x_train, y_train, y_val,
+        y_pred, cam, gap = self.predict(x_val, y_true, x_train, y_train, y_val,
                                    return_df_metrics=False)
 
         # save predictions
@@ -188,7 +188,7 @@ class Classifier_INCEPTION:
         start_time = time.time()
         model_path = self.output_directory + 'best_model.hdf5'
         model = keras.models.load_model(model_path)
-        y_pred, cam = model.predict(x_test, batch_size=self.batch_size)
+        y_pred, cam, gap = model.predict(x_test, batch_size=self.batch_size)
 
         if return_df_metrics:
             y_pred = np.argmax(y_pred, axis=1)
@@ -198,4 +198,4 @@ class Classifier_INCEPTION:
             test_duration = time.time() - start_time
             save_test_duration(self.output_directory +
                                'test_duration.csv', test_duration)
-            return y_pred, cam
+            return y_pred, cam, gap

@@ -62,6 +62,7 @@ class Classifier_FCN:
             x = keras.layers.Activation(activation='relu')(x)
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
+        #gap_layer = keras.layers.GlobalAveragePooling1D()(x)
         cam = keras.layers.GlobalAveragePooling1D(data_format='channels_first',
                                                   name='cam')(x)
 

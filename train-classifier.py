@@ -82,7 +82,8 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=2):
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
-        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
+        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=15, filters=32, batch_size=32)
+        #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
     if classifier_name == 'fcn':
         from classifiers import fcn
         return fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
@@ -118,8 +119,11 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
+        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=20000, bottleneck_size=8)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=5, nb_filters=16, kernel_size=21, nb_epochs=30000, bottleneck_size=16)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=60000, bottleneck_size=32)
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=10000, bottleneck_size=8)
-        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
 
 
 def main(args):
