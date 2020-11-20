@@ -82,7 +82,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=2):
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
-        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=30000, kernel_size=15, filters=128, batch_size=32, depth=3)
+        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=30000, kernel_size=32, filters=64, batch_size=32, depth=2)
         #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
         #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=21, filters=32, batch_size=128, depth=3)
     if classifier_name == 'fcn':
