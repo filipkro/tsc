@@ -136,8 +136,10 @@ def main(args):
     print('predicted:', y_pred_like)
 
     print(np.where(x_test[0, :, 0] < -900)[0][0])
-    # make_gradcam_heatmap(np.expand_dims(data[0, ...], 0), model, )
-    plt.plot(cam[0, :])
+    hm = make_gradcam_heatmap(np.expand_dims(x_test[0, ...], 0), model, 'concatenate_2',['global_average_pooling1d', 'result'])
+    plt.plot(cam[0, :],label='cam')
+    plt.plot(hm, label='hm')
+    plt.legend()
     plt.show()
 
     print(cam)
