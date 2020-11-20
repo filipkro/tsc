@@ -83,7 +83,7 @@ class Classifier_INCEPTION:
 
         conv_l.append(conv_6)
 
-        x = keras.layers.Concatenate(axis=2)(conv_l)
+        x = keras.layers.Concatenate(axis=2, name='last_feat')(conv_l)
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.Activation(activation='relu')(x)
         return x

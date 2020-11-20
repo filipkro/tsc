@@ -380,7 +380,7 @@ def save_logs(output_directory, hist, y_pred, y_true, duration, lr=True, y_true_
         y_true, y_pred, duration, y_true_val, y_pred_val)
     df_metrics.to_csv(output_directory + 'df_metrics.csv', index=False)
 
-    index_best_model = hist_df['loss'].idxmin()
+    index_best_model = hist_df['val_loss'].idxmin()
     row_best_model = hist_df.loc[index_best_model]
 
     df_best_model = pd.DataFrame(data=np.zeros((1, 6), dtype=np.float), index=[0],

@@ -5,6 +5,8 @@ import os
 import tensorflow.keras as keras
 import matplotlib.pyplot as plt
 import itertools
+from grad_cam import make_gradcam_heatmap
+
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
@@ -44,11 +46,11 @@ def plot_confusion_matrix(cm, classes,
 def plot_w_cam(x, cam, y_pred, y_true):
     max_idx = np.where(x[:, 0] < -900)[0][0]
     # plt.plot(x[:max_idx,0])
-    plt.plot(x[:max_idx,0])
-    sc = plt.scatter(np.linspace(0, max_idx-1, max_idx),x[:max_idx,0], c=cam[:max_idx])
+    plt.plot(x[:max_idx, 0])
+    sc = plt.scatter(np.linspace(0, max_idx - 1, max_idx),
+                     x[:max_idx, 0], c=cam[:max_idx])
     plt.colorbar(sc)
     plt.show()
-
 
 
 def main(args):
@@ -60,29 +62,54 @@ def main(args):
         dp = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '.npz'
         dataset = np.load(dp)
 
-    train_idx = np.load(args.train)
     x = dataset['mts']
     y = dataset['labels']
-    x_tv = np.delete(x, train_idx, axis=0)
-    y_tv = np.delete(y, train_idx)
 
-    if args.test_idx != '':
-        test_idx = np.load(args.test_idx)
-        x_test = x_tv[test_idx, ...]
-        y_test = y_tv[test_idx]
+    if args.train.split('.')[-1] == 'npz':
+        ind = np.load(args.train)
+        test_idx = ind['test_idx'].astype(np.int)
+        train_idx = ind['train_idx'].astype(np.int)
+        val_idx = ind['val_idx'].astype(np.int)
+        x_train = x[train_idx, ...]
+        y_train = y[train_idx]
+        x_val = x[val_idx, ...]
+        y_val = y[val_idx]
+        x_test = x[test_idx, ...]
+        y_test = y[test_idx]
+        print(test_idx)
+        print(y_test)
+        print(y_val)
+        print(y)
+        print(len(y))
 
+        # assert False
 
-    x = x_test
-    y = y_test
+        tv = np.append(test_idx, val_idx)
+        x_tv = x[tv, ...]
+        y_tv = y[tv]
+    else:
+        train_idx = np.load(args.train)
+        x_tv = np.delete(x, train_idx, axis=0)
+        y_tv = np.delete(y, train_idx)
+
+        if args.test_idx != '':
+            test_idx = np.load(args.test_idx)
+            x_test = x_tv[test_idx, ...]
+            y_test = y_tv[test_idx]
+
+    # x = x_test
+    # y = y_test
     print(x.shape)
     print(y.shape)
+    print(x_test.shape)
+    print(y_test.shape)
     plot_all = True
 
     model_path = os.path.join(args.root, 'best_model.hdf5')
     model = keras.models.load_model(model_path)
     # y_pred_like, cam = model.predict(x)
     # y_pred_like_tv, cam_tv = model.predict(x_tv)
-    result = model.predict(x)
+    result = model.predict(x_test)
     result_tv = model.predict(x_tv)
 
     y_pred_like = result[0]
@@ -92,25 +119,25 @@ def main(args):
     cam_tv = result_tv[1]
 
     masked = False
-    if len(result) > 2:
+    if len(result) > 2 and False:
         mask = result[2]
         mask_tv = result_tv[2]
         masked = True
         print(mask.shape)
-        print(np.where(x[0, :, 0] < -900)[0][0])
-        plt.plot(mask[0,:])
+        print(np.where(x_test[0, :, 0] < -900)[0][0])
+        plt.plot(mask[0, :])
         plt.show()
 
     y_pred = np.argmax(y_pred_like, axis=1)
     y_pred_tv = np.argmax(y_pred_like_tv, axis=1)
 
-    print('correct:', y)
+    print('correct:', y_test)
     print('predicted:', y_pred)
     print('predicted:', y_pred_like)
 
-
-    print(np.where(x[0, :, 0] < -900)[0][0])
-    plt.plot(cam[0,:])
+    print(np.where(x_test[0, :, 0] < -900)[0][0])
+    # make_gradcam_heatmap(np.expand_dims(data[0, ...], 0), model, )
+    plt.plot(cam[0, :])
     plt.show()
 
     print(cam)
@@ -118,54 +145,57 @@ def main(args):
 
     cmin = 10
     cmax = -10
-    for i in range(x.shape[0]):
-        idx = np.where(x[i, :, 0] < -900)[0][0]
-        cmin = np.min((cmin, np.min(cam[i,:idx])))
-        cmax = np.max((cmax, np.max(cam[i,:idx])))
+    for i in range(x_test.shape[0]):
+        idx = np.where(x_test[i, :, 0] < -900)[0][0]
+        cmin = np.min((cmin, np.min(cam[i, :idx])))
+        cmax = np.max((cmax, np.max(cam[i, :idx])))
 
     cam = cam / (cmax - cmin) - cmin
     # print(cam)
 
     # plot_w_cam(x[3,...], cam[3,:], y_pred[1], y[1])
 
-    cnf_matrix = confusion_matrix(y, y_pred)
+    cnf_matrix = confusion_matrix(y_test, y_pred)
     np.set_printoptions(precision=2)
-    plot_confusion_matrix(cnf_matrix, classes=['0','1','2'],
+    plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
                           title='Confusion matrix, without normalization')
 
     cnf_matrix = confusion_matrix(y_tv, y_pred_tv)
     np.set_printoptions(precision=2)
-    plot_confusion_matrix(cnf_matrix, classes=['0','1','2'],
+    plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
                           title='Confusion matrix, without normalization')
     if plot_all:
-        for i in range(len(y)//2):
-            fig, axs = plt.subplots(x.shape[2])
+        for i in range(len(y_test) // 2):
+            fig, axs = plt.subplots(x_test.shape[2])
             # print(axs)
             # if x.shape[2] <= 1:
             #     axs = np.array(axs)
             # print(axs)
-            max_idx = np.where(x[i, :, 0] < -900)[0][0]
+            max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
             # plt.plot(x[:max_idx,0])
-            if x.shape[2] > 1:
-                for j in range(x.shape[2]):
-                    axs[j].plot(x[i,:max_idx,j])
-                    sc = axs[j].scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,j], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+            if x_test.shape[2] > 1:
+                for j in range(x_test.shape[2]):
+                    axs[j].plot(x_test[i, :max_idx, j])
+                    sc = axs[j].scatter(np.linspace(0, max_idx - 1, max_idx),
+                                        x_test[i, :max_idx, j],
+                                        c=cam[i, :max_idx], cmap='cool',
+                                        vmin=0, vmax=1)
                     # axs[j].set_axis_off()
                 cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
             else:
-                axs.plot(x[i,:max_idx,0])
-                sc = axs.scatter(np.linspace(0, max_idx-1, max_idx),x[i,:max_idx,0], c=cam[i,:max_idx], cmap='cool', vmin=0, vmax=1)
+                axs.plot(x_test[i, :max_idx, 0])
+                sc = axs.scatter(np.linspace(0, max_idx - 1, max_idx),
+                                 x_test[i, :max_idx, 0], c=cam[i, :max_idx],
+                                 cmap='cool', vmin=0, vmax=1)
                 # axs.set_axis_off()
                 cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
-
 
             # sc.set_clim(0,1)
             # sc.set_cmap('cool')
 
-            plt.title('Class {}, predicted as {}'.format(y[i], y_pred[i]))
+            plt.title('Class {}, predicted as {}'.format(y_test[i], y_pred[i]))
 
     plt.show()
-
 
     # Plot non-normalized confusion matrix
     # plt.figure()

@@ -134,7 +134,7 @@ class Classifier_RESNET:
 
         self.model.save(self.output_directory + 'last_model.hdf5')
 
-        y_pred, cam, mask = model.predict(x_val)
+        y_pred, cam, mask = self.model.predict(x_val)
 
         # y_pred, cam, mask = self.predict(x_val, y_true, x_train, y_train, y_val,
         #                       return_df_metrics=False)
@@ -156,7 +156,7 @@ class Classifier_RESNET:
         start_time = time.time()
         model_path = self.output_directory + 'best_model.hdf5'
         model = keras.models.load_model(model_path)
-        y_pred = model.predict(x_test)
+        y_pred, cam, mask = model.predict(x_test)
         if return_df_metrics:
             y_pred = np.argmax(y_pred, axis=1)
             df_metrics = calculate_metrics(y_true, y_pred, 0.0)
@@ -165,4 +165,4 @@ class Classifier_RESNET:
             test_duration = time.time() - start_time
             save_test_duration(self.output_directory +
                                'test_duration.csv', test_duration)
-            return y_pred
+            return y_pred, cam, mask
