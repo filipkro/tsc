@@ -70,12 +70,19 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
         x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
         x_val = x_val.reshape((x_val.shape[0], x_val.shape[1], 1))
 
+    # print(x_train.shape)
+    # if classifier_name == 'xcm':
+    #     x_train = np.expand_dims(x_train, axis=-1)
+    #     print(x_train.shape)
+
     input_shape = x_train.shape[1:]
     classifier = create_classifier(
         classifier_name, input_shape, nb_classes, output_directory)
     print('created classifier')
     print(x_train.shape)
     print(y_train.shape)
+    print(classifier.model.summary())
+    # assert False
     classifier.fit(x_train, y_train, x_val, y_val, y_true)
 
 
@@ -125,6 +132,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=60000, bottleneck_size=32)
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=10000, bottleneck_size=8)
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
+    if classifier_name == 'xcm':
+        from classifiers import xcm
+        return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
 
 
 def main(args):
