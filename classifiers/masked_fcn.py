@@ -46,7 +46,7 @@ class Classifier_FCN:
     def build_model(self, input_shape, nb_classes,
                     channel_order='channels_first'):
 
-        kernel_size_s = [int(self.kernel_size // i) for i
+        kern_list = [int(self.kernel_size // i) for i
                          in np.linspace(self.kernel_size, 1, self.depth)]
         print('building model')
         input_layer = keras.layers.Input(input_shape)
@@ -55,11 +55,15 @@ class Classifier_FCN:
         masked_layer = keras.layers.Masking(mask_value=-1000,
                                             name='mask')(input_layer)
         x = masked_layer
-        for kern in kernel_size_s:
+        k = 0
+        for kern in kern_list:
+            layer_name = 'last_feat' if k - 1 == len(kern_list) else 'conv_' + str(k)
+            relu_name = 'relu_' + str(k)
+            k += 1
             x = keras.layers.Conv1D(filters=self.filters, kernel_size=kern,
-                                    padding='same')(x)
+                                    padding='same', name=layer_name)(x)
             x = keras.layers.BatchNormalization()(x)
-            x = keras.layers.Activation(activation='relu')(x)
+            x = keras.layers.Activation(activation='relu', name=relu_name)(x)
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
         #gap_layer = keras.layers.GlobalAveragePooling1D()(x)
