@@ -90,7 +90,7 @@ class Classifier_RESNET:
 
         # FINAL
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
         cam = keras.layers.GlobalAveragePooling1D(data_format='channels_first',
                                                   name='cam')(x)
 
