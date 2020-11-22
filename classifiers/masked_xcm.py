@@ -39,9 +39,18 @@ class Classifier_XCM:
         print('after first conv2d: {}'.format(time_feats))
         time_feats = keras.layers.BatchNormalization()(time_feats)
         time_feats = keras.layers.Activation(activation='relu')(time_feats)
+        time_feats = keras.layers.Conv2D(F, (W, 1), padding='same')(input_2d)
+        print('after second conv2d: {}'.format(time_feats))
+        time_feats = keras.layers.BatchNormalization()(time_feats)
+        time_feats = keras.layers.Activation(activation='relu')(time_feats)
+
         time_feats = keras.layers.Conv2D(1, (1, 1), padding='same')(time_feats)
         print('after 1x1 conv2d: {}'.format(time_feats))
 
+        inp_feats = keras.layers.Conv1D(F, W, padding='same')(masked)
+        print('after first conv1d: {}'.format(inp_feats))
+        inp_feats = keras.layers.BatchNormalization()(inp_feats)
+        inp_feats = keras.layers.Activation(activation='relu')(inp_feats)
         inp_feats = keras.layers.Conv1D(F, W, padding='same')(masked)
         print('after first conv1d: {}'.format(inp_feats))
         inp_feats = keras.layers.BatchNormalization()(inp_feats)

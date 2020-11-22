@@ -112,92 +112,111 @@ def main(args):
     result = model.predict(x_test)
     result_tv = model.predict(x_tv)
 
-    y_pred_like = result[0]
-    cam = result[1]
 
-    y_pred_like_tv = result_tv[0]
-    cam_tv = result_tv[1]
+    if len(result) > 3:
+        y_pred = np.argmax(result, axis=1)
+        y_pred_tv = np.argmax(result_tv, axis=1)
 
-    masked = False
-    if len(result) > 2 and False:
-        mask = result[2]
-        mask_tv = result_tv[2]
-        masked = True
-        print(mask.shape)
+        cnf_matrix = confusion_matrix(y_test, y_pred)
+        np.set_printoptions(precision=2)
+        plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
+                              title='Confusion matrix, without normalization')
+
+        cnf_matrix = confusion_matrix(y_tv, y_pred_tv)
+        np.set_printoptions(precision=2)
+        plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
+                              title='Confusion matrix, without normalization')
+
+        plt.show()
+    else:
+
+        y_pred_like = result[0]
+        cam = result[1]
+
+        y_pred_like_tv = result_tv[0]
+        cam_tv = result_tv[1]
+
+        masked = False
+        if len(result) > 2 and False:
+            mask = result[2]
+            mask_tv = result_tv[2]
+            masked = True
+            print(mask.shape)
+            print(np.where(x_test[0, :, 0] < -900)[0][0])
+            plt.plot(mask[0, :])
+            plt.show()
+
+        y_pred = np.argmax(y_pred_like, axis=1)
+        y_pred_tv = np.argmax(y_pred_like_tv, axis=1)
+
+        print('correct:', y_test)
+        print('predicted:', y_pred)
+        print('predicted:', y_pred_like)
+
+        model.summary()
         print(np.where(x_test[0, :, 0] < -900)[0][0])
-        plt.plot(mask[0, :])
+        hm = make_gradcam_heatmap(np.expand_dims(x_test[0, ...], 0), model, 'conv1d_2',['global_average_pooling1d', 'result'])
+        plt.plot(cam[0, :],label='cam')
+        plt.plot(hm, label='hm')
+        plt.legend()
         plt.show()
 
-    y_pred = np.argmax(y_pred_like, axis=1)
-    y_pred_tv = np.argmax(y_pred_like_tv, axis=1)
+        print(cam)
+        print(cam.shape)
 
-    print('correct:', y_test)
-    print('predicted:', y_pred)
-    print('predicted:', y_pred_like)
+        cmin = 10
+        cmax = -10
+        for i in range(x_test.shape[0]):
+            idx = np.where(x_test[i, :, 0] < -900)[0][0]
+            cmin = np.min((cmin, np.min(cam[i, :idx])))
+            cmax = np.max((cmax, np.max(cam[i, :idx])))
 
-    print(np.where(x_test[0, :, 0] < -900)[0][0])
-    hm = make_gradcam_heatmap(np.expand_dims(x_test[0, ...], 0), model, 'concatenate_2',['global_average_pooling1d', 'result'])
-    plt.plot(cam[0, :],label='cam')
-    plt.plot(hm, label='hm')
-    plt.legend()
-    plt.show()
+        cam = cam / (cmax - cmin) - cmin
+        # print(cam)
 
-    print(cam)
-    print(cam.shape)
+        # plot_w_cam(x[3,...], cam[3,:], y_pred[1], y[1])
 
-    cmin = 10
-    cmax = -10
-    for i in range(x_test.shape[0]):
-        idx = np.where(x_test[i, :, 0] < -900)[0][0]
-        cmin = np.min((cmin, np.min(cam[i, :idx])))
-        cmax = np.max((cmax, np.max(cam[i, :idx])))
+        cnf_matrix = confusion_matrix(y_test, y_pred)
+        np.set_printoptions(precision=2)
+        plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
+                              title='Confusion matrix, without normalization')
 
-    cam = cam / (cmax - cmin) - cmin
-    # print(cam)
+        cnf_matrix = confusion_matrix(y_tv, y_pred_tv)
+        np.set_printoptions(precision=2)
+        plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
+                              title='Confusion matrix, without normalization')
+        if plot_all:
+            for i in range(len(y_test) // 2):
+                fig, axs = plt.subplots(x_test.shape[2])
+                # print(axs)
+                # if x.shape[2] <= 1:
+                #     axs = np.array(axs)
+                # print(axs)
+                max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
+                # plt.plot(x[:max_idx,0])
+                if x_test.shape[2] > 1:
+                    for j in range(x_test.shape[2]):
+                        axs[j].plot(x_test[i, :max_idx, j])
+                        sc = axs[j].scatter(np.linspace(0, max_idx - 1, max_idx),
+                                            x_test[i, :max_idx, j],
+                                            c=cam[i, :max_idx], cmap='cool',
+                                            vmin=0, vmax=1)
+                        # axs[j].set_axis_off()
+                    cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+                else:
+                    axs.plot(x_test[i, :max_idx, 0])
+                    sc = axs.scatter(np.linspace(0, max_idx - 1, max_idx),
+                                     x_test[i, :max_idx, 0], c=cam[i, :max_idx],
+                                     cmap='cool', vmin=0, vmax=1)
+                    # axs.set_axis_off()
+                    cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
 
-    # plot_w_cam(x[3,...], cam[3,:], y_pred[1], y[1])
+                # sc.set_clim(0,1)
+                # sc.set_cmap('cool')
 
-    cnf_matrix = confusion_matrix(y_test, y_pred)
-    np.set_printoptions(precision=2)
-    plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
-                          title='Confusion matrix, without normalization')
+                plt.title('Class {}, predicted as {}'.format(y_test[i], y_pred[i]))
 
-    cnf_matrix = confusion_matrix(y_tv, y_pred_tv)
-    np.set_printoptions(precision=2)
-    plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
-                          title='Confusion matrix, without normalization')
-    if plot_all:
-        for i in range(len(y_test) // 2):
-            fig, axs = plt.subplots(x_test.shape[2])
-            # print(axs)
-            # if x.shape[2] <= 1:
-            #     axs = np.array(axs)
-            # print(axs)
-            max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
-            # plt.plot(x[:max_idx,0])
-            if x_test.shape[2] > 1:
-                for j in range(x_test.shape[2]):
-                    axs[j].plot(x_test[i, :max_idx, j])
-                    sc = axs[j].scatter(np.linspace(0, max_idx - 1, max_idx),
-                                        x_test[i, :max_idx, j],
-                                        c=cam[i, :max_idx], cmap='cool',
-                                        vmin=0, vmax=1)
-                    # axs[j].set_axis_off()
-                cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
-            else:
-                axs.plot(x_test[i, :max_idx, 0])
-                sc = axs.scatter(np.linspace(0, max_idx - 1, max_idx),
-                                 x_test[i, :max_idx, 0], c=cam[i, :max_idx],
-                                 cmap='cool', vmin=0, vmax=1)
-                # axs.set_axis_off()
-                cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
-
-            # sc.set_clim(0,1)
-            # sc.set_cmap('cool')
-
-            plt.title('Class {}, predicted as {}'.format(y_test[i], y_pred[i]))
-
-    plt.show()
+        plt.show()
 
     # Plot non-normalized confusion matrix
     # plt.figure()
