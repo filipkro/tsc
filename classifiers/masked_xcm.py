@@ -50,9 +50,9 @@ class Classifier_XCM:
         windows = []
 
         for i in range(self.depth):
-            filters.append(int(self.filters / (i + 1))) if self.decay else \
+            filters.append(int(self.filters / (depth - i))) if self.decay else \
                 filters.append(int(self.filters))
-            windows.append(int(self.window / (depth - i))) if self.decay else \
+            windows.append(int(self.window / (i + 1))) if self.decay else \
                 windows.append(int(self.window))
 
         input_layer = keras.layers.Input(self.input_shape)
