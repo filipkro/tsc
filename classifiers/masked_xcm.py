@@ -98,15 +98,15 @@ class Classifier_XCM:
                                       activation='relu')(conv_1d)
         # conv_1d = tf.keras.backend.expand_dims(conv_1d, axis=-1,
         #                                        name='exp_dims1d')
-        conv_2d = tf.keras.backend.squeeze(conv_2d, -1)#, name='squeeze2d')
+        conv_2d = tf.keras.backend.squeeze(conv_2d, -1)  # , name='squeeze2d')
         print('after 1x1 conv1d: {}'.format(conv_1d))
 
         conv_2d = keras.layers.Lambda((lambda x: x),
                                       name='lambda2d-final')(conv_2d,
-                                                            mask=masked[:, :, 0])
+                                                             mask=masked[:, :, 0])
         conv_1d = keras.layers.Lambda((lambda x: x),
                                       name='lambda1d-final')(conv_1d,
-                                                            mask=masked[:, :, 0])
+                                                             mask=masked[:, :, 0])
         feats = keras.layers.Concatenate(axis=2,
                                          name='concat')([conv_2d, conv_1d])
         # feats = tf.keras.backend.squeeze(feats, -1)
@@ -119,9 +119,11 @@ class Classifier_XCM:
 
         print('before gap: {}'.format(feats))
         gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats,
-                                                          mask=masked[:, :, 0])
-        output_layer = keras.layers.Dense(self.nb_classes, activation='softmax',
+                                                                    mask=masked[:, :, 0])
+        output_layer = keras.layers.Dense(self.nb_classes,
                                           name='result')(gap_layer)
+        output_layer = keras.layers.Activation(activation='softmax',
+                                               name='sm')(output_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(loss='categorical_crossentropy',

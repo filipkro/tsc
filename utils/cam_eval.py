@@ -6,6 +6,8 @@ import tensorflow.keras as keras
 import matplotlib.pyplot as plt
 import itertools
 from grad_cam import make_gradcam_heatmap
+from xcm_grad_cam import make_gradcam_heatmap as xcm_hm
+from grad_test import check_grad
 
 
 def plot_confusion_matrix(cm, classes,
@@ -77,11 +79,11 @@ def main(args):
         y_val = y[val_idx]
         x_test = x[test_idx, ...]
         y_test = y[test_idx]
-        print(test_idx)
-        print(y_test)
-        print(y_val)
-        print(y)
-        print(len(y))
+        # print(test_idx)
+        # print(y_test)
+        # print(y_val)
+        # print(y)
+        # print(len(y))
 
         # assert False
 
@@ -116,9 +118,9 @@ def main(args):
     if len(result) > 3:
         y_pred = np.argmax(result, axis=1)
         y_pred_tv = np.argmax(result_tv, axis=1)
-        print(y_test)
-        print(y_pred)
-        print(result)
+        # print(y_test)
+        # print(y_pred)
+        # print(result)
 
         cnf_matrix = confusion_matrix(y_test, y_pred)
         np.set_printoptions(precision=2)
@@ -131,10 +133,14 @@ def main(args):
                               title='Confusion matrix, without normalization')
         # print(model.summary())
         # plt.show()
-        i = 4
-        print(model.summary())
-        hm = make_gradcam_heatmap(np.expand_dims(x_test[i, ...], 0), model, 'conv1d_3', [
-                                  'global_average_pooling1d', 'result'])
+        i = 3
+        # print(model.summary())
+        check_grad(np.expand_dims(x_test[i, ...], 0), model)
+
+        assert False
+        hm1, hm2 = xcm_hm(np.expand_dims(x_test[i, ...], 0), model)
+        # hm = make_gradcam_heatmap(np.expand_dims(x_test[i, ...], 0), model, 'conv1d_3', [
+        #                           'global_average_pooling1d', 'result'])
         plt.figure()
         plt.plot(hm)
         max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
