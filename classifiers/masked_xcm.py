@@ -56,7 +56,7 @@ class Classifier_XCM:
                 windows.append(int(self.window))
 
         input_layer = keras.layers.Input(self.input_shape)
-        masked = keras.layers.Masking(mask_value=-1000,
+        masked = keras.layers.Masking(mask_value=-100,
                                       name='mask')(input_layer)
 
         conv_2d = tf.keras.backend.expand_dims(masked, axis=-1)
