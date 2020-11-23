@@ -29,17 +29,23 @@ class Classifier_XCM:
 
     def build_model(self):
         F = 16
-        W = 21
+        W = 11
         input_layer = keras.layers.Input(self.input_shape)
         masked = keras.layers.Masking(mask_value=-1000,
                                             name='mask')(input_layer)
         input_2d = tf.keras.backend.expand_dims(masked, axis=-1)
 
-        time_feats = keras.layers.Conv2D(F, (W, 1), padding='same')(input_2d)
+        time_feats = keras.layers.Conv2D(int(F), (W, 1), padding='same')(input_2d)
         print('after first conv2d: {}'.format(time_feats))
         time_feats = keras.layers.BatchNormalization()(time_feats)
         time_feats = keras.layers.Activation(activation='relu')(time_feats)
-        time_feats = keras.layers.Conv2D(F, (W, 1), padding='same')(input_2d)
+
+        time_feats = keras.layers.Conv2D(int(F), (int(W), 1), padding='same')(input_2d)
+        print('after first conv2d: {}'.format(time_feats))
+        time_feats = keras.layers.BatchNormalization()(time_feats)
+        time_feats = keras.layers.Activation(activation='relu')(time_feats)
+
+        time_feats = keras.layers.Conv2D(F, (int(W), 1), padding='same')(input_2d)
         print('after second conv2d: {}'.format(time_feats))
         time_feats = keras.layers.BatchNormalization()(time_feats)
         time_feats = keras.layers.Activation(activation='relu')(time_feats)
@@ -47,12 +53,16 @@ class Classifier_XCM:
         time_feats = keras.layers.Conv2D(1, (1, 1), padding='same')(time_feats)
         print('after 1x1 conv2d: {}'.format(time_feats))
 
-        inp_feats = keras.layers.Conv1D(F, W, padding='same')(masked)
+        inp_feats = keras.layers.Conv1D(int(F), W, padding='same')(masked)
         print('after first conv1d: {}'.format(inp_feats))
         inp_feats = keras.layers.BatchNormalization()(inp_feats)
         inp_feats = keras.layers.Activation(activation='relu')(inp_feats)
-        inp_feats = keras.layers.Conv1D(F, W, padding='same')(masked)
+        inp_feats = keras.layers.Conv1D(int(F), int(W), padding='same')(masked)
         print('after first conv1d: {}'.format(inp_feats))
+        inp_feats = keras.layers.BatchNormalization()(inp_feats)
+        inp_feats = keras.layers.Activation(activation='relu')(inp_feats)
+        inp_feats = keras.layers.Conv1D(F, int(W), padding='same')(masked)
+        print('after third conv1d: {}'.format(inp_feats))
         inp_feats = keras.layers.BatchNormalization()(inp_feats)
         inp_feats = keras.layers.Activation(activation='relu')(inp_feats)
         inp_feats = keras.layers.Conv1D(1, 1, padding='same')(inp_feats)
