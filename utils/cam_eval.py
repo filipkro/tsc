@@ -131,8 +131,9 @@ def main(args):
                               title='Confusion matrix, without normalization')
         # print(model.summary())
         # plt.show()
-        i = 15
-        hm = make_gradcam_heatmap(np.expand_dims(x_test[i, ...], 0), model, 'conv1d_4', [
+        i = 4
+        print(model.summary())
+        hm = make_gradcam_heatmap(np.expand_dims(x_test[i, ...], 0), model, 'conv1d_3', [
                                   'global_average_pooling1d', 'result'])
         plt.figure()
         plt.plot(hm)
