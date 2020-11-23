@@ -30,44 +30,78 @@ class Classifier_XCM:
     def build_model(self):
         F = 16
         W = 11
+        tf.config.experimental_run_functions_eagerly(True)
         input_layer = keras.layers.Input(self.input_shape)
         masked = keras.layers.Masking(mask_value=-1000,
-                                            name='mask')(input_layer)
+                                      name='mask')(input_layer)
+
         input_2d = tf.keras.backend.expand_dims(masked, axis=-1)
 
-        time_feats = keras.layers.Conv2D(int(F), (W, 1), padding='same')(input_2d)
+        time_feats = keras.layers.Conv2D(
+            int(F), (W, 1), padding='same')(input_2d)
         print('after first conv2d: {}'.format(time_feats))
         time_feats = keras.layers.BatchNormalization()(time_feats)
         time_feats = keras.layers.Activation(activation='relu')(time_feats)
 
-        time_feats = keras.layers.Conv2D(int(F), (int(W), 1), padding='same')(input_2d)
+        time_feats = keras.layers.Lambda((lambda x: x))(time_feats,
+                                                        mask=masked[:, :, 0])
+
+        time_feats = keras.layers.Conv2D(
+            int(F), (int(W), 1), padding='same')(input_2d)
         print('after first conv2d: {}'.format(time_feats))
         time_feats = keras.layers.BatchNormalization()(time_feats)
         time_feats = keras.layers.Activation(activation='relu')(time_feats)
 
-        time_feats = keras.layers.Conv2D(F, (int(W), 1), padding='same')(input_2d)
+        time_feats = keras.layers.Lambda((lambda x: x))(time_feats,
+                                                        mask=masked[:, :, 0])
+
+        time_feats = keras.layers.Conv2D(
+            F, (int(W), 1), padding='same')(input_2d)
         print('after second conv2d: {}'.format(time_feats))
         time_feats = keras.layers.BatchNormalization()(time_feats)
         time_feats = keras.layers.Activation(activation='relu')(time_feats)
 
+        time_feats = keras.layers.Lambda((lambda x: x))(time_feats,
+                                                        mask=masked[:, :, 0])
+
         time_feats = keras.layers.Conv2D(1, (1, 1), padding='same')(time_feats)
         print('after 1x1 conv2d: {}'.format(time_feats))
+
+        time_feats = keras.layers.Lambda((lambda x: x))(ime_feats,
+                                                        mask=masked[:, :, 0])
 
         inp_feats = keras.layers.Conv1D(int(F), W, padding='same')(masked)
         print('after first conv1d: {}'.format(inp_feats))
         inp_feats = keras.layers.BatchNormalization()(inp_feats)
         inp_feats = keras.layers.Activation(activation='relu')(inp_feats)
+
+        inp_feats = keras.layers.Lambda((lambda x: x))(inp_feats,
+                                                       mask=masked[:, :, 0])
         inp_feats = keras.layers.Conv1D(int(F), int(W), padding='same')(masked)
         print('after first conv1d: {}'.format(inp_feats))
         inp_feats = keras.layers.BatchNormalization()(inp_feats)
         inp_feats = keras.layers.Activation(activation='relu')(inp_feats)
+
+        inp_feats = keras.layers.Lambda((lambda x: x))(inp_feats,
+                                                       mask=masked[:, :, 0])
+
         inp_feats = keras.layers.Conv1D(F, int(W), padding='same')(masked)
         print('after third conv1d: {}'.format(inp_feats))
         inp_feats = keras.layers.BatchNormalization()(inp_feats)
         inp_feats = keras.layers.Activation(activation='relu')(inp_feats)
+
+        inp_feats = keras.layers.Lambda((lambda x: x))(inp_feats,
+                                                       mask=masked[:, :, 0])
+
         inp_feats = keras.layers.Conv1D(1, 1, padding='same')(inp_feats)
         print('after 1x1 conv1d: {}'.format(inp_feats))
+
         inp_feats = tf.keras.backend.expand_dims(inp_feats, axis=-1)
+        inp_feats = keras.layers.Lambda((lambda x: x))(
+            inp_feats, mask=masked[:, :, 0])
+
+        print('inp feats before concat {}'.format(inp_feats))
+        print('time feats before concat {}'.format(time_feats))
 
         feats = keras.layers.Concatenate(axis=2, name='last_feat')([time_feats,
                                                                     inp_feats])
@@ -82,7 +116,7 @@ class Classifier_XCM:
 
         print('before gap: {}'.format(feats))
         gap_layer = keras.layers.GlobalAveragePooling1D()(
-            feats, mask=masked[:,:,0])
+            feats, mask=masked[:, :, 0])
         output_layer = keras.layers.Dense(self.nb_classes, activation='softmax',
                                           name='result')(gap_layer)
 

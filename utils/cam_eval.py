@@ -56,6 +56,7 @@ def plot_w_cam(x, cam, y_pred, y_true):
 def main(args):
     if args.dataset != '':
         dataset = np.load(args.dataset)
+        lit = ''
     else:
         print(os.path.basename(args.root).split('_')[0])
         lit = os.path.basename(args.root).split('_')[0]
@@ -99,10 +100,10 @@ def main(args):
 
     # x = x_test
     # y = y_test
-    print(x.shape)
-    print(y.shape)
-    print(x_test.shape)
-    print(y_test.shape)
+    # print(x.shape)
+    # print(y.shape)
+    # print(x_test.shape)
+    # print(y_test.shape)
     plot_all = True
 
     model_path = os.path.join(args.root, 'best_model.hdf5')
@@ -112,10 +113,12 @@ def main(args):
     result = model.predict(x_test)
     result_tv = model.predict(x_tv)
 
-
     if len(result) > 3:
         y_pred = np.argmax(result, axis=1)
         y_pred_tv = np.argmax(result_tv, axis=1)
+        print(y_test)
+        print(y_pred)
+        print(result)
 
         cnf_matrix = confusion_matrix(y_test, y_pred)
         np.set_printoptions(precision=2)
@@ -126,6 +129,38 @@ def main(args):
         np.set_printoptions(precision=2)
         plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
                               title='Confusion matrix, without normalization')
+        # print(model.summary())
+        # plt.show()
+        i = 15
+        hm = make_gradcam_heatmap(np.expand_dims(x_test[i, ...], 0), model, 'conv1d_4', [
+                                  'global_average_pooling1d', 'result'])
+        plt.figure()
+        plt.plot(hm)
+        max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
+        # plt.plot(x[:max_idx,0])
+        fig, axs = plt.subplots(x_test.shape[2])
+        fig.suptitle('Dataset: {}, Class {} predicted as {}'.format(lit, y_test[i], y_pred[i]))
+        if x_test.shape[2] > 1:
+            for j in range(x_test.shape[2]):
+                axs[j].plot(x_test[i, :max_idx, j])
+                sc = axs[j].scatter(np.linspace(0, max_idx - 1, max_idx),
+                                    x_test[i, :max_idx, j],
+                                    c=hm[:max_idx], cmap='cool',
+                                    vmin=0, vmax=1)
+                # axs[j].set_axis_off()
+            cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+        else:
+            axs.plot(x_test[i, :max_idx, 0])
+            sc = axs.scatter(np.linspace(0, max_idx - 1, max_idx),
+                             x_test[i, :max_idx, 0], c=hm[:max_idx],
+                             cmap='cool', vmin=0, vmax=1)
+            # axs.set_axis_off()
+            cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
+
+        # sc.set_clim(0,1)
+        # sc.set_cmap('cool')
+
+        # plt.title('Class {}, predicted as {}'.format(y_test[i], y_pred[i]))
 
         plt.show()
     else:
@@ -155,8 +190,9 @@ def main(args):
 
         model.summary()
         print(np.where(x_test[0, :, 0] < -900)[0][0])
-        hm = make_gradcam_heatmap(np.expand_dims(x_test[0, ...], 0), model, 'conv1d_2',['global_average_pooling1d', 'result'])
-        plt.plot(cam[0, :],label='cam')
+        hm = make_gradcam_heatmap(np.expand_dims(x_test[0, ...], 0), model, 'conv1d_2', [
+                                  'global_average_pooling1d', 'result'])
+        plt.plot(cam[0, :], label='cam')
         plt.plot(hm, label='hm')
         plt.legend()
         plt.show()
@@ -202,11 +238,13 @@ def main(args):
                                             c=cam[i, :max_idx], cmap='cool',
                                             vmin=0, vmax=1)
                         # axs[j].set_axis_off()
-                    cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+                    cbar = fig.colorbar(
+                        sc, ax=axs.ravel().tolist(), shrink=0.95)
                 else:
                     axs.plot(x_test[i, :max_idx, 0])
                     sc = axs.scatter(np.linspace(0, max_idx - 1, max_idx),
-                                     x_test[i, :max_idx, 0], c=cam[i, :max_idx],
+                                     x_test[i, :max_idx,
+                                            0], c=cam[i, :max_idx],
                                      cmap='cool', vmin=0, vmax=1)
                     # axs.set_axis_off()
                     cbar = fig.colorbar(sc, ax=axs, shrink=0.95)
@@ -214,7 +252,8 @@ def main(args):
                 # sc.set_clim(0,1)
                 # sc.set_cmap('cool')
 
-                plt.title('Class {}, predicted as {}'.format(y_test[i], y_pred[i]))
+                plt.title('Class {}, predicted as {}'.format(
+                    y_test[i], y_pred[i]))
 
         plt.show()
 

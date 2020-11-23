@@ -18,19 +18,19 @@ def make_gradcam_heatmap(input, model, last_conv_layer_name,
     # of the last conv layer
     last_conv_layer = model.get_layer(last_conv_layer_name)
     last_conv_layer_model = keras.Model(model.inputs, last_conv_layer.output)
-    print(last_conv_layer)
-    print(last_conv_layer_model.summary())
+    # print(last_conv_layer)
+    # print(last_conv_layer_model.summary())
 
 
     # Second, we create a model that maps the activations of the last conv
     # layer to the final class predictions
     classifier_input = keras.Input(shape=last_conv_layer.output.shape[1:])
-    print(classifier_input)
+    # print(classifier_input)
     x = classifier_input
     for layer_name in classifier_layer_names:
         x = model.get_layer(layer_name)(x)
     classifier_model = keras.Model(classifier_input, x)
-    print(classifier_model.summary())
+    # print(classifier_model.summary())
 
     # Then, we compute the gradient of the top predicted class for our input image
     # with respect to the activations of the last conv layer
@@ -43,11 +43,11 @@ def make_gradcam_heatmap(input, model, last_conv_layer_name,
         top_pred_index = tf.argmax(preds[0])
         top_class_channel = preds[:, top_pred_index]
 
-    print('line 170:',top_class_channel)
+    # print('line 170:',top_class_channel)
     # This is the gradient of the top predicted class with regard to
     # the output feature map of the last conv layer
     grads = tape.gradient(top_class_channel, last_conv_layer_output)
-    print(grads)
+    # print(grads)
     # This is a vector where each entry is the mean intensity of the gradient
     # over a specific feature map channel
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1))
@@ -57,9 +57,9 @@ def make_gradcam_heatmap(input, model, last_conv_layer_name,
     last_conv_layer_output = last_conv_layer_output.numpy()[0]
     # print(last_conv_layer_output)
     pooled_grads = pooled_grads.numpy()
-    print(pooled_grads.shape[-1])
-    print(last_conv_layer_output.shape)
-    print(pooled_grads.shape)
+    # print(pooled_grads.shape[-1])
+    # print(last_conv_layer_output.shape)
+    # print(pooled_grads.shape)
     for i in range(pooled_grads.shape[-1]):
         last_conv_layer_output[:, i] *= pooled_grads[i]
 
