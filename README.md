@@ -171,6 +171,18 @@ If you re-use this work, please cite:
   pages                    = {917--963},
 }
 ```
+
+XCM:
+```
+@misc{fauvel2020xcm,
+    title={XCM: An Explainable Convolutional Neural Network for Multivariate Time Series Classification},
+    author={Kevin Fauvel and Tao Lin and Véronique Masson and Élisa Fromont and Alexandre Termier},
+    year={2020},
+    eprint={2009.04796},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
+}
+```
 ## Acknowledgement
 
 We would like to thank the providers of the [UCR/UEA archive](http://timeseriesclassification.com/TSC.zip). 

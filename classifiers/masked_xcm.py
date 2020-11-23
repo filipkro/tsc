@@ -62,46 +62,63 @@ class Classifier_XCM:
         conv_2d = tf.keras.backend.expand_dims(masked, axis=-1)
         conv_1d = masked
 
-        for f, w in zip(filters, windows):
-            conv_2d = keras.layers.Conv2D(f, (w, 1), padding='same')(conv_2d)
+        # for f, w in zip(filters, windows):
+        for i in range(len(filters)):
+            f = filters[i]
+            w = windows[i]
+            name_ending = str(i) if i < len(filters) - 1 else 'last'
+            conv_2d = keras.layers.Conv2D(f, (w, 1), padding='same',
+                                          name='conv2d_{}'.format(name_ending))(conv_2d)
             print('after conv2d: {}'.format(conv_2d))
-            conv_2d = keras.layers.BatchNormalization()(conv_2d)
-            conv_2d = keras.layers.Activation(activation='relu')(conv_2d)
+            conv_2d = keras.layers.BatchNormalization(
+                name='bn2d_{}'.format(name_ending))(conv_2d)
+            conv_2d = keras.layers.Activation(activation='relu',
+                                              name='relu2d_{}'.format(name_ending))(conv_2d)
 
-            conv_1d = keras.layers.Conv1D(f, w, padding='same')(conv_1d)
+            conv_1d = keras.layers.Conv1D(f, w, padding='same',
+                                          name='conv1d_{}'.format(name_ending))(conv_1d)
             print('after conv1d: {}'.format(conv_1d))
-            conv_1d = keras.layers.BatchNormalization()(conv_1d)
-            conv_1d = keras.layers.Activation(activation='relu')(conv_1d)
+            conv_1d = keras.layers.BatchNormalization(
+                name='bn1d_{}'.format(name_ending))(conv_1d)
+            conv_1d = keras.layers.Activation(activation='relu',
+                                              name='relu1d_{}'.format(name_ending))(conv_1d)
 
-            conv_2d = keras.layers.Lambda((lambda x: x))(conv_2d,
-                                                         mask=masked[:, :, 0])
-            conv_1d = keras.layers.Lambda((lambda x: x))(conv_1d,
-                                                         mask=masked[:, :, 0])
+            conv_2d = keras.layers.Lambda((lambda x: x), name='lambda2d_{}'.format(
+                name_ending))(conv_2d, mask=masked[:, :, 0])
+            conv_1d = keras.layers.Lambda((lambda x: x), name='lambda1d_{}'.format(
+                name_ending))(conv_1d, mask=masked[:, :, 0])
 
         conv_2d = keras.layers.Conv2D(1, (1, 1), padding='same',
+                                      name='conv2d-1x1',
                                       activation='relu')(conv_2d)
         print('after 1x1 conv2d: {}'.format(conv_2d))
 
         conv_1d = keras.layers.Conv1D(1, 1, padding='same',
+                                      name='conv1d-1x1',
                                       activation='relu')(conv_1d)
-        conv_1d = tf.keras.backend.expand_dims(conv_1d, axis=-1)
+        # conv_1d = tf.keras.backend.expand_dims(conv_1d, axis=-1,
+        #                                        name='exp_dims1d')
+        conv_2d = tf.keras.backend.squeeze(conv_2d, -1)#, name='squeeze2d')
         print('after 1x1 conv1d: {}'.format(conv_1d))
 
-        conv_2d = keras.layers.Lambda((lambda x: x))(conv_2d,
-                                                     mask=masked[:, :, 0])
-        conv_1d = keras.layers.Lambda((lambda x: x))(conv_1d,
-                                                     mask=masked[:, :, 0])
-        feats = keras.layers.Concatenate(axis=2)([conv_2d,
-                                                  conv_1d])
-        feats = tf.keras.backend.squeeze(feats, -1)
+        conv_2d = keras.layers.Lambda((lambda x: x),
+                                      name='lambda2d-final')(conv_2d,
+                                                            mask=masked[:, :, 0])
+        conv_1d = keras.layers.Lambda((lambda x: x),
+                                      name='lambda1d-final')(conv_1d,
+                                                            mask=masked[:, :, 0])
+        feats = keras.layers.Concatenate(axis=2,
+                                         name='concat')([conv_2d, conv_1d])
+        # feats = tf.keras.backend.squeeze(feats, -1)
         feats = keras.layers.Conv1D(self.filters, self.window,
-                                    padding='same')(feats)
+                                    padding='same', name='conv-final')(feats)
         print('after conv1d: {}'.format(feats))
-        feats = keras.layers.BatchNormalization()(feats)
-        feats = keras.layers.Activation(activation='relu')(feats)
+        feats = keras.layers.BatchNormalization(name='bn-final')(feats)
+        feats = keras.layers.Activation(activation='relu',
+                                        name='relu-final')(feats)
 
         print('before gap: {}'.format(feats))
-        gap_layer = keras.layers.GlobalAveragePooling1D()(feats,
+        gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats,
                                                           mask=masked[:, :, 0])
         output_layer = keras.layers.Dense(self.nb_classes, activation='softmax',
                                           name='result')(gap_layer)
