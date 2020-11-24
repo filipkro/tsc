@@ -267,6 +267,7 @@ class Classifier_XCM:
 
         duration = time.time() - start_time
         self.model.save(self.output_directory + 'last_model.hdf5')
+        self.best_model.save(self.output_directory + 'best_model.hdf5')
         history[:, [0, 2]] = -history[:, [0, 2]]
         np.savetxt(self.output_directory + 'history.csv', history,
                    header='Train loss,Train acc,Val loss,Val acc',
@@ -297,7 +298,9 @@ class Classifier_XCM:
     def eval_epoch(self, new_metric):
         if new_metric > self.best_metric:
             self.best_metric = new_metric
-            self.model.save(self.output_directory + 'best_model.hdf5')
+            # self.model.save(self.output_directory + 'best_model.hdf5')
+            self.best_model = keras.models.clone_model(self.model)
+            self.best_model.set_weights(self.model.get_weights())
             return True
         else:
             return False
