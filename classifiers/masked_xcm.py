@@ -229,8 +229,7 @@ class Classifier_XCM:
                 max_idx = np.where(x_train[i, :, 0] < -900)[0][0]
                 x = np.expand_dims(x_train[i, :max_idx, ...], 0)
                 y = np.expand_dims(y_train[i], 0)
-                train = self.model.train_on_batch(x, y, reset_metrics=True,
-                                                  return_dict=True)
+                train = self.model.train_on_batch(x, y, reset_metrics=True)
                 train_accuracy += train['accuracy']
                 train_loss += train['loss']
                 # print(train)
@@ -244,8 +243,7 @@ class Classifier_XCM:
                 x = np.expand_dims(x_val[i, :max_idx, ...], 0)
                 y = np.expand_dims(y_val[i], 0)
 
-                val = self.model.test_on_batch(x, y, reset_metrics=True,
-                                               return_dict=True)
+                val = self.model.test_on_batch(x, y, reset_metrics=True)
                 # print(val)
                 val_accuracy += val['accuracy']
                 val_loss += val['loss']
