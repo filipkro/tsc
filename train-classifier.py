@@ -138,7 +138,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2)
 
 
 def main(args):
