@@ -225,13 +225,14 @@ class Classifier_XCM:
         for epoch_nb in range(self.nb_epochs):
             train_accuracy = 0
             train_loss = 0
+
             for i in range(x_train.shape[0]):
                 max_idx = np.where(x_train[i, :, 0] < -900)[0][0]
                 x = np.expand_dims(x_train[i, :max_idx, ...], 0)
                 y = np.expand_dims(y_train[i], 0)
                 train = self.model.train_on_batch(x, y, reset_metrics=True)
-                train_accuracy += train['accuracy']
-                train_loss += train['loss']
+                train_accuracy += train[1]
+                train_loss += train[0]
                 # print(train)
             train_accuracy /= x_train.shape[0]
             train_loss /= x_train.shape[0]
@@ -245,8 +246,8 @@ class Classifier_XCM:
 
                 val = self.model.test_on_batch(x, y, reset_metrics=True)
                 # print(val)
-                val_accuracy += val['accuracy']
-                val_loss += val['loss']
+                val_accuracy += val[1]
+                val_loss += val[0]
 
             val_accuracy /= x_val.shape[0]
             val_loss /= x_val.shape[0]
