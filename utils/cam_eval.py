@@ -133,8 +133,10 @@ def main(args):
                               title='Confusion matrix, without normalization')
         # print(model.summary())
         # plt.show()
-        i = 3
+        i = 0
+        max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
         # print(model.summary())
+        # check_grad(np.expand_dims(x_test[i, :max_idx, ...], 0), model)
         check_grad(np.expand_dims(x_test[i, ...], 0), model)
 
         assert False
@@ -143,7 +145,7 @@ def main(args):
         #                           'global_average_pooling1d', 'result'])
         plt.figure()
         plt.plot(hm)
-        max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
+
         # plt.plot(x[:max_idx,0])
         fig, axs = plt.subplots(x_test.shape[2])
         fig.suptitle('Dataset: {}, Class {} predicted as {}'.format(lit, y_test[i], y_pred[i]))

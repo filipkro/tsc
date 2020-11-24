@@ -3,7 +3,6 @@ import tensorflow as tf
 import numpy as np
 import time
 import pickle
-from keras import backend as K
 
 from utils.utils import save_logs
 from utils.utils import calculate_metrics
@@ -15,11 +14,9 @@ from keras.utils.layer_utils import count_params
 class Classifier_XCM:
 
     def __init__(self, output_directory, input_shape, nb_classes, lr=0.001,
-                 batch_size=16, verbose=2, nb_epochs=2000, depth=1, mask=False,
-                 filters=16, window=21, decay=False, metric='val_accuracy',
-                 reduce_lr_metric='train_loss'):
+                 batch_size=16, verbose=2, nb_epochs=2000, depth=1,
+                 filters=16, window=21, decay=False):
 
-        input_shape = (None, None, 2)
         self.output_directory = output_directory
 
         self.batch_size = batch_size
@@ -32,35 +29,15 @@ class Classifier_XCM:
         self.filters = filters
         self.window = window
         self.decay = decay
-        self.mask = mask
-
-        if metric == 'train_loss':
-            self.metric = 0
-        elif metric == 'train_accuracy':
-            self.metric = 1
-        elif metric == 'val_loss':
-            self.metric = 2
-        else:
-            self.metric = 3
-
-        if reduce_lr_metric == 'train_accuracy':
-            self.reduce_lr_metric = 1
-        elif reduce_lr_metric == 'val_loss':
-            self.reduce_lr_metric = 2
-        elif reduce_lr_metric == 'val_accuracy':
-            self.reduce_lr_metric = 3
-        else:
-            self.reduce_lr_metric = 0
 
         self.model = self.build_model()
 
         trainable_count = count_params(self.model.trainable_weights)
-        model_hyper = {'model': 'masked-xcm', 'filters': filters, 'mask': mask,
+        model_hyper = {'model': 'masked-xcm', 'filters': filters,
                        'depth': depth, 'window_size': window, 'decay': decay,
                        'batch_size': batch_size, 'classes': nb_classes,
                        'input_shape': input_shape, 'epochs': nb_epochs,
-                       'trainable_params': trainable_count, 'metric': metric,
-                       'lr_metric': reduce_lr_metric}
+                       'trainable_params': trainable_count}
 
         f = open(os.path.join(self.output_directory, 'hyperparams.txt'), "w")
         f.write(str(model_hyper))
@@ -78,7 +55,7 @@ class Classifier_XCM:
             windows.append(int(self.window / (i + 1))) if self.decay else \
                 windows.append(int(self.window))
 
-        input_layer = keras.layers.Input(batch_shape=self.input_shape)
+        input_layer = keras.layers.Input(self.input_shape)
         masked = keras.layers.Masking(mask_value=-1000,
                                       name='mask')(input_layer)
 
@@ -154,7 +131,7 @@ class Classifier_XCM:
                       metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
-                                                      factor=0.5, patience=50,
+                                                      actor=0.5, patience=50,
                                                       min_lr=0.0001)
         file_path = self.output_directory + 'best_model.hdf5'
         model_checkpoint = keras.callbacks.ModelCheckpoint(
@@ -171,134 +148,38 @@ class Classifier_XCM:
         #     exit()
         # x_val and y_val are only used to monitor the test loss and NOT for training
 
-        if not self.mask:
-            self.fit_wo_mask(x_train, y_train, x_val, y_val, y_true)
+        if self.batch_size is None:
+            mini_batch_size = int(min(x_train.shape[0] / 10, 16))
         else:
-            if self.batch_size is None:
-                mini_batch_size = int(min(x_train.shape[0] / 10, 16))
-            else:
-                mini_batch_size = self.batch_size
+            mini_batch_size = self.batch_size
 
-            start_time = time.time()
-
-            hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size,
-                                  epochs=self.nb_epochs, verbose=self.verbose,
-                                  validation_data=(x_val, y_val),
-                                  callbacks=self.callbacks)
-
-            duration = time.time() - start_time
-
-            self.model.save(self.output_directory + 'last_model.hdf5')
-
-            y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
-                                  return_df_metrics=False)
-
-            # save predictions
-            np.save(self.output_directory + 'y_pred.npy', y_pred)
-            # np.save(self.output_directory + 'cam.npy', cam)
-
-            # convert the predicted from binary to integer
-            y_pred = np.argmax(y_pred, axis=1)
-
-            df_metrics = save_logs(self.output_directory,
-                                   hist, y_pred, y_true, duration)
-
-            keras.backend.clear_session()
-
-            return df_metrics
-
-    def fit_wo_mask(self, x_train, y_train, x_val, y_val, y_true):
-        print('WARNING: Will train with batch size = 1 to avoid masks')
-        print(x_val.shape[0])
-        self.old_metric = -100
-        self.old_epoch = 0
-        self.best_metric = -100
-
-        best_acc = 0.0
-        best_loss = 100
-        history = np.zeros((self.nb_epochs, 4))
-        filewrites = 0
         start_time = time.time()
-        for epoch_nb in range(self.nb_epochs):
-            train_accuracy = 0
-            train_loss = 0
-            for i in range(x_train.shape[0]):
-                max_idx = np.where(x_train[i, :, 0] < -900)[0][0]
-                x = np.expand_dims(x_train[i, :max_idx, ...], 0)
-                y = np.expand_dims(y_train[i], 0)
-                train = self.model.train_on_batch(x, y, reset_metrics=True,
-                                                  return_dict=True)
-                train_accuracy += train['accuracy']
-                train_loss += train['loss']
-                # print(train)
-            train_accuracy /= x_train.shape[0]
-            train_loss /= x_train.shape[0]
-            val_accuracy = 0
-            val_loss = 0
 
-            for i in range(x_val.shape[0]):
-                max_idx = np.where(x_val[i, :, 0] < -900)[0][0]
-                x = np.expand_dims(x_val[i, :max_idx, ...], 0)
-                y = np.expand_dims(y_val[i], 0)
-
-                val = self.model.test_on_batch(x, y, reset_metrics=True,
-                                               return_dict=True)
-                # print(val)
-                val_accuracy += val['accuracy']
-                val_loss += val['loss']
-
-            val_accuracy /= x_val.shape[0]
-            val_loss /= x_val.shape[0]
-
-            history[epoch_nb, :] = np.array([-train_loss, train_accuracy,
-                                             -val_loss, val_accuracy])
-            self.reduce_lr(epoch_nb, history[epoch_nb, self.reduce_lr_metric])
-            if self.eval_epoch(history[epoch_nb, self.metric]):
-                best_metrics = np.array([[epoch_nb, train_loss, train_accuracy,
-                                          val_loss, val_accuracy]])
-                filewrites += 1
-
-            print('*********************************')
-            print('Epoch: {}/{}: Training, loss: {:.3f}, accuracy: {:.3f}\nValidation, loss: {:.3f}, accuracy: {:.3f}'.format(
-                epoch_nb, self.nb_epochs, train_loss, train_accuracy, val_loss, val_accuracy))
-            print('*********************************')
+        hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size,
+                              epochs=self.nb_epochs, verbose=self.verbose,
+                              validation_data=(x_val, y_val),
+                              callbacks=self.callbacks)
 
         duration = time.time() - start_time
+
         self.model.save(self.output_directory + 'last_model.hdf5')
-        history[:, [0, 2]] = -history[:, [0, 2]]
-        np.savetxt(self.output_directory + 'history.csv', history,
-                   header='Train loss,Train acc,Val loss,Val acc',
-                   delimiter=',')
-        np.savetxt(self.output_directory + 'best_model.csv', best_metrics,
-                   header='Epoch,Train loss,Train acc,Val loss,Val acc',
-                   delimiter=',')
-        print('Number of file writes due to new best model: {}'.format(filewrites))
-        print('Best model: {}'.format(best_metrics))
-        print('Training time: {:.3f}'.format(duration))
-        print('DONE')
 
-    def reduce_lr(self, epoch, new_metric):
-        min_lr = 0.0001
-        patience = 50
-        factor = 0.75
-        if K.eval(self.model.optimizer.lr) > min_lr:
-            if new_metric == self.old_metric:
-                if self.old_epoch + patience < epoch:
-                    K.set_value(self.model.optimizer.learning_rate,
-                                K.eval(self.model.optimizer.lr * factor))
-                    self.old_metric = new_metric
-                    self.old_epoch = epoch
-            else:
-                self.old_metric = new_metric
-                self.old_epoch = epoch
+        y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
+                              return_df_metrics=False)
 
-    def eval_epoch(self, new_metric):
-        if new_metric > self.best_metric:
-            self.best_metric = new_metric
-            self.model.save(self.output_directory + 'best_model.hdf5')
-            return True
-        else:
-            return False
+        # save predictions
+        np.save(self.output_directory + 'y_pred.npy', y_pred)
+        # np.save(self.output_directory + 'cam.npy', cam)
+
+        # convert the predicted from binary to integer
+        y_pred = np.argmax(y_pred, axis=1)
+
+        df_metrics = save_logs(self.output_directory,
+                               hist, y_pred, y_true, duration)
+
+        keras.backend.clear_session()
+
+        return df_metrics
 
     def predict(self, x_test, y_true, x_train, y_train, y_test,
                 return_df_metrics=True):
