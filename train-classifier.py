@@ -139,6 +139,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         from classifiers import masked_xcm
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
         return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=32, depth=1, decay=False)
+        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
 
 
 def main(args):
