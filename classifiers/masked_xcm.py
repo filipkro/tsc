@@ -79,13 +79,13 @@ class Classifier_XCM:
                 windows.append(int(self.window))
 
         input_layer = keras.layers.Input(batch_shape=self.input_shape)
-        # masked = keras.layers.Masking(mask_value=-1000,
-        #                               name='mask')(input_layer)
+        masked = keras.layers.Masking(mask_value=-1000,
+                                      name='mask')(input_layer)
 
-        # conv_2d = tf.keras.backend.expand_dims(masked, axis=-1)
-        # conv_1d = masked
-        conv_2d = tf.keras.backend.expand_dims(input_layer, axis=-1)
-        conv_1d = input_layer
+        conv_2d = tf.keras.backend.expand_dims(masked, axis=-1)
+        conv_1d = masked
+        #conv_2d = tf.keras.backend.expand_dims(input_layer, axis=-1)
+        #conv_1d = input_layer
 
         # for f, w in zip(filters, windows):
         for i in range(len(filters)):
@@ -100,7 +100,7 @@ class Classifier_XCM:
             conv_2d = keras.layers.Activation(activation='relu',
                                               name='relu2d_{}'.format(name_ending))(conv_2d)
 
-            conv_1d = keras.layers.Conv1D(f, w, padding='same',
+            conv_1d = keras.layers.Conv1D(1, w, padding='same',
                                           name='conv1d_{}'.format(name_ending))(conv_1d)
             print('after conv1d: {}'.format(conv_1d))
             conv_1d = keras.layers.BatchNormalization(
@@ -118,9 +118,9 @@ class Classifier_XCM:
                                       activation='relu')(conv_2d)
         print('after 1x1 conv2d: {}'.format(conv_2d))
 
-        conv_1d = keras.layers.Conv1D(1, 1, padding='same',
-                                      name='conv1d-1x1',
-                                      activation='relu')(conv_1d)
+        #conv_1d = keras.layers.Conv1D(1, 1, padding='same',
+        #                              name='conv1d-1x1',
+        #                              activation='relu')(conv_1d)
         # conv_1d = tf.keras.backend.expand_dims(conv_1d, axis=-1,
         #                                        name='exp_dims1d')
         conv_2d = tf.keras.backend.squeeze(conv_2d, -1)  # , name='squeeze2d')
@@ -132,20 +132,22 @@ class Classifier_XCM:
         # conv_1d = keras.layers.Lambda((lambda x: x),
         #                               name='lambda1d-final')(conv_1d,
         #                                                      mask=masked[:, :, 0])
-        feats = keras.layers.Concatenate(axis=2,
-                                         name='concat')([conv_2d, conv_1d])
+        #feats = keras.layers.Concatenate(axis=2,
+        #                                 name='concat')([conv_2d, conv_1d])
         # feats = tf.keras.backend.squeeze(feats, -1)
-        feats = keras.layers.Conv1D(4, self.window,
-                                    padding='same', name='conv-final')(feats)
+        feats = keras.layers.Conv1D(filters[-1], self.window, padding='same', name='conv-final')(conv_2d)
+        
+        #feats = keras.layers.Conv1D(4, self.window,
+        #                            padding='same', name='conv-final')(feats)
         print('after conv1d: {}'.format(feats))
         feats = keras.layers.BatchNormalization(name='bn-final')(feats)
         feats = keras.layers.Activation(activation='relu',
                                         name='relu-final')(feats)
 
         print('before gap: {}'.format(feats))
-        # gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats,
-        #                                                             mask=masked[:, :, 0])
-        gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats)
+        gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats,
+                                                                    mask=masked[:, :, 0])
+        #gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats)
         output_layer = keras.layers.Dense(self.nb_classes,
                                           name='result')(gap_layer)
         output_layer = keras.layers.Activation(activation='softmax',
