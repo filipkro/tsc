@@ -82,6 +82,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
     print(x_train.shape)
     print(y_train.shape)
     print(classifier.model.summary())
+
     # assert False
     classifier.fit(x_train, y_train, x_val, y_val, y_true)
 
@@ -141,6 +142,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=32, depth=1, decay=False)
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2)
+    if classifier_name == 'cnn2d':
+        from classifiers import cnn2d
+        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=32, depth=2, decay=False)
 
 
 def main(args):

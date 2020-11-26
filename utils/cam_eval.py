@@ -123,12 +123,12 @@ def main(args):
         # print(result)
 
         cnf_matrix = confusion_matrix(y_test, y_pred)
-        np.set_printoptions(precision=2)
+        # np.set_printoptions(precision=2)
         plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
                               title='Confusion matrix, without normalization')
 
         cnf_matrix = confusion_matrix(y_tv, y_pred_tv)
-        np.set_printoptions(precision=2)
+        # np.set_printoptions(precision=2)
         plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
                               title='Confusion matrix, without normalization')
         # print(model.summary())
@@ -136,8 +136,17 @@ def main(args):
         i = 0
         max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
         # print(model.summary())
-        # check_grad(np.expand_dims(x_test[i, :max_idx, ...], 0), model)
-        check_grad(np.expand_dims(x_test[i, ...], 0), model)
+        L1, L2 = check_grad(np.expand_dims(x_test[i, :max_idx, ...], 0), model)
+
+        plt.figure()
+        plt.plot(L1)
+        plt.figure()
+        plt.plot(L2[:,0])
+        plt.plot(L2[:,1])
+        plt.show()
+
+        # check_grad(np.expand_dims(x_test[i,:max_idx, ...], 0), model)
+        make_gradcam_heatmap(np.expand_dims(x_test[i,:max_idx, ...], 0), model)
 
         assert False
         hm1, hm2 = xcm_hm(np.expand_dims(x_test[i, ...], 0), model)

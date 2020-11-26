@@ -19,7 +19,7 @@ class Classifier_XCM:
                  filters=16, window=21, decay=False, metric='val_accuracy',
                  reduce_lr_metric='train_loss'):
 
-        input_shape = (None, None, 2)
+        input_shape = (None, None, input_shape[-1])
         self.output_directory = output_directory
 
         self.batch_size = batch_size
