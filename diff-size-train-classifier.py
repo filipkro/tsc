@@ -56,11 +56,16 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
     print(x_train.shape)
     print(y_train.shape)
 
+
+
     # transform the labels from integers to one hot vectors
     enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc.fit(np.concatenate((y_train, y_val), axis=0).reshape(-1, 1))
     y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
     y_val = enc.transform(y_val.reshape(-1, 1)).toarray()
+
+
+
 
     # save orignal y because later we will use binary
     y_true = np.argmax(y_val, axis=1)

@@ -12,29 +12,23 @@ import keras
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
-
-def make_gradcam_heatmap(input, model):
+def make_gradcam_heatmap(input, model, last_conv_layer_name,
+                         classifier_layer_names):
     # First, we create a model that maps the input image to the activations
     # of the last conv layer
-    classifier_layer_names = ['bn2d_last', 'relu2d_last', 'conv2d-1x1',
-                              'tf_op_layer_Squeeze', 'conv-final',
-                              'gap', 'result', 'sm']
-    last_conv_layer = model.get_layer('conv2d_last')
+    last_conv_layer = model.get_layer(last_conv_layer_name)
     last_conv_layer_model = keras.Model(model.inputs, last_conv_layer.output)
     # print(last_conv_layer)
-    print(last_conv_layer_model.summary())
+    # print(last_conv_layer_model.summary())
+
 
     # Second, we create a model that maps the activations of the last conv
     # layer to the final class predictions
-    print(last_conv_layer.output.shape[1:])
-    classifier_input = keras.Input(batch_shape=last_conv_layer.output.shape)
+    classifier_input = keras.Input(shape=last_conv_layer.output.shape[1:])
     # print(classifier_input)
     x = classifier_input
     for layer_name in classifier_layer_names:
-        print('layer: {}, shape: {}'.format(layer_name, x.shape))
-        print(model.get_layer(layer_name))
         x = model.get_layer(layer_name)(x)
-        # print(x.input.shape)
     classifier_model = keras.Model(classifier_input, x)
     # print(classifier_model.summary())
 
@@ -52,17 +46,11 @@ def make_gradcam_heatmap(input, model):
     # print('line 170:',top_class_channel)
     # This is the gradient of the top predicted class with regard to
     # the output feature map of the last conv layer
-    # print(top_class_channel)
-    # print(preds)
     grads = tape.gradient(top_class_channel, last_conv_layer_output)
-
-    print(np.max(grads), np.min(grads))
     # print(grads)
     # This is a vector where each entry is the mean intensity of the gradient
     # over a specific feature map channel
-    print(grads)
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1))
-    print(pooled_grads)
     # print(pooled_grads)
     # We multiply each channel in the feature map array
     # by "how important this channel is" with regard to the top predicted class
@@ -72,15 +60,9 @@ def make_gradcam_heatmap(input, model):
     # print(pooled_grads.shape[-1])
     # print(last_conv_layer_output.shape)
     # print(pooled_grads.shape)
-    L2d = np.zeros((last_conv_layer_output.shape[0], last_conv_layer_output.shape[1]))
-    print('conv layer shape {}'.format(last_conv_layer_output.shape))
-    for i in range(pooled_grads.shape[0]):
-        #iterate over inputs
-        for j in range(pooled_grads.shape[1]):
-            #iterate over feature maps
-            L2d[:,i] = L2d[:,i] + last_conv_layer_output[:,i,j] * pooled_grads[i,j]
-            # last_conv_layer_output[:, i] *= pooled_grads[i]
-    print(L2d)
+    for i in range(pooled_grads.shape[-1]):
+        last_conv_layer_output[:, i] *= pooled_grads[i]
+
     # The channel-wise mean of the resulting feature map
     # is our heatmap of class activation
     heatmap = np.mean(last_conv_layer_output, axis=-1)
@@ -102,8 +84,7 @@ def main(args):
     print(model.summary())
     # input = data
 
-    hm = make_gradcam_heatmap(input, model, 'concatenate_2', [
-                              'global_average_pooling1d', 'result'])
+    hm = make_gradcam_heatmap(input, model, 'concatenate_2', ['global_average_pooling1d', 'result'])
 
     print(hm)
     print(hm.shape)
