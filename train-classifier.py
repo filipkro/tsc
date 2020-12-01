@@ -144,7 +144,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2)
     if classifier_name == 'cnn2d':
         from classifiers import cnn2d
-        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=3, decay=True, window=31)
+        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=1000, verbose=verbose, filters=32, depth=3, decay=True, window=31, batch_size=8)
 
 
 def main(args):
