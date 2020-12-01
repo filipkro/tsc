@@ -137,12 +137,12 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=32, depth=2, decay=True, mask=True)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=32, depth=2, decay=True, mask=False, window=41)
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2)
     if classifier_name == 'cnn2d':
         from classifiers import cnn2d
-        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=1000, verbose=verbose, filters=32, depth=3, decay=False, window=61, batch_size=32)
+        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=1000, verbose=verbose, filters=16, depth=3, decay=False, window=51, batch_size=32)
         #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
 
 
