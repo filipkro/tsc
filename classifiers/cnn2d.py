@@ -98,9 +98,8 @@ class Classifier_CNN2D:
 
         conv_2d = keras.layers.Permute((1,3,2))(conv_2d)
         # shape now BxTxDxF* (F* - last nbr of filters)
-        conv_2d = keras.layers.Conv1D(1, 5,  # (merge_len, self.input_shape[-1]),
-                                      padding='same', name='conv_merge',
-                                      data_format='channels_last')(conv_2d)
+        conv_2d = keras.layers.Conv2D(1, 1,  # (merge_len, self.input_shape[-1]),
+                                      padding='same', name='conv_merge')(conv_2d)
         conv_2d = keras.layers.BatchNormalization(name='bn-final')(conv_2d)
         conv_2d = keras.layers.Activation(activation='relu',
                                           name='relu-final')(conv_2d)
