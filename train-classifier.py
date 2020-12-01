@@ -41,16 +41,14 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
                                                                     replace=False)
         train_idx = np.random.choice(len(y), train_size, replace=False)
         x_train = x[train_idx, ...]
-        x = np.delete(x, train_idx, axis=0)
+        x_val = np.delete(x, train_idx, axis=0)
         y_train = y[train_idx]
-        y = np.delete(y, train_idx)
-        test_size = int(np.round(0.5 * len(y)))
-        test_idx = np.load(tep) if tep != '' else np.random.choice(len(y),
-                                                                   test_size,
-                                                                   replace=False)
-        y_val = np.delete(y, test_idx)
-        x_val = np.delete(x, test_idx, axis=0)
+        y_val = np.expand_dims(np.delete(y, train_idx),-1)
 
+    print(x_train.shape)
+    print(x_val.shape)
+    print(y_train.shape)
+    print(y_val.shape)
     nb_classes = len(np.unique(np.concatenate((y_train, y_val), axis=0)))
     print(nb_classes)
     print(x_train.shape)
@@ -144,7 +142,8 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2)
     if classifier_name == 'cnn2d':
         from classifiers import cnn2d
-        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=1000, verbose=verbose, filters=32, depth=3, decay=True, window=31, batch_size=8)
+        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=1000, verbose=verbose, filters=32, depth=3, decay=False, window=61, batch_size=32)
+        #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
 
 
 def main(args):
