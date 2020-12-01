@@ -118,11 +118,10 @@ class Classifier_XCM:
                                       activation='relu')(conv_2d)
         print('after 1x1 conv2d: {}'.format(conv_2d))
 
-        #conv_1d = keras.layers.Conv1D(1, 1, padding='same',
-        #                              name='conv1d-1x1',
-        #                              activation='relu')(conv_1d)
-        # conv_1d = tf.keras.backend.expand_dims(conv_1d, axis=-1,
-        #                                        name='exp_dims1d')
+        conv_1d = keras.layers.Conv1D(1, 1, padding='same',
+                                      name='conv1d-1x1',
+                                      activation='relu')(conv_1d)
+        #conv_1d = tf.keras.backend.expand_dims(conv_1d, axis=-1, name='exp_dims1d')
         conv_2d = tf.keras.backend.squeeze(conv_2d, -1)  # , name='squeeze2d')
         print('after 1x1 conv1d: {}'.format(conv_1d))
 
@@ -132,13 +131,13 @@ class Classifier_XCM:
         # conv_1d = keras.layers.Lambda((lambda x: x),
         #                               name='lambda1d-final')(conv_1d,
         #                                                      mask=masked[:, :, 0])
-        #feats = keras.layers.Concatenate(axis=2,
-        #                                 name='concat')([conv_2d, conv_1d])
+        feats = keras.layers.Concatenate(axis=2,
+                                         name='concat')([conv_2d, conv_1d])
         # feats = tf.keras.backend.squeeze(feats, -1)
-        feats = keras.layers.Conv1D(filters[-1], self.window, padding='same', name='conv-final')(conv_2d)
+        #feats = keras.layers.Conv1D(filters[-1], self.window, padding='same', name='conv-final')(conv_2d)
         
-        #feats = keras.layers.Conv1D(4, self.window,
-        #                            padding='same', name='conv-final')(feats)
+        feats = keras.layers.Conv1D(4, self.window,
+                                    padding='same', name='conv-final')(feats)
         print('after conv1d: {}'.format(feats))
         feats = keras.layers.BatchNormalization(name='bn-final')(feats)
         feats = keras.layers.Activation(activation='relu',
