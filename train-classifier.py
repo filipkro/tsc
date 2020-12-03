@@ -1,10 +1,12 @@
 from utils.utils import create_directory
+from utils.gen_dataset_idx import gen_train_val_test
 import os
 import numpy as np
 import sys
 import sklearn
 import utils
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
+
 
 def get_data(data_path, test_path=''):
     # if data_path.split('.')[-1] == '.npz':
@@ -16,8 +18,7 @@ def get_data(data_path, test_path=''):
     return train_idx, test_idx, val_idx
 
 
-
-def fit_classifier(dp, trp, tep, classifier_name, output_directory):
+def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
 
     dataset = np.load(dp)
 
@@ -25,7 +26,18 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
     y = dataset['labels']
     print(trp)
     print('x shape::', x.shape)
-    if trp.split('.')[-1] == 'npz':
+    if gen_idx:
+        info_f = dp.split('.')[0] + '-info.txt'
+        train_idx, val_idx, test_idx = gen_train_val_test(info_f, 0.85, 0.1)
+        x_train = x[train_idx, ...]
+        y_train = y[train_idx]
+        x_val = x[val_idx, ...]
+        y_val = y[val_idx]
+
+        np.savez(os.path.join(output_directory, 'idx.npz'), train=train_idx,
+                 val=val_idx, test=test_idx)
+
+    elif trp.split('.')[-1] == 'npz':
         ind = np.load(trp)
         test_idx = ind['test_idx'].astype(np.int)
         train_idx = ind['train_idx'].astype(np.int)
@@ -43,7 +55,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory):
         x_train = x[train_idx, ...]
         x_val = np.delete(x, train_idx, axis=0)
         y_train = y[train_idx]
-        y_val = np.expand_dims(np.delete(y, train_idx),-1)
+        y_val = np.expand_dims(np.delete(y, train_idx), -1)
 
     print(x_train.shape)
     print(x_val.shape)
@@ -91,6 +103,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=32, filters=64, batch_size=32, depth=2)
         #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
         #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=21, filters=32, batch_size=128, depth=3)
+        #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=30000, kernel_size=32, filters=64, batch_size=32, depth=2)
+        # return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
+        # return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=21, filters=32, batch_size=128, depth=3)
     if classifier_name == 'fcn':
         from classifiers import fcn
         return fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
@@ -131,6 +146,11 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=60000, bottleneck_size=32)
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=10000, bottleneck_size=8)
         #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
+        # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=16, kernel_size=21, nb_epochs=40000, bottleneck_size=8)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=15, nb_epochs=40000, bottleneck_size=16, use_residual=False)
+        # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=60000, bottleneck_size=32)
+        # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=10000, bottleneck_size=8)
+        # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
@@ -146,6 +166,17 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=4, depth=2, decay=False, window=121, batch_size=32)
         return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=16, depth=2, decay=False, window=    51, batch_size=32)
         #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
+
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise ArgumentTypeError('Boolean value expected.')
 
 
 def main(args):
@@ -182,7 +213,7 @@ def main(args):
     else:
         create_directory(output_directory)
         fit_classifier(args.dataset, args.train_idx, args.test_idx,
-                       classifier_name, output_directory)
+                       classifier_name, output_directory, args.gen_idx)
         print('DONE')
 
         create_directory(output_directory + '/DONE')
@@ -194,6 +225,7 @@ if __name__ == '__main__':
     parser.add_argument('dataset')
     parser.add_argument('classifier')
     parser.add_argument('--itr', default='')
+    parser.add_argument('--gen_idx', type=str2bool, nargs='?', default=False)
     parser.add_argument('--train_idx', default='')
     parser.add_argument('--test_idx', default='')
     parser.add_argument('--archive', default='VA')

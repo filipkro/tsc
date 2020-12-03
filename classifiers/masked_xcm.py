@@ -15,7 +15,7 @@ from keras.utils.layer_utils import count_params
 class Classifier_XCM:
 
     def __init__(self, output_directory, input_shape, nb_classes, lr=0.001,
-                 batch_size=16, verbose=2, nb_epochs=2000, depth=1, mask=False,
+                 batch_size=16, verbose=2, nb_epochs=2000, depth=1, mask=True,
                  filters=16, window=21, decay=False, metric='val_accuracy',
                  reduce_lr_metric='train_loss'):
 
@@ -73,8 +73,11 @@ class Classifier_XCM:
         windows = []
 
         for i in range(self.depth):
-            filters.append(int(self.filters / (self.depth - i))) if self.decay else \
-                filters.append(int(self.filters))
+            if True: # i < self.depth - 1: 
+                filters.append(int(self.filters / (self.depth - i))) if self.decay else \
+                    filters.append(int(self.filters))
+            else:
+                filters.append(64)
             windows.append(int(self.window / (i + 1))) if self.decay else \
                 windows.append(int(self.window))
 
@@ -100,7 +103,7 @@ class Classifier_XCM:
             conv_2d = keras.layers.Activation(activation='relu',
                                               name='relu2d_{}'.format(name_ending))(conv_2d)
 
-            conv_1d = keras.layers.Conv1D(1, w, padding='same',
+            conv_1d = keras.layers.Conv1D(f, w, padding='same',
                                           name='conv1d_{}'.format(name_ending))(conv_1d)
             print('after conv1d: {}'.format(conv_1d))
             conv_1d = keras.layers.BatchNormalization(
