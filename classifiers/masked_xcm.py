@@ -169,7 +169,7 @@ class Classifier_XCM:
             save_best_only=True, mode='min')
 
         check_folder = self.output_directory + 'checkpoints/cp-{epoch:04d}.hdf5'
-        rec_checkpoints = keras.callbacks.ModelCheckpoint(filepath=rec_checkpoints, save_freq='epoch', period=10)
+        rec_checkpoints = keras.callbacks.ModelCheckpoint(filepath=check_folder, save_freq='epoch', period=10)
 
         self.callbacks = [reduce_lr, model_checkpoint, rec_checkpoints]
 
