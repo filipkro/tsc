@@ -15,7 +15,7 @@ from keras.utils.layer_utils import count_params
 class Classifier_XCM:
 
     def __init__(self, output_directory, input_shape, nb_classes, lr=0.001,
-                 batch_size=16, verbose=2, nb_epochs=2000, depth=1, mask=False,
+                 batch_size=16, verbose=2, nb_epochs=2000, depth=1, mask=True,
                  filters=16, window=21, decay=False, metric='val_accuracy',
                  reduce_lr_metric='train_loss'):
 
@@ -135,7 +135,7 @@ class Classifier_XCM:
                                          name='concat')([conv_2d, conv_1d])
         # feats = tf.keras.backend.squeeze(feats, -1)
         #feats = keras.layers.Conv1D(filters[-1], self.window, padding='same', name='conv-final')(conv_2d)
-        
+
         feats = keras.layers.Conv1D(4, self.window,
                                     padding='same', name='conv-final')(feats)
         print('after conv1d: {}'.format(feats))
@@ -158,12 +158,15 @@ class Classifier_XCM:
                       metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
-                                                      factor=0.5, patience=50,
+                                                      factor=0.75, patience=50,
                                                       min_lr=0.0001)
         file_path = self.output_directory + 'best_model.hdf5'
         model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=file_path, monitor='val_accuracy',
-            save_best_only=True, mode='max')
+            filepath=file_path, monitor='val_loss',
+            save_best_only=True, mode='min')
+
+        check_folder = self.output_directory + 'checkpoints/cp-{epoch:04d}.hdf5'
+        rec_checkpoints = keras.callbacks.ModelCheckpoint(filepath=rec_checkpoints, save_freq='epoch', period=10)
 
         self.callbacks = [reduce_lr, model_checkpoint]
 
