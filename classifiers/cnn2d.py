@@ -71,8 +71,11 @@ class Classifier_CNN2D:
         merge_len = 9
 
         for i in range(self.depth):
-            filters.append(int(self.filters / (self.depth - i))) \
+            if i < self.depth - 1:
+              filters.append(int(self.filters / (self.depth - i))) \
                 if self.decay else filters.append(int(self.filters))
+            else:
+              filters.append(64)
             #windows.append(int(self.window / (i + 1))) \
             #    if self.decay else windows.append(int(self.window))
             windows.append(int(self.window))

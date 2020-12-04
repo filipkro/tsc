@@ -100,7 +100,10 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=2):
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
-        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=30000, kernel_size=32, filters=64, batch_size=32, depth=2)
+        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=32, filters=64, batch_size=32, depth=2)
+        #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
+        #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=21, filters=32, batch_size=128, depth=3)
+        #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=30000, kernel_size=32, filters=64, batch_size=32, depth=2)
         # return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
         # return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=21, filters=32, batch_size=128, depth=3)
     if classifier_name == 'fcn':
@@ -138,8 +141,13 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=16, kernel_size=21, nb_epochs=40000, bottleneck_size=8)
+        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=15, nb_epochs=8000, bottleneck_size=16, use_residual=False)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=60000, bottleneck_size=32)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=10000, bottleneck_size=8)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
         # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=16, kernel_size=21, nb_epochs=40000, bottleneck_size=8)
-        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=15, nb_epochs=40000, bottleneck_size=16, use_residual=False)
+        #return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=15, nb_epochs=40000, bottleneck_size=16, use_residual=False)
         # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=60000, bottleneck_size=32)
         # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=4, nb_filters=8, kernel_size=15, nb_epochs=10000, bottleneck_size=8)
         # return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=6, nb_filters=32, kernel_size=41, nb_epochs=2, bottleneck_size=32)
@@ -148,14 +156,16 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
-        # return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=32, depth=2, decay=True, mask=True, window=41)
-        # return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
-        # return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2)
+        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
+        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=4, depth=2, decay=False, mask=True, window=141)
+        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, decay=False, mask=True, window=51)
+        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=32, depth=2, window=21, decay=True)
     if classifier_name == 'cnn2d':
         from classifiers import cnn2d
-        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=1000, verbose=verbose, filters=16, depth=3, decay=False, window=51, batch_size=32)
-        # return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
+        #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=4, depth=2, decay=False, window=121, batch_size=32)
+        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=16, depth=2, decay=False, window=    51, batch_size=32)
+        #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
 
 
 def str2bool(v):
