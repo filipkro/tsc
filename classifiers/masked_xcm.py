@@ -73,7 +73,7 @@ class Classifier_XCM:
         windows = []
 
         for i in range(self.depth):
-            if True: # i < self.depth - 1: 
+            if True: # i < self.depth - 1:
                 filters.append(int(self.filters / (self.depth - i))) if self.decay else \
                     filters.append(int(self.filters))
             else:
@@ -171,7 +171,7 @@ class Classifier_XCM:
         check_folder = self.output_directory + 'checkpoints/cp-{epoch:04d}.hdf5'
         rec_checkpoints = keras.callbacks.ModelCheckpoint(filepath=rec_checkpoints, save_freq='epoch', period=10)
 
-        self.callbacks = [reduce_lr, model_checkpoint]
+        self.callbacks = [reduce_lr, model_checkpoint, rec_checkpoints]
 
         return model
 
