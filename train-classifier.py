@@ -100,9 +100,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
 def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=2):
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
-        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=32, filters=64, batch_size=32, depth=2)
+        #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=32, filters=64, batch_size=32, depth=2)
         #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
-        #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=21, filters=32, batch_size=128, depth=3)
+        return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=6000, kernel_size=101, filters=8, batch_size=16, depth=3)
         #return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=30000, kernel_size=32, filters=64, batch_size=32, depth=2)
         # return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000)
         # return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=20000, kernel_size=21, filters=32, batch_size=128, depth=3)
@@ -157,8 +157,8 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
-        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=4, depth=2, decay=False, mask=True, window=141)
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, decay=False, mask=True, window=51, lr=0.001)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=8, depth=2, decay=False, mask=True, window=141)
+        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, decay=False, mask=True, window=51, lr=0.001)
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
         return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2, window=31, decay=False)
     if classifier_name == 'cnn2d':
