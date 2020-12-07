@@ -1,5 +1,5 @@
 from utils.utils import create_directory
-from utils.gen_dataset_idx import gen_train_val_test
+from utils.gen_dataset_idx import gen_train_val_test, gen_rnd
 import os
 import numpy as np
 import sys
@@ -21,14 +21,20 @@ def get_data(data_path, test_path=''):
 def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
 
     dataset = np.load(dp)
-
+    merge_class = True
     x = dataset['mts']
     y = dataset['labels']
+    if merge_class:
+      idx = np.where(y==1)[0]
+      y[idx] = 0
+      idx = np.where(y==2)[0]
+      y[idx] = 1
     print(trp)
     print('x shape::', x.shape)
     if gen_idx:
         info_f = dp.split('.npz')[0] + '-info.txt'
-        if x.shape[2] > 250:
+        if x.shape[1] > 400:
+            print(x.shape)
             train_idx, val_idx, test_idx = gen_rnd(y.copy(), 0.85, 0.1)
         else:
             train_idx, val_idx, test_idx = gen_train_val_test(info_f, 0.85, 0.1)
@@ -160,14 +166,14 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose)
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=8, depth=2, decay=False, mask=True, window=141)
+        #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=8, depth=2, decay=False, mask=True, window=141)
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, decay=False, mask=True, window=51, lr=0.001)
         #return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=20000, verbose=verbose, filters=64, depth=2)
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2, window=31, decay=False)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=8, depth=3, window=41, decay=False)
     if classifier_name == 'cnn2d':
         from classifiers import cnn2d
-        #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=4, depth=2, decay=False, window=121, batch_size=32)
-        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2, decay=False, window=31, batch_size=16)
+        return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=4, depth=2, decay=False, window=121, batch_size=32)
+        #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2, decay=False, window=31, batch_size=16)
         #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
 
 
