@@ -23,8 +23,8 @@ import matplotlib.pyplot as plt
 
 def make_gradcam_heatmap(input, model):
 
-    last_conv1d_layer_name = 'lambda1d_last'
-    last_conv2d_layer_name = 'lambda2d_last'
+    last_conv1d_layer_name = 'relu1d_last'
+    last_conv2d_layer_name = 'relu2d_last'
     classifier1d_layer_names = ['conv1d-1x1', 'lambda1d-final', 'conv-final',
                                 'bn-final', 'relu-final', 'gap', 'result']
     classifier2d_layer_names = ['conv2d-1x1', 'lambda2d-final', 'conv-final',

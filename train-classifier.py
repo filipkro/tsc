@@ -27,7 +27,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
     print(trp)
     print('x shape::', x.shape)
     if gen_idx:
-        info_f = dp.split('.')[0] + '-info.txt'
+        info_f = dp.split('.npz')[0] + '-info.txt'
         if x.shape[2] > 250:
             train_idx, val_idx, test_idx = gen_rnd(y.copy(), 0.85, 0.1)
         else:

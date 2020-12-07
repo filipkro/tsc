@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import itertools
 from grad_cam import make_gradcam_heatmap
 from xcm_grad_cam import make_gradcam_heatmap as xcm_hm
-from grad_test import check_grad
+from grad_test0 import check_grad
 
 
 def plot_confusion_matrix(cm, classes,
@@ -70,15 +70,17 @@ def main(args):
 
     if args.train.split('.')[-1] == 'npz':
         ind = np.load(args.train)
-        test_idx = ind['test_idx'].astype(np.int)
-        train_idx = ind['train_idx'].astype(np.int)
-        val_idx = ind['val_idx'].astype(np.int)
+        print(ind.files)
+        test_idx = ind['test'].astype(np.int)
+        train_idx = ind['train'].astype(np.int)
+        val_idx = ind['val'].astype(np.int)
         x_train = x[train_idx, ...]
         y_train = y[train_idx]
         x_val = x[val_idx, ...]
         y_val = y[val_idx]
         x_test = x[test_idx, ...]
         y_test = y[test_idx]
+        print(test_idx)
         # print(test_idx)
         # print(y_test)
         # print(y_val)
@@ -133,27 +135,49 @@ def main(args):
                               title='Confusion matrix, without normalization')
         # print(model.summary())
         # plt.show()
-        i = 0
+        i = 11
+
+        print(y_test[i])
+        print(y_pred[i])
+        print(result[i,...])
         max_idx = np.where(x_test[i, :, 0] < -900)[0][0]
         # print(model.summary())
+        # assert False
+        # L1,L2 = xcm_hm(np.expand_dims(x_test[i, :max_idx, ...], 0), model)
         L1, L2 = check_grad(np.expand_dims(x_test[i, :max_idx, ...], 0), model)
-
+        # print(result)
         plt.figure()
         plt.plot(L1)
         plt.figure()
         plt.plot(L2[:,0])
         plt.plot(L2[:,1])
+        fig, axs = plt.subplots(2)
+        axs[0].plot(x_test[i, :max_idx, 0])
+        sc = axs[0].scatter(np.linspace(0, max_idx - 1, max_idx),
+                            x_test[i, :max_idx, 0],
+                            c=L2[:max_idx,0], cmap='cool',
+                            vmin=0, vmax=1)
+        axs[1].plot(x_test[i, :max_idx, 1])
+        sc = axs[1].scatter(np.linspace(0, max_idx - 1, max_idx),
+                            x_test[i, :max_idx, 1],
+                            c=L2[:max_idx,1], cmap='cool',
+                            vmin=0, vmax=1)
+        cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+
+        # fig.suptitle('Dataset: {}, Class {} predicted as {}'.format(lit, y_test[i], y_pred[i]))
         plt.show()
 
-        # check_grad(np.expand_dims(x_test[i,:max_idx, ...], 0), model)
-        make_gradcam_heatmap(np.expand_dims(x_test[i,:max_idx, ...], 0), model)
 
-        assert False
-        hm1, hm2 = xcm_hm(np.expand_dims(x_test[i, ...], 0), model)
+
+        # check_grad(np.expand_dims(x_test[i,:max_idx, ...], 0), model)
+        # make_gradcam_heatmap(np.expand_dims(x_test[i,:max_idx, ...], 0), model)
+
+        # assert False
+        # hm1, hm2 = xcm_hm(np.expand_dims(x_test[i, ...], 0), model)
         # hm = make_gradcam_heatmap(np.expand_dims(x_test[i, ...], 0), model, 'conv1d_3', [
         #                           'global_average_pooling1d', 'result'])
-        plt.figure()
-        plt.plot(hm)
+        # plt.figure()
+        # plt.plot(hm)
 
         # plt.plot(x[:max_idx,0])
         fig, axs = plt.subplots(x_test.shape[2])
@@ -164,7 +188,7 @@ def main(args):
                 sc = axs[j].scatter(np.linspace(0, max_idx - 1, max_idx),
                                     x_test[i, :max_idx, j],
                                     c=hm[:max_idx], cmap='cool',
-                                    vmin=0, vmax=1)
+                                    vmin=-1, vmax=1)
                 # axs[j].set_axis_off()
             cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
         else:

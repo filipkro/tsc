@@ -26,7 +26,7 @@ def gen_train_val(info_file, ratio):
 
 def gen_rnd(y, train_ratio, val_ratio):
     train_size = int(np.round(train_ratio * len(y)))
-    train_idx = np.random.choice(train_ratio * (1 + len(y)), train_size,
+    train_idx = np.random.choice(len(y), train_size,
                                  replace=False)
 
     non_train = []
@@ -35,7 +35,7 @@ def gen_rnd(y, train_ratio, val_ratio):
             non_train = np.append(non_train, a)
 
     val_size = int(np.round(val_ratio * (1 + len(y))))
-    val_idx = np.random.choice(val_ratio * (1 + len(y)), val_size,
+    val_idx = np.random.choice(len(y), val_size,
                                  replace=False)
     test_idx = []
     for a in range(len(y)):
