@@ -95,7 +95,7 @@ class Classifier_NET1d:
         #         name='relu1d_{}'.format(name_ending))(conv_1d)
 
         conv_1d = keras.layers.Conv1D(self.filters, self.window,
-                                      padding='same', name='conv1d-merge')(conv_1d)
+                                      padding='same', name='conv1d-merge')(feats)
         print(conv_1d)
         conv_1d = keras.layers.BatchNormalization(name='bn1d_merge')(conv_1d)
         conv_1d = keras.layers.Activation(activation='relu',
