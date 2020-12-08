@@ -49,25 +49,11 @@ def plot_confusion_matrix(cm, classes,
         plt.close()
 
 
-def plot_w_cam(x, cam, y_pred, y_true):
-    max_idx = np.where(x[:, 0] < -900)[0][0]
-    # plt.plot(x[:max_idx,0])
-    plt.plot(x[:max_idx, 0])
-    sc = plt.scatter(np.linspace(0, max_idx - 1, max_idx),
-                     x[:max_idx, 0], c=cam[:max_idx])
-    plt.colorbar(sc)
-    plt.show()
-
-
 def main(args):
 
-    if args.dataset != '':
-        dataset = np.load(args.dataset)
-        lit = ''
-    else:
         print(os.path.basename(args.root).split('_')[0])
         lit = os.path.basename(args.root).split('_')[0]
-        dp = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '.npz'
+        dp = os.path.join(args.data, 'data_') + lit + '.npz'
         dataset = np.load(dp)
 
     x = dataset['mts']
@@ -90,26 +76,14 @@ def main(args):
     y_tv = y[tv]
 
 
-    # x = x_test
-    # y = y_test
-    # print(x.shape)
-    # print(y.shape)
-    # print(x_test.shape)
-    # print(y_test.shape)
-    plot_all = True
-
     model_path = os.path.join(args.root, 'best_model.hdf5')
     model = keras.models.load_model(model_path)
-    # y_pred_like, cam = model.predict(x)
-    # y_pred_like_tv, cam_tv = model.predict(x_tv)
+
     result = model.predict(x_test)
     result_tv = model.predict(x_tv)
 
     y_pred = np.argmax(result, axis=1)
     y_pred_tv = np.argmax(result_tv, axis=1)
-    # print(y_test)
-    # print(y_pred)
-    # print(result)
 
     print('result: {}'.format(result))
     print('y_pred_like: {}'.format(y_pred_like))
@@ -123,7 +97,7 @@ def main(args):
     cnf_matrix = confusion_matrix(y_test, y_pred)
     if args.outdir != '':
         savename = os.path.join(args.outdir, 'test.png')
-    # np.set_printoptions(precision=2)
+    np.set_printoptions(precision=2)
     plot_confusion_matrix(cnf_matrix, classes=['0', '1', '2'],
                           title='Confusion matrix, without normalization',
                           savename=savename)
@@ -138,13 +112,10 @@ def main(args):
 
 
 
-
-
-
-
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('root')
+    parser.add_argument('data')
     parser.add_argument('--outdir', default='')
     parser.add_argument('--dataset', default='')
     parser.add_argument('--test_idx', default='')
