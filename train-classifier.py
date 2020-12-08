@@ -173,6 +173,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, window=31, decay=False)
+    if classifier_name == 'net1d-v2':
+        from classifiers import net1d_v2
+        return net1d_v2.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=32, depth=2, window=41, decay=False)
     if classifier_name == 'cnn2d':
         from classifiers import cnn2d
         return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=4, depth=2, decay=False, window=121, batch_size=32)
