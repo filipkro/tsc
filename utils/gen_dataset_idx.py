@@ -57,7 +57,10 @@ def gen_train_val_test(info_file, train_ratio, val_ratio=''):
     #     return gen_rnd(train_ratio, val_ratio)
     print(train_ratio)
     print(val_ratio)
-    data = np.array(meta_data.values[5:, :4], dtype=int)
+    first_data = np.where(meta_data.values[:,0] == 'index')[0][0] + 1
+    # print(meta_data.values[first_data, :])
+
+    data = np.array(meta_data.values[first_data:, :4], dtype=int)
     train_size = int(np.round(train_ratio * (1 + data[-1, 1])))
     subj_idx = np.random.choice((1 + data[-1, 1]), train_size, replace=False)
     train_idx = []
