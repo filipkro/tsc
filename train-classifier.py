@@ -26,9 +26,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
     y = dataset['labels']
     if merge_class:
       idx = np.where(y==1)[0]
-      y[idx] = 0
-      idx = np.where(y==2)[0]
-      y[idx] = 1
+      y[idx] = 2
+      #idx = np.where(y==2)[0]
+      # y[idx] = 1
     print(trp)
     print('x shape::', x.shape)
     if gen_idx:
@@ -172,7 +172,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=8, depth=3, window=41, decay=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
-        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, window=31, decay=False)
+        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=16, depth=2, window=31, decay=False)
     if classifier_name == 'net1d-v2':
         from classifiers import net1d_v2
         return net1d_v2.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=32, depth=2, window=41, decay=False)

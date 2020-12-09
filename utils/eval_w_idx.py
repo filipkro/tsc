@@ -53,13 +53,13 @@ def main(args):
 
     print(os.path.basename(args.root).split('_')[0])
     lit = os.path.basename(args.root).split('_')[0]
-    dp = os.path.join(args.data, 'data_') + lit + '.npz'
+    dp = os.path.join(args.data, 'data_') + 'Herta-Moller.npz'
     dataset = np.load(dp)
 
     x = dataset['mts']
     y = dataset['labels']
 
-    ind = np.load(os.path.join(args.root, 'best_model.hdf5'))
+    ind = np.load(os.path.join(args.root, 'idx.npz'))
     test_idx = ind['test'].astype(np.int)
     train_idx = ind['train'].astype(np.int)
     val_idx = ind['val'].astype(np.int)
@@ -86,14 +86,11 @@ def main(args):
     y_pred_tv = np.argmax(result_tv, axis=1)
 
     print('result: {}'.format(result))
-    # print('y_pred_like: {}'.format(y_pred_like))
+    #print('y_pred_like: {}'.format(y_pred_like))
     print('y_pred: {}'.format(y_pred))
     print('y_test: {}'.format(y_test))
     print('result_tv: {}'.format(result_tv))
-    # print('y_pred_like_tv: {}'.format(y_pred_like_tv))
-    print('y_pred_tv: {}'.format(y_pred_tv))
-    print('y_test_tv: {}'.format(y_tv))
-
+    #print('y_pred_like_tv: {}'.format(y_pred_like_tv))
     cnf_matrix = confusion_matrix(y_test, y_pred)
     if args.outdir != '':
         savename = os.path.join(args.outdir, 'test.png')
