@@ -21,7 +21,7 @@ def get_data(data_path, test_path=''):
 def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
 
     dataset = np.load(dp)
-    merge_class = False 
+    merge_class = False
     x = dataset['mts']
     y = dataset['labels']
     if merge_class:
@@ -181,7 +181,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=4, depth=2, decay=False, window=121, batch_size=32)
         #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=15000, verbose=verbose, filters=64, depth=2, decay=False, window=31, batch_size=16)
         #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
-
+    if classifier_name == 'net1d-mod':
+        from classifiers import net1d_mod
+        return net1d_mod.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, window=31, decay=False)
 
 def str2bool(v):
     if isinstance(v, bool):
