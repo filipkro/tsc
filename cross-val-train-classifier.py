@@ -12,7 +12,7 @@ import tensorflow as tf
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
 
-def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
+def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
     dataset = np.load(dp)
     indices = np.load(IDX_PATH)
@@ -131,7 +131,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=8, depth=3, window=41, decay=False)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=8, depth=2, window=41, decay=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=16, depth=2, window=31, decay=False)
@@ -193,7 +193,7 @@ def main(args):
     else:
         create_directory(output_directory)
         fit_classifier(args.dataset, args.train_idx, args.test_idx,
-                       classifier_name, output_directory, args.gen_idx)
+                       classifier_name, output_directory, args.idx)
         print('DONE')
 
         create_directory(output_directory + '/DONE')
@@ -204,6 +204,7 @@ if __name__ == '__main__':
     parser.add_argument('root')
     parser.add_argument('dataset')
     parser.add_argument('classifier')
+    parser.add_argument('--idx', default='/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz')
     parser.add_argument('--itr', default='')
     parser.add_argument('--merge_class', type=str2bool,
                         nargs='?', default=False)

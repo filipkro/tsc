@@ -91,6 +91,8 @@ class Classifier_XCM:
         #conv_1d = input_layer
 
         # for f, w in zip(filters, windows):
+        filters = [16, 32, 64]
+        windows = [71, 41, 11]
         for i in range(len(filters)):
             f = filters[i]
             w = windows[i]
@@ -150,8 +152,10 @@ class Classifier_XCM:
         gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats,
                                                                     mask=masked[:, :, 0])
         #gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats)
+        output_layer = keras.layers.Dense(filters[-1],
+                                          name='result1')(gap_layer)
         output_layer = keras.layers.Dense(self.nb_classes,
-                                          name='result')(gap_layer)
+                                          name='result2')(gap_layer)
         output_layer = keras.layers.Activation(activation='softmax',
                                                name='sm')(output_layer)
 

@@ -64,8 +64,6 @@ class Classifier_NET1d:
                                       name='mask')(input_layer)
         conv_1d = masked
         filters = [16, 32, 64]
-        windows = [51, 31, 21]
-        filters = [16, 32, 64] 
         windows = [71, 41, 11]
         for i in range(len(filters)):
             f = filters[i]
@@ -95,8 +93,8 @@ class Classifier_NET1d:
 
         #output_layer = keras.layers.Dense(self.nb_classes,
         #                                  name='result')(gap_layer)
-        
-        output_layer = keras.layers.Dense(64, name='result1')(gap_layer)
+
+        output_layer = keras.layers.Dense(filters[-1], name='result1')(gap_layer)
         output_layer = keras.layers.Dense(self.nb_classes,
                                           name='result2')(output_layer)
         output_layer = keras.layers.Activation(activation='softmax',
