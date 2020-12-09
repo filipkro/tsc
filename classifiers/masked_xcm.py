@@ -73,7 +73,7 @@ class Classifier_XCM:
         windows = []
 
         for i in range(self.depth):
-            if True: # i < self.depth - 1:
+            if True:  # i < self.depth - 1:
                 filters.append(int(self.filters / (self.depth - i))) if self.decay else \
                     filters.append(int(self.filters))
             else:
@@ -168,14 +168,21 @@ class Classifier_XCM:
             filepath=file_path, monitor='val_loss',
             save_best_only=True, mode='min')
 
-        check_folder = self.output_directory + 'checkpoints/cp-{epoch:04d}.hdf5'
-        rec_checkpoints = keras.callbacks.ModelCheckpoint(filepath=check_folder, save_freq='epoch', period=10)
+        check_folder = self.output_directory + \
+            'checkpoints/cp-{epoch:04d}.hdf5'
+        rec_checkpoints = keras.callbacks.ModelCheckpoint(
+            filepath=check_folder, save_freq='epoch', period=10)
 
-        self.callbacks = [reduce_lr, model_checkpoint, rec_checkpoints]
+        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                   restore_best_weights=True,
+                                                   patience=100)
+
+        self.callbacks = [reduce_lr, model_checkpoint, stop_early,
+                          rec_checkpoints]
 
         return model
 
-    def fit(self, x_train, y_train, x_val, y_val, y_true):
+    def fit(self, x_train, y_train, x_val, y_val, y_true=''):
         # if not tf.test.is_gpu_available:
         #     print('error no gpu')
         #     exit()
@@ -200,18 +207,19 @@ class Classifier_XCM:
 
             self.model.save(self.output_directory + 'last_model.hdf5')
 
-            y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
-                                  return_df_metrics=False)
+            if y_true != '':
+                y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
+                                      return_df_metrics=False)
 
-            # save predictions
-            np.save(self.output_directory + 'y_pred.npy', y_pred)
-            # np.save(self.output_directory + 'cam.npy', cam)
+                # save predictions
+                np.save(self.output_directory + 'y_pred.npy', y_pred)
+                # np.save(self.output_directory + 'cam.npy', cam)
 
-            # convert the predicted from binary to integer
-            y_pred = np.argmax(y_pred, axis=1)
+                # convert the predicted from binary to integer
+                y_pred = np.argmax(y_pred, axis=1)
 
-            df_metrics = save_logs(self.output_directory,
-                                   hist, y_pred, y_true, duration)
+                df_metrics = save_logs(self.output_directory,
+                                       hist, y_pred, y_true, duration)
 
             keras.backend.clear_session()
 

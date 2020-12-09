@@ -91,9 +91,6 @@ def main(args):
     print('y_test: {}'.format(y_test))
     print('result_tv: {}'.format(result_tv))
     #print('y_pred_like_tv: {}'.format(y_pred_like_tv))
-    print('y_pred_tv: {}'.format(y_pred_tv))
-    print('y_test_tv: {}'.format(y_tv))
-
     cnf_matrix = confusion_matrix(y_test, y_pred)
     if args.outdir != '':
         savename = os.path.join(args.outdir, 'test.png')
