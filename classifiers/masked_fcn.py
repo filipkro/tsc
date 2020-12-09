@@ -93,11 +93,15 @@ class Classifier_FCN:
             filepath=file_path, monitor='val_result_accuracy',
             save_best_only=True, mode='max')
 
-        self.callbacks = [reduce_lr, model_checkpoint]
+        stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                   restore_best_weights=True,
+                                                   patience=100)
+
+        self.callbacks = [reduce_lr, model_checkpoint, stop_early]
 
         return model
 
-    def fit(self, x_train, y_train, x_val, y_val, y_true):
+    def fit(self, x_train, y_train, x_val, y_val, y_true=''):
         print('TRAINING')
         if not tf.test.is_gpu_available:
             print('error')
@@ -125,14 +129,19 @@ class Classifier_FCN:
         model = keras.models.load_model(
             self.output_directory + 'best_model.hdf5')
 
-        y_pred, gap = model.predict(x_val)
+        if y_true != '':
+            y_pred = self.predict(x_val, y_true, x_train, y_train, y_val,
+                                  return_df_metrics=False)
 
-        print(gap.shape)
-        # print(hist.accuracy)
-        # convert the predicted from binary to integer
-        y_pred = np.argmax(y_pred, axis=1)
-        print(y_pred)
-        save_logs(self.output_directory, hist, y_pred, y_true, duration)
+                                  # save predictions
+            np.save(self.output_directory + 'y_pred.npy', y_pred)
+            # np.save(self.output_directory + 'cam.npy', cam)
+
+            # convert the predicted from binary to integer
+            y_pred = np.argmax(y_pred, axis=1)
+
+            df_metrics = save_logs(self.output_directory,
+                                   hist, y_pred, y_true, duration)
 
         keras.backend.clear_session()
 

@@ -51,10 +51,10 @@ def plot_confusion_matrix(cm, classes,
 
 def main(args):
 
-        print(os.path.basename(args.root).split('_')[0])
-        lit = os.path.basename(args.root).split('_')[0]
-        dp = os.path.join(args.data, 'data_') + lit + '.npz'
-        dataset = np.load(dp)
+    print(os.path.basename(args.root).split('_')[0])
+    lit = os.path.basename(args.root).split('_')[0]
+    dp = os.path.join(args.data, 'data_') + lit + '.npz'
+    dataset = np.load(dp)
 
     x = dataset['mts']
     y = dataset['labels']
@@ -86,11 +86,11 @@ def main(args):
     y_pred_tv = np.argmax(result_tv, axis=1)
 
     print('result: {}'.format(result))
-    print('y_pred_like: {}'.format(y_pred_like))
+    # print('y_pred_like: {}'.format(y_pred_like))
     print('y_pred: {}'.format(y_pred))
     print('y_test: {}'.format(y_test))
     print('result_tv: {}'.format(result_tv))
-    print('y_pred_like_tv: {}'.format(y_pred_like_tv))
+    # print('y_pred_like_tv: {}'.format(y_pred_like_tv))
     print('y_pred_tv: {}'.format(y_pred_tv))
     print('y_test_tv: {}'.format(y_tv))
 

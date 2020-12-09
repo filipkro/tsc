@@ -12,16 +12,21 @@ def gen_train_val(info_file, ratio):
     subj_idx = np.random.choice((1 + data[-1, 1]), train_size, replace=False)
     train_idx = []
     val_idx = []
+    val_subj = []
 
     for a in data:
         if a[1] in subj_idx:
             train_idx = np.append(train_idx, a[0])
         else:
             val_idx = np.append(val_idx, a[0])
+            if a[1] not in val_subj:
+                val_subj = np.append(val_subj, a[1])
 
     train_idx = train_idx.astype(np.int16)
     val_idx = val_idx.astype(np.int16)
-    return train_idx, val_idx
+    subj_idx = subj_idx.astype(np.int16)
+    val_subj = val_subj.astype(np.int16)
+    return train_idx, val_idx, subj_idx, val_subj
 
 
 def gen_rnd(y, train_ratio, val_ratio):
@@ -36,7 +41,7 @@ def gen_rnd(y, train_ratio, val_ratio):
 
     val_size = int(np.round(val_ratio * (1 + len(y))))
     val_idx = np.random.choice(len(y), val_size,
-                                 replace=False)
+                               replace=False)
     test_idx = []
     for a in range(len(y)):
         if a not in train_idx and a not in val_idx:
@@ -57,7 +62,7 @@ def gen_train_val_test(info_file, train_ratio, val_ratio=''):
     #     return gen_rnd(train_ratio, val_ratio)
     print(train_ratio)
     print(val_ratio)
-    first_data = np.where(meta_data.values[:,0] == 'index')[0][0] + 1
+    first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
     # print(meta_data.values[first_data, :])
 
     data = np.array(meta_data.values[first_data:, :4], dtype=int)
@@ -90,20 +95,35 @@ def gen_train_val_test(info_file, train_ratio, val_ratio=''):
 
 
 def main(args):
-    train, val, test = gen_train_val_test(args.info_file, 0.8)
-    print(train.shape)
-    print(val.shape)
-    print(test.shape)
+    # train, test, train_subj, val_subj = gen_train_val(args.info_file, 0.9)
+    # # train, val, test = gen_train_val_test(args.info_file, 0.8)
+    # # print(train.shape)
+    # # print(val.shape)
+    # # print(test.shape)
 
-    for a in train:
-        if a in val:
-            print('FAN {} in train och val'.format(a))
-        if a in test:
-            print('FAN {} in train och test'.format(a))
+    sp = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
+    # np.savez(sp, train_idx=train, test_idx=test,
+    #          train_subj=train_subj, test_subj=val_subj)
+    data = np.load(sp)
+    train = data['train_idx']
+    test = data['test_idx']
+    train_subj = data['train_subj']
+    test_subj = data['test_subj']
 
-    for a in val:
-        if a in test:
-            print('FAN {} in val och test'.format(a))
+    print(train)
+    print(test)
+    print(train_subj)
+    print(test_subj)
+    #
+    # for a in train:
+    #     if a in val:
+    #         print('FAN {} in train och val'.format(a))
+    #     if a in test:
+    #         print('FAN {} in train och test'.format(a))
+    #
+    # for a in val:
+    #     if a in test:
+    #         print('FAN {} in val och test'.format(a))
 
 
 if __name__ == '__main__':
