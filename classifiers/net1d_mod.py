@@ -63,7 +63,8 @@ class Classifier_NET1d:
         masked = keras.layers.Masking(mask_value=-1000,
                                       name='mask')(input_layer)
         conv_1d = masked
-
+        filters = [16, 32, 64]
+        windows = [71, 41, 11]
         for i in range(len(filters)):
             f = filters[i]
             w = windows[i]
@@ -76,7 +77,7 @@ class Classifier_NET1d:
                                           name='conv1d_{}'.format(name_ending)
                                           )(conv_1d)
             conv_1d = keras.layers.Lambda((lambda x: x),
-                                          name='lambda1d_{}'.format(ame_ending)
+                                          name='lambda1d_{}'.format(name_ending)
                                           )(conv_1d, mask=masked[:, :, 0])
 
             conv_1d = keras.layers.BatchNormalization(
@@ -85,23 +86,23 @@ class Classifier_NET1d:
                 activation='relu',
                 name='relu1d_{}'.format(name_ending))(conv_1d)
 
-        conv_1d = keras.layers.Conv1D(self.filters, self.window,
+        conv_1d = keras.layers.Conv1D(filters[-1], windows[-1],
                                       padding='same', name='conv1d-merge')(conv_1d)
         conv_1d = keras.layers.Lambda(
-            (lambda x: x), name='lambda-merge')(conv_2d, mask=masked[:, :, 0])
+            (lambda x: x), name='lambda-merge')(conv_1d, mask=masked[:, :, 0])
         conv_1d = keras.layers.BatchNormalization(name='bn1d_merge')(conv_1d)
         conv_1d = keras.layers.Activation(activation='relu',
                                           name='relu1d_merge')(conv_1d)
         gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(conv_1d,
                                                                     mask=masked[:, :, 0])
 
-        output_layer = keras.layers.Dense(self.nb_classes,
-                                          name='result')(gap_layer)
+        #output_layer = keras.layers.Dense(self.nb_classes,
+        #                                  name='result')(gap_layer)
 
-        # output_layer = keras.layers.Dense(32,
-        #                                   name='result')(gap_layer)
-        # output_layer = keras.layers.Dense(self.nb_classes,
-        #                                   name='result')(output_layer)
+        output_layer = keras.layers.Dense(filters[-1],
+                                           name='result1')(gap_layer)
+        output_layer = keras.layers.Dense(self.nb_classes,
+                                           name='result2')(output_layer)
         output_layer = keras.layers.Activation(activation='softmax',
                                                name='sm')(output_layer)
 

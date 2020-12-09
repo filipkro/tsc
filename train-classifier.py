@@ -172,7 +172,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=8, depth=3, window=41, decay=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
-        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=16, depth=2, window=31, decay=False)
+        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=16, depth=2, window=31, decay=False, batch_size=32)
     if classifier_name == 'net1d-v2':
         from classifiers import net1d_v2
         return net1d_v2.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=32, depth=2, window=41, decay=False)
@@ -183,7 +183,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         #return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=10, verbose=verbose, filters=64, depth=3, decay=True, window=31)
     if classifier_name == 'net1d-mod':
         from classifiers import net1d_mod
-        return net1d_mod.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, window=31, decay=False)
+        return net1d_mod.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=7000, verbose=verbose, filters=16, depth=2, window=31, decay=False, batch_size=32)
 
 def str2bool(v):
     if isinstance(v, bool):
