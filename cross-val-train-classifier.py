@@ -89,6 +89,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     ifile.write(f'> Loss: {np.mean(loss_per_fold)} \n \n')
     # ifile.write(classifier.model.summary())
     ifile.close()
+    print(acc_per_fold)
 
     # assert False
 
@@ -132,6 +133,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
+        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
+    if classifier_name == 'masked-inception-mod':
+        from classifiers import masked_inception_mod
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
     if classifier_name == 'xcm':
         from classifiers import xcm

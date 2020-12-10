@@ -52,8 +52,10 @@ class Classifier_INCEPTION:
         f.write(str(model_hyper))
         f.close()
 
-    def _inception_module(self, input_tensor, stride=1, activation='linear'):
+    def _inception_module(self, input_tensor, masked, stride=1, activation='linear'):
 
+        input_tensor = keras.layers.Lambda((lambda x: x))(input_tensor,
+                                                          mask=masked[:, :, 0])
         if self.use_bottleneck and int(input_tensor.shape[-1]) > self.bottleneck_size:
             input_inception = keras.layers.Conv1D(filters=self.bottleneck_size,
                                                   kernel_size=1, padding='same',
@@ -66,6 +68,9 @@ class Classifier_INCEPTION:
         kernel_size_s = [self.kernel_size // (2 ** i) for i in range(3)]
 
         conv_l = []
+
+        input_inception = keras.layers.Lambda((lambda x: x))(input_inception,
+                                                             mask=masked[:, :, 0])
 
         for i in range(len(kernel_size_s)):
             conv_l.append(keras.layers.Conv1D(filters=self.nb_filters,
@@ -81,9 +86,14 @@ class Classifier_INCEPTION:
                                      padding='same', activation=activation,
                                      use_bias=False)(max_pool_1)
 
+        conv_6 = keras.layers.Lambda((lambda x: x))(conv_6,
+                                                    mask=masked[:, :, 0])
+
         conv_l.append(conv_6)
 
         x = keras.layers.Concatenate(axis=2)(conv_l)
+
+        x = keras.layers.Lambda((lambda x: x))(x, mask=masked[:, :, 0])
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.Activation(activation='relu')(x)
         return x
@@ -107,13 +117,14 @@ class Classifier_INCEPTION:
 
         for d in range(self.depth):
 
-            x = self._inception_module(x)
+            x = self._inception_module(x, masked_layer)
 
             if self.use_residual and d % 3 == 2:
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
+        gap_layer = keras.layers.GlobalAveragePooling1D()(
+            x, mask=masked_layer[:, :, 0])
 
         output_layer = keras.layers.Dense(self.nb_filters,
                                           name='result1')(gap_layer)
@@ -172,9 +183,9 @@ class Classifier_INCEPTION:
 
         if y_true != '':
             y_pred, cam = self.predict(x_val, y_true, x_train, y_train, y_val,
-                                  return_df_metrics=False)
+                                       return_df_metrics=False)
 
-                                  # save predictions
+            # save predictions
             np.save(self.output_directory + 'y_pred.npy', y_pred)
             # np.save(self.output_directory + 'cam.npy', cam)
 
