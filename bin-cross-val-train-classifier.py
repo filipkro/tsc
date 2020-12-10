@@ -47,6 +47,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     y12[idx] = 2
     nb_classes = 2
 
+    y01_orig = y01.copy()
+    y12_orig = y12.copy()
+
     enc01 = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc12 = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc01.fit(np.concatenate((y01), axis=0).reshape(-1, 1))
@@ -86,6 +89,10 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         scores01 = classifier.model.evaluate(x_train[test, ...],
                                            y01[test, ...], verbose=0)
 
+        preds01 = classifier.model(x_train[test, ...], training=False)
+        preds01 = np.argmax(preds01, axis=1)
+        cnf_matrix01 = confusion_matrix(y01_orig[test], preds01)
+
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
 
@@ -95,9 +102,20 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         scores12 = classifier.model.evaluate(x_train[test, ...],
                                           y12[test, ...], verbose=0)
 
+        preds12 = classifier.model(x_train[test, ...], training=False)
+        preds12 = np.argmax(preds12, axis=1)
+        cnf_matrix12 = confusion_matrix(y12_orig[test], preds12)
+
         print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {scores01[1]}')
 
         print(f'Score for fold {fold} with 1 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores12[0]}; {classifier.model.metrics_names[1]} of {scores12[1]}')
+
+        print('Confusion matrix with 0 and 1 grouped together:')
+        print(cnf_matrix01)
+
+        print('Confusion matrix with 1 and 2 grouped together:')
+        print(cnf_matrix12)
+
 
         acc_per_fold01.append(scores01[1])
         loss_per_fold01.append(scores01[0])

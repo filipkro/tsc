@@ -8,6 +8,7 @@ from sklearn.model_selection import KFold
 import utils
 from argparse import ArgumentParser, ArgumentTypeError
 import tensorflow as tf
+from sklearn.metrics import confusion_matrix
 
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
@@ -38,7 +39,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
     nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
     print(nb_classes)
-
+    y_train_orig = y_train.copy()
     enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc.fit(np.concatenate((y_train), axis=0).reshape(-1, 1))
     y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
@@ -69,6 +70,11 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
         scores = classifier.model.evaluate(x_train[test, ...],
                                            y_train[test, ...], verbose=0)
+
+        preds = classifier.model(x_train[test, ...], training=False)
+        preds = np.argmax(preds, axis=1)
+        cnf_matrix = confusion_matrix(y_train_orig[test], preds)
+        print(cnf_matrix)
 
         print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}')
 
