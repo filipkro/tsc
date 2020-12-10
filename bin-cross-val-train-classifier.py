@@ -182,6 +182,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
         return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51,31,11], decay=False)
+    if classifier_name == 'masked-xcm-mod':
+        from classifiers import masked_xcm_mod
+        return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51,31,11], decay=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16,32,64], depth=2, window=[51,31,11], decay=False)
