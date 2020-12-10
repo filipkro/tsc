@@ -72,14 +72,27 @@ class Classifier_XCM:
         filters = []
         windows = []
 
-        for i in range(self.depth):
-            if True:  # i < self.depth - 1:
-                filters.append(int(self.filters / (self.depth - i))) if self.decay else \
-                    filters.append(int(self.filters))
+        if isinstance(self.filters, int):
+            for i in range(self.depth):
+                if True:  # i < self.depth - 1:
+                    filters.append(int(self.filters / (self.depth - i))) if self.decay else \
+                        filters.append(int(self.filters))
+                else:
+                    filters.append(64)
+                windows.append(int(self.window / (i + 1))) if self.decay else \
+                    windows.append(int(self.window))
+        elif len(self.filters) > 1:
+            filters = self.filters
+            if isinstance(self.window, int):
+                windows = []
+                for a in filters:
+                    windows.append(self.window)
+            elif len(self.window) == len(self.filters):
+                windows = self.windows
             else:
-                filters.append(64)
-            windows.append(int(self.window / (i + 1))) if self.decay else \
-                windows.append(int(self.window))
+                windows = []
+                for a in filters:
+                    windows.append(self.window[0])
 
         input_layer = keras.layers.Input(batch_shape=self.input_shape)
         masked = keras.layers.Masking(mask_value=-1000,
@@ -91,8 +104,8 @@ class Classifier_XCM:
         #conv_1d = input_layer
 
         # for f, w in zip(filters, windows):
-        filters = [16, 32, 64]
-        windows = [71, 41, 11]
+        # filters = [16, 32, 64]
+        # windows = [71, 41, 11]
         for i in range(len(filters)):
             f = filters[i]
             w = windows[i]
