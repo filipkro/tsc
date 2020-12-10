@@ -138,10 +138,10 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[32, 128], depth=2, window=31, decay=False)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51,31,11], decay=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
-        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[32, 128], depth=2, window=31, decay=False)
+        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16,32,64], depth=2, window=[51,31,11], decay=False)
     if classifier_name == 'net1d-v2':
         from classifiers import net1d_v2
         return net1d_v2.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=32, depth=2, window=41, decay=False)
@@ -150,7 +150,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return cnn2d.Classifier_CNN2D(output_directory, input_shape, nb_classes, nb_epochs=8000, verbose=verbose, filters=4, depth=2, decay=False, window=121, batch_size=32)
     if classifier_name == 'net1d-mod':
         from classifiers import net1d_mod
-        return net1d_mod.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[32,128], depth=2, window=31, decay=False)
+        return net1d_mod.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16,32,64], depth=2, window=[51,31,11], decay=False)
 
 
 def str2bool(v):
