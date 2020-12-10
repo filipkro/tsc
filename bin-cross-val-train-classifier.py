@@ -40,7 +40,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     print(nb_classes)
 
 
-    idx = np.where(y == 1)[0]
+    idx = np.where(y_train == 1)[0]
     y01 = y_train.copy()
     y12 = y_train.copy()
     y01[idx] = 0
@@ -50,9 +50,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     enc01 = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc12 = sklearn.preprocessing.OneHotEncoder(categories='auto')
     enc01.fit(np.concatenate((y01), axis=0).reshape(-1, 1))
-    y01 = enc.transform(y01.reshape(-1, 1)).toarray()
+    y01 = enc01.transform(y01.reshape(-1, 1)).toarray()
     enc12.fit(np.concatenate((y12), axis=0).reshape(-1, 1))
-    y12 = enc.transform(y12.reshape(-1, 1)).toarray()
+    y12 = enc12.transform(y12.reshape(-1, 1)).toarray()
     if len(x_train.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension
         x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
@@ -89,15 +89,15 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
 
-       classifier.fit(x_train[train, ...], y12[train, ...],
+        classifier.fit(x_train[train, ...], y12[train, ...],
                       x_train[test, ...], y12[test, ...])
 
-       scores12 = classifier.model.evaluate(x_train[test, ...],
+        scores12 = classifier.model.evaluate(x_train[test, ...],
                                           y12[test, ...], verbose=0)
 
-        print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {score01[1]}')
+        print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {scores01[1]}')
 
-        print(f'Score for fold {fold} with 1 and 2 grouped together: {classifier.model.metrics_names[0]} of {scores12[0]}; {classifier.model.metrics_names[1]} of {score12[1]}')
+        print(f'Score for fold {fold} with 1 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores12[0]}; {classifier.model.metrics_names[1]} of {scores12[1]}')
 
         acc_per_fold01.append(scores01[1])
         loss_per_fold01.append(scores01[0])
@@ -127,7 +127,8 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     ifile.write(f'> Loss: {np.mean(loss_per_fold12)} \n \n')
     # ifile.write(classifier.model.summary())
     ifile.close()
-    print(acc_per_fold)
+    print(acc_per_fold01)
+    print(acc_per_fold12)
 
     # assert False
 
