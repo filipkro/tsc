@@ -120,6 +120,8 @@ class Classifier_INCEPTION:
             x = self._inception_module(x, masked_layer)
 
             if self.use_residual and d % 3 == 2:
+                input_res = keras.layers.Lambda((lambda x: x))(input_res,
+                                                               mask=masked[:, :, 0])
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
@@ -197,7 +199,7 @@ class Classifier_INCEPTION:
 
         keras.backend.clear_session()
 
-        #return df_metrics
+        # return df_metrics
 
     def predict(self, x_test, y_true, x_train, y_train, y_test,
                 return_df_metrics=True):
