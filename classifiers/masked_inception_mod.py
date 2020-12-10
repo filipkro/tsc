@@ -121,7 +121,7 @@ class Classifier_INCEPTION:
 
             if self.use_residual and d % 3 == 2:
                 input_res = keras.layers.Lambda((lambda x: x))(input_res,
-                                                               mask=masked[:, :, 0])
+                                                               mask=masked_layer[:, :, 0])
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
