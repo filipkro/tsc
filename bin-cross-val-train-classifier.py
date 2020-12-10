@@ -97,7 +97,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
         print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {score01[1]}')
 
-        print(f'Score for fold {fold} with 1 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores12[0]}; {classifier.model.metrics_names[1]} of {score12[1]}')
+        print(f'Score for fold {fold} with 1 and 2 grouped together: {classifier.model.metrics_names[0]} of {scores12[0]}; {classifier.model.metrics_names[1]} of {score12[1]}')
 
         acc_per_fold01.append(scores01[1])
         loss_per_fold01.append(scores01[0])
