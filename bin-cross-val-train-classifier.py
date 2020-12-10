@@ -89,10 +89,10 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
 
-       classifier.fit(x_train[train, ...], y12[train, ...],
+        classifier.fit(x_train[train, ...], y12[train, ...],
                       x_train[test, ...], y12[test, ...])
 
-       scores12 = classifier.model.evaluate(x_train[test, ...],
+        scores12 = classifier.model.evaluate(x_train[test, ...],
                                           y12[test, ...], verbose=0)
 
         print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {score01[1]}')
