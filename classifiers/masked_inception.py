@@ -114,19 +114,19 @@ class Classifier_INCEPTION:
                 input_res = x
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
-        cam = keras.layers.GlobalAveragePooling1D(
-            data_format='channels_first', name='cam')(x)
 
-        output_layer = keras.layers.Dense(nb_classes, activation='softmax',
+        output_layer = keras.layers.Dense(self.filters,
                                           name='result')(gap_layer)
+        output_layer = keras.layers.Dense(nb_classes, activation='softmax',
+                                          name='result')(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=[output_layer, cam])
+                                   outputs=output_layer)
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        model.compile(loss=['categorical_crossentropy', None],
+        model.compile(loss='categorical_crossentropy',
                       optimizer=keras.optimizers.Adam(self.lr),
                       metrics=['accuracy'])
 
