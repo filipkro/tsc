@@ -8,6 +8,7 @@ from sklearn.model_selection import KFold
 import utils
 from argparse import ArgumentParser, ArgumentTypeError
 import tensorflow as tf
+from sklearn.metrics import confusion_matrix
 
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
