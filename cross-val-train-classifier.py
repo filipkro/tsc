@@ -39,20 +39,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
     print(nb_classes)
 
-
-    idx = np.where(y == 1)[0]
-    y01 = y_train.copy()
-    y12 = y_train.copy()
-    y01[idx] = 0
-    y12[idx] = 2
-    nb_classes = 2
-
-    enc01 = sklearn.preprocessing.OneHotEncoder(categories='auto')
-    enc12 = sklearn.preprocessing.OneHotEncoder(categories='auto')
-    enc01.fit(np.concatenate((y01), axis=0).reshape(-1, 1))
-    y01 = enc.transform(y01.reshape(-1, 1)).toarray()
-    enc12.fit(np.concatenate((y12), axis=0).reshape(-1, 1))
-    y12 = enc.transform(y12.reshape(-1, 1)).toarray()
+    enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
+    enc.fit(np.concatenate((y_train), axis=0).reshape(-1, 1))
+    y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
     if len(x_train.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension
         x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
@@ -62,13 +51,8 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     num_folds = 5
     kfold = KFold(n_splits=num_folds, shuffle=True)
     fold = 1
-    acc_per_fold01 = []
-    loss_per_fold01 = []
-
-    acc_per_fold12 = []
-    loss_per_fold12 = []
-
-
+    acc_per_fold = []
+    loss_per_fold = []
 
     for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
 
@@ -80,51 +64,29 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        classifier.fit(x_train[train, ...], y01[train, ...],
-                       x_train[test, ...], y01[test, ...])
+        classifier.fit(x_train[train, ...], y_train[train, ...],
+                       x_train[test, ...], y_train[test, ...])
 
-        scores01 = classifier.model.evaluate(x_train[test, ...],
-                                           y01[test, ...], verbose=0)
+        scores = classifier.model.evaluate(x_train[test, ...],
+                                           y_train[test, ...], verbose=0)
 
-        classifier = create_classifier(classifier_name, input_shape,
-                                       nb_classes, output_directory)
+        print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}')
 
-       classifier.fit(x_train[train, ...], y12[train, ...],
-                      x_train[test, ...], y12[test, ...])
-
-       scores12 = classifier.model.evaluate(x_train[test, ...],
-                                          y12[test, ...], verbose=0)
-
-        print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {score01[1]}')
-
-        print(f'Score for fold {fold} with 1 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores12[0]}; {classifier.model.metrics_names[1]} of {score12[1]}')
-
-        acc_per_fold01.append(scores01[1])
-        loss_per_fold01.append(scores01[0])
-
-        acc_per_fold12.append(scores12[1])
-        loss_per_fold12.append(scores12[0])
+        acc_per_fold.append(scores[1])
+        loss_per_fold.append(scores[0])
 
         fold += 1
 
     print('------------------------------------------------------------------------')
-    print('Average scores for all folds with 0 and 1 grouped together:')
-    print(f'> Accuracy: {np.mean(acc_per_fold01)} (+- {np.std(acc_per_fold01)})')
-    print(f'> Loss: {np.mean(loss_per_fold01)}')
-    print('------------------------------------------------------------------------')
-    print('------------------------------------------------------------------------')
-    print('Average scores for all folds with 1 and 2 grouped together:')
-    print(f'> Accuracy: {np.mean(acc_per_fold12)} (+- {np.std(acc_per_fold12)})')
-    print(f'> Loss: {np.mean(loss_per_fold12)}')
+    print('Average scores for all folds:')
+    print(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)})')
+    print(f'> Loss: {np.mean(loss_per_fold)}')
     print('------------------------------------------------------------------------')
 
     ifile = open(os.path.join(output_directory, 'x-val.txt'), 'w')
-    ifile.write('Average scores for all folds with 0 and 1 grouped together: \n')
-    ifile.write(f'> Accuracy: {np.mean(acc_per_fold01)} (+- {np.std(acc_per_fold01)}) \n')
-    ifile.write(f'> Loss: {np.mean(loss_per_fold01)} \n \n')
-    ifile.write('Average scores for all folds with 1 and 2 grouped together: \n')
-    ifile.write(f'> Accuracy: {np.mean(acc_per_fold12)} (+- {np.std(acc_per_fold12)}) \n')
-    ifile.write(f'> Loss: {np.mean(loss_per_fold12)} \n \n')
+    ifile.write('Average scores for all folds: \n')
+    ifile.write(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)}) \n')
+    ifile.write(f'> Loss: {np.mean(loss_per_fold)} \n \n')
     # ifile.write(classifier.model.summary())
     ifile.close()
     print(acc_per_fold)
@@ -174,7 +136,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
-        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=3, nb_filters=64, kernel_size=51, nb_epochs=5000, bottleneck_size=32, use_residual=True)
+        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
