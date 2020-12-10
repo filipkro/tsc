@@ -83,6 +83,13 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     print(f'> Loss: {np.mean(loss_per_fold)}')
     print('------------------------------------------------------------------------')
 
+    ifile = open(os.path.join(output_directory, 'x-val.txt'), 'w')
+    ifile.write('Average scores for all folds: \n')
+    ifile.write(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)}) \n')
+    ifile.write(f'> Loss: {np.mean(loss_per_fold)} \n \n')
+    ifile.write(classifier.model.summary())
+    ifile.close()
+
     # assert False
 
 
