@@ -68,7 +68,7 @@ class Classifier_NET1d:
                 for a in filters:
                     windows.append(self.window)
             elif len(self.window) == len(self.filters):
-                windows = self.windows
+                windows = self.window
             else:
                 windows = []
                 for a in filters:

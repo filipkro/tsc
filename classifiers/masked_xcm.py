@@ -88,7 +88,7 @@ class Classifier_XCM:
                 for a in filters:
                     windows.append(self.window)
             elif len(self.window) == len(self.filters):
-                windows = self.windows
+                windows = self.window
             else:
                 windows = []
                 for a in filters:
@@ -154,7 +154,7 @@ class Classifier_XCM:
         # feats = tf.keras.backend.squeeze(feats, -1)
         #feats = keras.layers.Conv1D(filters[-1], self.window, padding='same', name='conv-final')(conv_2d)
 
-        feats = keras.layers.Conv1D(4, self.window,
+        feats = keras.layers.Conv1D(4, windows[-1],
                                     padding='same', name='conv-final')(feats)
         print('after conv1d: {}'.format(feats))
         feats = keras.layers.BatchNormalization(name='bn-final')(feats)
@@ -168,7 +168,7 @@ class Classifier_XCM:
         output_layer = keras.layers.Dense(filters[-1],
                                           name='result1')(gap_layer)
         output_layer = keras.layers.Dense(self.nb_classes,
-                                          name='result2')(gap_layer)
+                                          name='result2')(output_layer)
         output_layer = keras.layers.Activation(activation='softmax',
                                                name='sm')(output_layer)
 
