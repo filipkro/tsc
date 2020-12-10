@@ -115,10 +115,10 @@ class Classifier_INCEPTION:
 
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=masked_layer[:,:,0])
 
-        output_layer = keras.layers.Dense(self.filters,
-                                          name='result')(gap_layer)
+        output_layer = keras.layers.Dense(self.nb_filters,
+                                          name='result1')(gap_layer)
         output_layer = keras.layers.Dense(nb_classes, activation='softmax',
-                                          name='result')(output_layer)
+                                          name='result2')(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
@@ -137,7 +137,7 @@ class Classifier_INCEPTION:
         file_path = self.output_directory + 'best_model.hdf5'
 
         model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=file_path, monitor='val_result_accuracy',
+            filepath=file_path, monitor='val_accuracy',
             save_best_only=True, mode='max')
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
@@ -186,7 +186,7 @@ class Classifier_INCEPTION:
 
         keras.backend.clear_session()
 
-        return df_metrics
+        #return df_metrics
 
     def predict(self, x_test, y_true, x_train, y_train, y_test,
                 return_df_metrics=True):
