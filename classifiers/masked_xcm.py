@@ -227,7 +227,6 @@ class Classifier_XCM:
 
             keras.backend.clear_session()
 
-            return df_metrics
 
     def fit_wo_mask(self, x_train, y_train, x_val, y_val, y_true):
         print('WARNING: Will train with batch size = 1 to avoid masks')

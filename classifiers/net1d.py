@@ -166,7 +166,6 @@ class Classifier_NET1d:
 
         keras.backend.clear_session()
 
-        return df_metrics
 
     def predict(self, x_test, y_true, x_train, y_train, y_test,
                 return_df_metrics=True):

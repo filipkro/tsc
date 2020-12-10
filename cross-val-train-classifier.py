@@ -15,7 +15,7 @@ IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.
 def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
     dataset = np.load(dp)
-    indices = np.load(IDX_PATH)
+    indices = np.load(idx)
 
     x = dataset['mts']
     y = dataset['labels']
