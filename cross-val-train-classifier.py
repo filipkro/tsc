@@ -55,6 +55,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     acc_per_fold = []
     loss_per_fold = []
 
+    cnf_matrix = np.zeros((2,2))
     for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
 
         print(f'Fold number {fold} out of {num_folds}')
@@ -65,7 +66,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        class_weight = {0:1, 1:1, 2:3}
+        class_weight = {0:1, 1:3, 2:10}
         classifier.fit(x_train[train, ...], y_train[train, ...],
                        x_train[test, ...], y_train[test, ...],
                        class_weight=class_weight)
@@ -75,8 +76,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
         preds = classifier.model(x_train[test, ...], training=False)
         preds = np.argmax(preds, axis=1)
-        cnf_matrix = confusion_matrix(y_train_orig[test], preds)
-        print(cnf_matrix)
+        cm_tmp = confusion_matrix(y_train_orig[test], preds)
+        cnf_matrix = cnf_matrix + cm_tmp
+        print(cm_tmp)
 
         print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}')
 
@@ -91,10 +93,15 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     print(f'> Loss: {np.mean(loss_per_fold)}')
     print('------------------------------------------------------------------------')
 
+    print('Confusion matrix all folds:')
+    print(cnf_matrix)
+
     ifile = open(os.path.join(output_directory, 'x-val.txt'), 'w')
     ifile.write('Average scores for all folds: \n')
     ifile.write(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)}) \n')
     ifile.write(f'> Loss: {np.mean(loss_per_fold)} \n \n')
+    ifile.write('Confusion matrix all folds: \n')
+    ifile.write(cnf_matrix)
     # ifile.write(classifier.model.summary())
     ifile.close()
     print(acc_per_fold)
