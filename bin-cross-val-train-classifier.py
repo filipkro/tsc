@@ -162,9 +162,9 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     ifile.write(f'> Accuracy: {np.mean(acc_per_fold12)} (+- {np.std(acc_per_fold12)}) \n')
     ifile.write(f'> Loss: {np.mean(loss_per_fold12)} \n \n')
     ifile.write('Confusion matrix for all folds with 0 and 1 grouped together: \n')
-    ifile.write(cnf_matrix01)
+    ifile.write(str(cnf_matrix01))
     ifile.write('\nConfusion matrix for all folds with 1 and 2 grouped together: \n')
-    ifile.write(cnf_matrix12)
+    ifile.write(str(cnf_matrix12))
     # ifile.write(classifier.model.summary())
     ifile.close()
 

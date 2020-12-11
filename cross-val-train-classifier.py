@@ -101,7 +101,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     ifile.write(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)}) \n')
     ifile.write(f'> Loss: {np.mean(loss_per_fold)} \n \n')
     ifile.write('Confusion matrix all folds: \n')
-    ifile.write(cnf_matrix)
+    ifile.write(str(cnf_matrix))
     # ifile.write(classifier.model.summary())
     ifile.close()
     print(acc_per_fold)
