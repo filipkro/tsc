@@ -55,7 +55,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     acc_per_fold = []
     loss_per_fold = []
 
-    cnf_matrix = np.zeros((2,2))
+    cnf_matrix = np.zeros((3,3))
     for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
 
         print(f'Fold number {fold} out of {num_folds}')
