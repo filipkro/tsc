@@ -73,7 +73,8 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     loss_per_fold12 = []
 
 
-
+    cnf_matrix01 = np.zeros((2,2))
+    cnf_matrix12 = np.zeros((2,2))
     for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
 
         print(f'Fold number {fold} out of {num_folds}')
@@ -96,8 +97,8 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         preds01 = np.argmax(preds01, axis=1)
         idx = np.where(preds01 == 1)[0]
         preds01[idx] = 2
-        cnf_matrix01 = confusion_matrix(y01_orig[test], preds01)
-
+        tmp01 = confusion_matrix(y01_orig[test], preds01)
+        cnf_matrix01 = cnf_matrix01 + tmp01
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
 
@@ -113,17 +114,18 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         preds12 = np.argmax(preds12, axis=1)
         idx = np.where(preds12 == 1)[0]
         preds12[idx] = 2
-        cnf_matrix12 = confusion_matrix(y12_orig[test], preds12)
+        tmp12 = confusion_matrix(y12_orig[test], preds12)
+        cnf_matrix12 = cnf_matrix12 + tmp12
 
         print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {scores01[1]}')
 
         print(f'Score for fold {fold} with 1 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores12[0]}; {classifier.model.metrics_names[1]} of {scores12[1]}')
 
         print('Confusion matrix with 0 and 1 grouped together:')
-        print(cnf_matrix01)
+        print(tmp01)
 
         print('Confusion matrix with 1 and 2 grouped together:')
-        print(cnf_matrix12)
+        print(tmp12)
 
 
         acc_per_fold01.append(scores01[1])
@@ -144,6 +146,13 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     print(f'> Accuracy: {np.mean(acc_per_fold12)} (+- {np.std(acc_per_fold12)})')
     print(f'> Loss: {np.mean(loss_per_fold12)}')
     print('------------------------------------------------------------------------')
+    print('Confusion matrix for all folds with 0 and 1 grouped together:')
+    print(cnf_matrix01)
+    print('Confusion matrix for all folds with 1 and 2 grouped together:')
+    print(cnf_matrix12)
+
+    print(acc_per_fold01)
+    print(acc_per_fold12)
 
     ifile = open(os.path.join(output_directory, 'x-val.txt'), 'w')
     ifile.write('Average scores for all folds with 0 and 1 grouped together: \n')
@@ -152,10 +161,13 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     ifile.write('Average scores for all folds with 1 and 2 grouped together: \n')
     ifile.write(f'> Accuracy: {np.mean(acc_per_fold12)} (+- {np.std(acc_per_fold12)}) \n')
     ifile.write(f'> Loss: {np.mean(loss_per_fold12)} \n \n')
+    ifile.write('Confusion matrix for all folds with 0 and 1 grouped together: \n')
+    ifile.write(cnf_matrix01)
+    ifile.write('\nConfusion matrix for all folds with 1 and 2 grouped together: \n')
+    ifile.write(cnf_matrix12)
     # ifile.write(classifier.model.summary())
     ifile.close()
-    print(acc_per_fold01)
-    print(acc_per_fold12)
+
 
     # assert False
 
