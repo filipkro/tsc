@@ -84,7 +84,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        class_weight = {0:1, 2:20}
+        class_weight = {0:1.0, 1:50.0}
         classifier.fit(x_train[train, ...], y01[train, ...],
                        x_train[test, ...], y01[test, ...],
                        class_weight=class_weight)
@@ -101,7 +101,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
 
-        class_weight = {0:5, 2:1}
+        class_weight = {0:15.0, 1:1.0}
         classifier.fit(x_train[train, ...], y12[train, ...],
                       x_train[test, ...], y12[test, ...],
                       class_weight=class_weight)
