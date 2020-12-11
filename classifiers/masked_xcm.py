@@ -199,7 +199,7 @@ class Classifier_XCM:
 
         return model
 
-    def fit(self, x_train, y_train, x_val, y_val, y_true=''):
+    def fit(self, x_train, y_train, x_val, y_val, y_true='', class_weight=None):
         # if not tf.test.is_gpu_available:
         #     print('error no gpu')
         #     exit()
@@ -218,7 +218,8 @@ class Classifier_XCM:
             hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size,
                                   epochs=self.nb_epochs, verbose=self.verbose,
                                   validation_data=(x_val, y_val),
-                                  callbacks=self.callbacks)
+                                  callbacks=self.callbacks,
+                                  class_weight=class_weight)
 
             duration = time.time() - start_time
 

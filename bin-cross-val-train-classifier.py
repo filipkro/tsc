@@ -84,27 +84,35 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
+        class_weight = {0:1, 2:20}
         classifier.fit(x_train[train, ...], y01[train, ...],
-                       x_train[test, ...], y01[test, ...])
+                       x_train[test, ...], y01[test, ...],
+                       class_weight=class_weight)
 
         scores01 = classifier.model.evaluate(x_train[test, ...],
                                            y01[test, ...], verbose=0)
 
         preds01 = classifier.model(x_train[test, ...], training=False)
         preds01 = np.argmax(preds01, axis=1)
+        idx = np.where(preds01 == 1)[0]
+        preds01[idx] = 2
         cnf_matrix01 = confusion_matrix(y01_orig[test], preds01)
 
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
 
+        class_weight = {0:5, 2:1}
         classifier.fit(x_train[train, ...], y12[train, ...],
-                      x_train[test, ...], y12[test, ...])
+                      x_train[test, ...], y12[test, ...],
+                      class_weight=class_weight)
 
         scores12 = classifier.model.evaluate(x_train[test, ...],
                                           y12[test, ...], verbose=0)
 
         preds12 = classifier.model(x_train[test, ...], training=False)
         preds12 = np.argmax(preds12, axis=1)
+        idx = np.where(preds12 == 1)[0]
+        preds12[idx] = 2
         cnf_matrix12 = confusion_matrix(y12_orig[test], preds12)
 
         print(f'Score for fold {fold} with 0 and 1 grouped together: {classifier.model.metrics_names[0]} of {scores01[0]}; {classifier.model.metrics_names[1]} of {scores01[1]}')
