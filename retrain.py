@@ -62,13 +62,15 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     classifier = create_classifier(classifier_name, input_shape,
                                    nb_classes, output_directory)
 
-    
+    print(classifier.model.summary())
 
     class_weight = {0: 1, 1: 5, 2: 20}
     classifier.fit(x_train, y_train, x_val, y_val, class_weight=class_weight)
     scores = classifier.model.evaluate(x_val, y_val, verbose=0)
     preds = classifier.model(x_val, training=False)
-    cnf_matrix = confusion_matrix(np.argmax(y_val), np.argmax(preds))
+    print('correct: {}'.format(np.argmax(y_val)))
+    print('prediccted: {}'.format(np.argmax(preds)))
+    # cnf_matrix = confusion_matrix(, )
 
     print('Loss: {} \nAccuracy: {}'.format(scores[0], scores[1]))
     print(cnf_matrix)
