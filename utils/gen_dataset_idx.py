@@ -6,8 +6,11 @@ from argparse import ArgumentParser
 
 def gen_train_val(info_file, ratio):
     meta_data = pd.read_csv(info_file, delimiter=',')
-
-    data = np.array(meta_data.values[5:, :4], dtype=int)
+    first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
+    data = np.array(meta_data.values[first_data:, :4], dtype=int)
+    print(data)
+    print(meta_data.values)
+    print(first_data)
     train_size = int(np.round(ratio * (1 + data[-1, 1])))
     subj_idx = np.random.choice((1 + data[-1, 1]), train_size, replace=False)
     train_idx = []
@@ -27,6 +30,45 @@ def gen_train_val(info_file, ratio):
     subj_idx = subj_idx.astype(np.int16)
     val_subj = val_subj.astype(np.int16)
     return train_idx, val_idx, subj_idx, val_subj
+
+def get_same_subject(data, idx):
+    subj = data[idx,1]
+    indices = np.where(data[:,1] == subj)[0]
+    print(indices)
+    return indices
+
+def gen_tv_from_test(info_file, ratio, test_subj):
+    meta_data = pd.read_csv(info_file, delimiter=',')
+    first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
+    data = np.array(meta_data.values[first_data:, :4], dtype=int)
+    train_size = int(np.round(ratio * (1 + data[-1, 1] - len(test_subj))))
+
+    ti = []
+    for i in data:
+        if i[1] in test_subj:
+            ti.append(i[0])
+
+    data = np.delete(data, ti, axis=0)
+    tv_subjects = list(set(data[:,1]))
+    subj_idx = np.random.choice(tv_subjects, train_size, replace=False)
+    train_idx = []
+    val_idx = []
+    val_subj = []
+
+    for a in data:
+        if a[1] in subj_idx:
+            train_idx = np.append(train_idx, a[0])
+        else:
+            val_idx = np.append(val_idx, a[0])
+            if a[1] not in val_subj:
+                val_subj = np.append(val_subj, a[1])
+
+    train_idx = train_idx.astype(np.int16)
+    val_idx = val_idx.astype(np.int16)
+    subj_idx = subj_idx.astype(np.int16)
+    val_subj = val_subj.astype(np.int16)
+    return train_idx, val_idx, subj_idx, val_subj
+
 
 
 def gen_rnd(y, train_ratio, val_ratio):

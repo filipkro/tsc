@@ -50,7 +50,8 @@ def plot_confusion_matrix(cm, classes,
 
 
 def main(args):
-
+    idx_path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
+    dataset = np.load('/home/filipkr/Documents/xjob/data/datasets/data_Erik-Axel-Karlfeldt.npz')
     print(os.path.basename(args.root).split('_')[0])
     lit = os.path.basename(args.root).split('_')[0]
     dp = os.path.join(args.data, 'data_') + 'Herta-Moller.npz'

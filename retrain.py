@@ -1,5 +1,5 @@
 from utils.utils import create_directory
-from utils.gen_dataset_idx import gen_train_val, gen_rnd
+from utils.gen_dataset_idx import gen_train_val, gen_tv_from_test
 import os
 import numpy as np
 import sys
@@ -41,26 +41,28 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     print(nb_classes)
     y_train_orig = y_train.copy()
     enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
-    enc.fit(np.concatenate((y_train), axis=0).reshape(-1, 1))
-    y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
+    enc.fit(np.concatenate((y), axis=0).reshape(-1, 1))
+    y_one_hot = enc.transform(y.reshape(-1, 1)).toarray()
     if len(x_train.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension
         x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
 
     input_shape = x_train.shape[1:]
     info_file = dp.split('.npz')[0] + '-info.txt'
-    train_idx, val_idx, train_subj, val_subj = gen_train_val(info_file, 0.95)
+    train_idx, val_idx, train_subj, val_subj = gen_tv_from_test(info_file, 0.95, indices['test_subj'])
 
-    np.save(os.path.join(output_directory, 'indices.npz'), train_idx=train_idx,
-            val_idx=val_idx, train_idx=train_idx, val_subj=val_subj)
+    np.savez(os.path.join(output_directory, 'indices.npz'), train_idx=train_idx,
+            val_idx=val_idx, train_subj=train_subj, val_subj=val_subj)
 
-    x_val = x_train[val_idx, ...]
-    x_train = x_train[train_idx, ...]
-    y_val = y_train[train_idx, ...]
-    y_train = y_train[tgrain_idx, ...]
+    x_val = x[val_idx, ...]
+    x_train = x[train_idx, ...]
+    y_val = y_one_hot[val_idx, ...]
+    y_train = y_one_hot[train_idx, ...]
 
     classifier = create_classifier(classifier_name, input_shape,
                                    nb_classes, output_directory)
+
+    
 
     class_weight = {0: 1, 1: 5, 2: 20}
     classifier.fit(x_train, y_train, x_val, y_val, class_weight=class_weight)
