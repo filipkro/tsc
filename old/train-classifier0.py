@@ -24,6 +24,11 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, gen_idx):
     merge_class = False
     x = dataset['mts']
     y = dataset['labels']
+    if merge_class:
+      idx = np.where(y==1)[0]
+      y[idx] = 2
+      #idx = np.where(y==2)[0]
+      # y[idx] = 1
     print(trp)
     print('x shape::', x.shape)
     if gen_idx:
