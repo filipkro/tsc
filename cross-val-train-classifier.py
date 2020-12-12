@@ -66,7 +66,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        class_weight = {0:1, 1:3, 2:10}
+        class_weight = {0:1, 1:7, 2:25}
         classifier.fit(x_train[train, ...], y_train[train, ...],
                        x_train[test, ...], y_train[test, ...],
                        class_weight=class_weight)
@@ -148,10 +148,10 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
-        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
+        return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=True)
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
-        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
+        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=5000, bottleneck_size=32, use_residual=True, lr=0.001)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
@@ -160,7 +160,8 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51,31,11], decay=False)
     if classifier_name == 'masked-xcm-mod':
         from classifiers import masked_xcm_mod
-        return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51,31,11], decay=False)
+        return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[32, 64, 64, 128], depth=2, window=[51,31,31,21], decay=False)
+        #return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64, 128], depth=2, window=[51,31,21,11], decay=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16,32,64], depth=2, window=[51,31,11], decay=False)
