@@ -125,6 +125,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-resnet':
         from classifiers import masked_resnet
         return masked_resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose, nb_epochs=5000)
+    if classifier_name == 'masked-resnet-mod':
+        from classifiers import masked_resnet_mod
+        return masked_resnet_mod.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose, nb_epochs=5000)
     if classifier_name == 'mcnn':
         from classifiers import mcnn
         return mcnn.Classifier_MCNN(output_directory, verbose)

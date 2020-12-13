@@ -4,11 +4,21 @@ from argparse import ArgumentParser
 import os
 import tensorflow.keras as keras
 import matplotlib.pyplot as plt
+import pandas as pd
 import itertools
 from grad_cam import make_gradcam_heatmap
 from xcm_grad_cam import make_gradcam_heatmap as xcm_hm
 from grad_test0 import check_grad
 
+def get_same_subject(info_file, idx):
+    meta_data = pd.read_csv(info_file, delimiter=',')
+    first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
+    data = np.array(meta_data.values[first_data:, :4], dtype=int)
+
+    subj = data[idx,1]
+    indices = np.where(data[:,1] == subj)[0]
+    print(indices)
+    return indices
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
@@ -52,25 +62,57 @@ def plot_confusion_matrix(cm, classes,
 def main(args):
     idx_path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
     dataset = np.load('/home/filipkr/Documents/xjob/data/datasets/data_Erik-Axel-Karlfeldt.npz')
-    print(os.path.basename(args.root).split('_')[0])
-    lit = os.path.basename(args.root).split('_')[0]
-    dp = os.path.join(args.data, 'data_') + 'Herta-Moller.npz'
-    dataset = np.load(dp)
+    info_file = '/home/filipkr/Documents/xjob/data/datasets/data_Erik-Axel-Karlfeldt-info.txt'
+    # print(os.path.basename(args.root).split('_')[0])
+    # lit = os.path.basename(args.root).split('_')[0]
+    # dp = os.path.join(args.data, 'data_') + 'Herta-Moller.npz'
+    # dataset = np.load(dp)
 
     x = dataset['mts']
     y = dataset['labels']
 
-    ind = np.load(os.path.join(args.root, 'idx.npz'))
-    test_idx = ind['test'].astype(np.int)
-    train_idx = ind['train'].astype(np.int)
-    val_idx = ind['val'].astype(np.int)
-    x_train = x[train_idx, ...]
-    y_train = y[train_idx]
-    x_val = x[val_idx, ...]
-    y_val = y[val_idx]
+    ind = np.load(idx_path)
+    test_idx = ind['test_idx'].astype(np.int)
     x_test = x[test_idx, ...]
     y_test = y[test_idx]
     print(test_idx)
+
+    model_path = os.path.join(args.root, 'best_model.hdf5')
+    model = keras.models.load_model(model_path)
+    result = model.predict(x_test)
+    y_pred = np.argmax(result, axis=1)
+    cnf_matrix = confusion_matrix(y_test, y_pred)
+    print(y_test)
+    print(result)
+    print(cnf_matrix)
+
+    idx = []
+    correct = 0
+    corr_mean = 0
+    for i in test_idx:
+        if i not in idx:
+            idx = get_same_subject(info_file, i)
+
+            x_subj = x[idx, ...]
+            y_subj = y[idx]
+            result = model.predict(x_subj)
+            print('result for indices: {}'.format(idx))
+            print('likelihoods')
+            print(result)
+            print('correct')
+            print(y_subj)
+            print('summed likelihoods')
+            print(np.sum(result, axis=0))
+            print('true label')
+            print(np.median(y_subj))
+            correct += 1*(int(np.median(y_subj)) == np.argmax(np.sum(result, axis=0)))
+            corr_mean += 1*(int(np.round(np.mean(y_subj))) == np.argmax(np.sum(result, axis=0)))
+            print('\n \n')
+
+    print(correct)
+    print(corr_mean)
+    assert False
+
 
     tv = np.append(test_idx, val_idx)
     x_tv = x[tv, ...]
@@ -113,7 +155,7 @@ def main(args):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('root')
-    parser.add_argument('data')
+    # parser.add_argument('data')
     parser.add_argument('--outdir', default='')
     parser.add_argument('--dataset', default='')
     parser.add_argument('--test_idx', default='')
