@@ -64,7 +64,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
     print(classifier.model.summary())
 
-    class_weight = {0: 1, 1: 5, 2: 20}
+    class_weight = {0: 1, 1: 2, 2: 3}
     classifier.fit(x_train, y_train, x_val, y_val, class_weight=class_weight)
     scores = classifier.model.evaluate(x_val, y_val, verbose=0)
     preds = classifier.model(x_val, training=False)
@@ -73,7 +73,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     # cnf_matrix = confusion_matrix(, )
 
     print('Loss: {} \nAccuracy: {}'.format(scores[0], scores[1]))
-    print(cnf_matrix)
+    #print(cnf_matrix)
 
     # assert False
 
@@ -120,7 +120,8 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
-        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=False)
+        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=128, kernel_size=41, nb_epochs=5000, bottleneck_size=128, use_residual=False, batch_size=32)
+        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=5000, bottleneck_size=128, use_residual=False, batch_size=32)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
