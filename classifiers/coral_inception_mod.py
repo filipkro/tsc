@@ -160,7 +160,7 @@ class Classifier_INCEPTION:
             filepath=file_path, monitor='val_mean_absolute_error_labels',
             save_best_only=True, mode='min')
 
-        schedule = StepDecay(initAlpha=self.lr, factor=0.75, dropEvery=20)
+        schedule = StepDecay(initAlpha=self.lr, factor=0.9, dropEvery=20)
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
