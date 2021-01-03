@@ -157,8 +157,8 @@ class Classifier_INCEPTION:
         file_path = self.output_directory + 'best_model.hdf5'
 
         model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=file_path, monitor='val_accuracy',
-            save_best_only=True, mode='max')
+            filepath=file_path, monitor='val_mean_absolute_error_labels',
+            save_best_only=True, mode='min')
 
         schedule = StepDecay(initAlpha=self.lr, factor=0.75, dropEvery=20)
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
