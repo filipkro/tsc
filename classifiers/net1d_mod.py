@@ -145,7 +145,7 @@ class Classifier_NET1d:
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
                                                    restore_best_weights=True,
-                                                   patience=100)
+                                                   patience=300)
 
         self.callbacks = [reduce_lr, model_checkpoint, stop_early,
                           rec_checkpoints]
