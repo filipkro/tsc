@@ -8,7 +8,8 @@ from sklearn.model_selection import KFold
 import utils
 from argparse import ArgumentParser, ArgumentTypeError
 import tensorflow as tf
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
+import coral_ordinal as coral
 
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
@@ -54,6 +55,10 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     fold = 1
     acc_per_fold = []
     loss_per_fold = []
+    abs_err = []
+
+    if 'coral' in classifier_name:
+        y_train = y_train_orig
 
     cnf_matrix = np.zeros((3,3))
     for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
@@ -74,23 +79,38 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         scores = classifier.model.evaluate(x_train[test, ...],
                                            y_train[test, ...], verbose=0)
 
-        preds = classifier.model(x_train[test, ...], training=False)
-        preds = np.argmax(preds, axis=1)
+        probs = classifier.model(x_train[test, ...], training=False)
+
+        if 'coral' in classifier_name:
+            # print(probs)
+            probs = coral.ordinal_softmax(probs)
+            # print(probs)
+
+            preds = np.argmax(probs, axis=1)
+
+            acc = accuracy_score(y_train_orig[test], preds)
+
+            print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}; Accuracy of {acc}')
+            abs_err.append(scores[1])
+            acc_per_fold.append(acc)
+            loss_per_fold.append(scores[0])
+        else:
+            preds = np.argmax(probs, axis=1)
+            print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}')
+            acc_per_fold.append(scores[1])
+            loss_per_fold.append(scores[0])
+
         cm_tmp = confusion_matrix(y_train_orig[test], preds)
         cnf_matrix = cnf_matrix + cm_tmp
         print(cm_tmp)
-
-        print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}')
-
-        acc_per_fold.append(scores[1])
-        loss_per_fold.append(scores[0])
-
         fold += 1
 
     print('------------------------------------------------------------------------')
     print('Average scores for all folds:')
     print(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)})')
     print(f'> Loss: {np.mean(loss_per_fold)}')
+    if 'coral' in classifier_name:
+        print(f'> Mean absolute error: {np.mean(abs_err)}')
     print('------------------------------------------------------------------------')
 
     print('Confusion matrix all folds:')
@@ -154,7 +174,10 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=True)
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
-        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=5000, bottleneck_size=32, use_residual=True, lr=0.001)
+        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=32, use_residual=True, lr=0.001)
+    if classifier_name == 'coral-inception-mod':
+        from classifiers import coral_inception_mod
+        return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=32, use_residual=True, lr=0.001)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
