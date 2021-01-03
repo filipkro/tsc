@@ -165,7 +165,7 @@ class Classifier_XCM:
         # feats = tf.keras.backend.squeeze(feats, -1)
         #feats = keras.layers.Conv1D(filters[-1], self.window, padding='same', name='conv-final')(conv_2d)
 
-        feats = keras.layers.Conv1D(64, windows[-1],
+        feats = keras.layers.Conv1D(256, windows[-1],
                                     padding='same', name='conv-final')(feats)
         feats = keras.layers.Lambda((lambda x: x),
                                     name='lambda_final')(feats,
@@ -174,7 +174,6 @@ class Classifier_XCM:
         feats = keras.layers.BatchNormalization(name='bn-final')(feats)
         feats = keras.layers.Activation(activation='relu',
                                         name='relu-final')(feats)
-
         print('before gap: {}'.format(feats))
         gap_layer = keras.layers.GlobalAveragePooling1D(name='gap')(feats,
                                                                     mask=masked[:, :, 0])

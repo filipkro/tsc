@@ -125,6 +125,8 @@ class Classifier_INCEPTION:
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
+
+        x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(
             x, mask=masked_layer[:, :, 0])
 
