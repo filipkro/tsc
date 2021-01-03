@@ -9,6 +9,7 @@ from utils.utils import calculate_metrics
 from utils.utils import save_test_duration
 import os
 from keras.utils.layer_utils import count_params
+from utils.lr_schedules import StepDecay
 
 
 class Classifier_INCEPTION:
@@ -159,7 +160,10 @@ class Classifier_INCEPTION:
                                                    restore_best_weights=True,
                                                    patience=300)
 
-        self.callbacks = [reduce_lr, model_checkpoint, stop_early]
+        schedule = StepDecay(initAlpha=self.lr, factor=0.75, dropEvery=20)
+        lr_decay = keras.callbacks.LearningRateScheduler(schedule)
+
+        self.callbacks = [reduce_lr, model_checkpoint, stop_early, lr_decay]
 
         return model
 
