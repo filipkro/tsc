@@ -160,7 +160,7 @@ class Classifier_INCEPTION:
                                                    restore_best_weights=True,
                                                    patience=300)
 
-        schedule = StepDecay(initAlpha=self.lr, factor=0.75, dropEvery=20)
+        schedule = StepDecay(initAlpha=self.lr, factor=0.85, dropEvery=20)
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
 
         self.callbacks = [reduce_lr, model_checkpoint, stop_early, lr_decay]
