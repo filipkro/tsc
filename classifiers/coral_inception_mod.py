@@ -9,6 +9,7 @@ from utils.utils import calculate_metrics
 from utils.utils import save_test_duration
 import os
 from keras.utils.layer_utils import count_params
+from utils.lr_schedules import StepDecay
 
 import coral_ordinal as coral
 
@@ -159,11 +160,14 @@ class Classifier_INCEPTION:
             filepath=file_path, monitor='val_accuracy',
             save_best_only=True, mode='max')
 
+        schedule = StepDecay(initAlpha=self.lr, factor=0.75, dropEvery=20)
+        lr_decay = keras.callbacks.LearningRateScheduler(schedule)
+
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
                                                    restore_best_weights=True,
                                                    patience=300)
 
-        self.callbacks = [reduce_lr, model_checkpoint, stop_early]
+        self.callbacks = [reduce_lr, model_checkpoint, stop_early, lr_decay]
 
         return model
 
