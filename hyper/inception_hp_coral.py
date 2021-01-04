@@ -9,8 +9,10 @@ import os
 from keras.utils.layer_utils import count_params
 from utils.lr_schedules import StepDecay
 
+import coral_ordinal as coral
 
-class HyperInception(HyperModel):
+
+class HyperInceptionCoral(HyperModel):
 
     def __init__(self, num_classes, input_shape):
         self.num_classes = num_classes
@@ -81,8 +83,8 @@ class HyperInception(HyperModel):
         x = masked_layer
         input_res = masked_layer
 
-        #for d in range(hp.Int('inception_modules', 1, 2)):
-        for d in range(2):
+        for d in range(hp.Int('inception_modules', 1, 3)):
+
             x = self._inception_module(x, masked_layer, hp)
 
             if hp.Boolean('use_residual') and d % 3 == 2:
@@ -99,8 +101,9 @@ class HyperInception(HyperModel):
             gap_layer = keras.layers.Dense(
                 hp.Int(f"dense_{i}", 16, 64, step=16))(gap_layer)
 
-        output_layer = keras.layers.Dense(self.num_classes, activation='softmax',
-                                          name='result2')(gap_layer)
+        output_layer = coral.CoralOrdinal(self.num_classes)(gap_layer)
+        # output_layer = keras.layers.Dense(self.num_classes, activation='softmax',
+        #                                   name='result2')(gap_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
@@ -112,9 +115,9 @@ class HyperInception(HyperModel):
         #               metrics=['accuracy'])
         lr = hp.Float('learning_rate', 1e-5, 1e-2,
                       sampling='LOG', default=1e-3)
-        model.compile(loss='categorical_crossentropy',
+        model.compile(loss=coral.OrdinalCrossEntropy(num_classes=self.num_classes),
                       optimizer=keras.optimizers.Adam(lr),
-                      metrics=['accuracy'])
+                      metrics=[coral.MeanAbsoluteErrorLabels()])
 
         # reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
         #                                               actor=0.5, patience=50,

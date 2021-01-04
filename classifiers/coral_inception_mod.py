@@ -134,7 +134,7 @@ class Classifier_INCEPTION:
         output_layer = keras.layers.Dense(self.nb_filters,
                                           name='result1')(gap_layer)
         output_layer = keras.layers.Dense(self.nb_filters,
-                                          name='result2')(output_layer)
+                                          name='result2', use_bias=False)(output_layer)
         output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
