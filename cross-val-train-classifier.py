@@ -175,6 +175,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
         return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=32, use_residual=True, lr=0.005)
+    if classifier_name == 'x-inception':
+        from classifiers import x_inception
+        return x_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=32, use_residual=True, lr=0.005)
     if classifier_name == 'coral-inception-mod':
         from classifiers import coral_inception_mod
         return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=32, use_residual=True, lr=0.005)
