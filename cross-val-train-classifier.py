@@ -71,7 +71,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        class_weight = {0:1, 1:1, 2:3}
+        class_weight = {0:1, 1:1.5, 2:3}
         classifier.fit(x_train[train, ...], y_train[train, ...],
                        x_train[test, ...], y_train[test, ...],
                        class_weight=class_weight)

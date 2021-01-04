@@ -81,7 +81,7 @@ class HyperInception(HyperModel):
         x = masked_layer
         input_res = masked_layer
 
-        for d in range(hp.Int('inception_modules', 1, 3)):
+        for d in range(hp.Int('inception_modules', 1, 2)):
 
             x = self._inception_module(x, masked_layer, hp)
 

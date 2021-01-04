@@ -16,7 +16,7 @@ class CVTuner(kerastuner.engine.tuner.Tuner):
         batch_size = trial.hyperparameters.Int('batch_size', 16, 64,
                                                step=16)
         # if epochs is None:
-        epochs = trial.hyperparameters.Int('epochs', 100, 600, 10)
+        epochs = trial.hyperparameters.Int('epochs', 100, 500, 10)
         # epochs = 1
         for train_indices, test_indices in cv.split(x):
             x_train, x_test = x[train_indices], x[test_indices]
@@ -47,7 +47,7 @@ def main(args):
     model = HyperInception(num_classes=3, input_shape=x_train.shape[1:])
     tuner = CVTuner(hypermodel=model,
                     oracle=kerastuner.oracles.BayesianOptimization(
-                        objective='val_loss', max_trials=10))
+                        objective='val_loss', max_trials=100))
 
     tuner.search(x_train, y_oh)
 
