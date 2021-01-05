@@ -132,11 +132,16 @@ class Classifier_INCEPTION:
                     input_res = input
             input = keras.layers.Lambda((lambda x: x))(input,
                                                        mask=masked_layer[:, :, 0])
-            input = keras.layers.Conv1D(filters=1, kernel_size=1, padding='same', use_bias=False)(input)
+            input = keras.layers.Conv1D(filters=1, kernel_size=1, padding='same',
+                                        use_bias=False)(input)
             channels.append(input)
 
         x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Lambda((lambda x: x))(x,
+                                               mask=masked_layer[:, :, 0])
+        x = keras.layers.Conv1D(4 * self.filters, self.kernel_size,
+                                padding='same')(x)
+        # x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(
             x, mask=masked_layer[:, :, 0])
 
