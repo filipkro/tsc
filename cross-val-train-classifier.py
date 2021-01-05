@@ -26,7 +26,7 @@ def read_meta_data(info_file):
     meta_data = np.array(meta_data.values[first_data:, :4], dtype=int)
     return meta_data
 
-def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
+def fit_classifier(dp, classifier_name, output_directory, idx):
 
     dataset = np.load(dp)
     indices = np.load(idx)
@@ -67,28 +67,10 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     for train, val in kfold.split(indices['train_subj']):
         print(f'Fold number {fold} out of {num_folds}')
 
-        train_idx = []
-        val_idx = []
-        # train_idx = [train_idx, idx_same_subject(meta_data, subj)]
-        # train_idx.append(idx_same_subject(meta_data, subj)) for subj in train
-        # val_idx.append(idx_same_subject(meta_data, subj)) for subj in val
-        for subj in train:
-            train_idx.append(idx_same_subject(meta_data, subj))
-        for subj in val:
-            val_idx.append(idx_same_subject(meta_data, subj))
-
-        # train_idx = np.array(train_idx).reshape(-1)
-        # val_idx = np.array(val_idx).reshape(-1)
+        train_idx = [idx_same_subject(meta_data, subj) for subj in train]
+        val_idx = [idx_same_subject(meta_data, subj) for subj in val]
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
-        print(train_idx)
-        print(val_idx)
-
-
-        print(x[train_idx, ...].shape)
-        print(y_oh[train_idx, ...].shape)
-        print(x[val_idx, ...].shape)
-        print(y_oh[val_idx, ...].shape)
 
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
@@ -222,6 +204,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         from classifiers import masked_xcm_mod
         return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[128, 128, 64], depth=2, window=[41, 31, 21], decay=False, batch_size=32)
         # return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64, 128], depth=2, window=[51,31,21,11], decay=False)
+    if classifier_name == 'masked-xcm-2d':
+        from classifiers import masked_xcm_2d
+        return masked_xcm_2d.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=128, depth=2, window=41, decay=False, batch_size=32)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51, 31, 11], decay=False)
@@ -282,8 +267,7 @@ def main(args):
         print('Already done')
     else:
         create_directory(output_directory)
-        fit_classifier(args.dataset, args.train_idx, args.test_idx,
-                       classifier_name, output_directory, args.idx)
+        fit_classifier(args.dataset, classifier_name, output_directory, args.idx)
         print('DONE')
 
         create_directory(output_directory + '/DONE')
@@ -299,9 +283,5 @@ if __name__ == '__main__':
     parser.add_argument('--itr', default='')
     parser.add_argument('--merge_class', type=str2bool,
                         nargs='?', default=False)
-    parser.add_argument('--gen_idx', type=str2bool, nargs='?', default=False)
-    parser.add_argument('--train_idx', default='')
-    parser.add_argument('--test_idx', default='')
-    parser.add_argument('--archive', default='VA')
     args = parser.parse_args()
     main(args)

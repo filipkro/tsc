@@ -14,7 +14,7 @@ import coral_ordinal as coral
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
 
-def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
+def fit_classifier(dp, classifier_name, output_directory, idx):
 
     dataset = np.load(dp)
     indices = np.load(idx)
@@ -197,6 +197,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         from classifiers import masked_xcm_mod
         return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[128, 128, 64], depth=2, window=[41, 31, 21], decay=False, batch_size=32)
         # return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64, 128], depth=2, window=[51,31,21,11], decay=False)
+    if classifier_name == 'masked-xcm-2d':
+        from classifiers import masked_xcm_2d
+        return masked_xcm_2d.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=128, depth=2, window=41, decay=False, batch_size=32)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51, 31, 11], decay=False)
@@ -257,8 +260,8 @@ def main(args):
         print('Already done')
     else:
         create_directory(output_directory)
-        fit_classifier(args.dataset, args.train_idx, args.test_idx,
-                       classifier_name, output_directory, args.idx)
+        fit_classifier(args.dataset, classifier_name,
+                       output_directory, args.idx)
         print('DONE')
 
         create_directory(output_directory + '/DONE')
