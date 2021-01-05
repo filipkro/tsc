@@ -90,13 +90,13 @@ class Classifier_XCM:
         gap_layer = keras.layers.GlobalAveragePooling1D()(feats,
                                                           mask=masked[:, :, 0])
 
-        output_layer = keras.layers.Dense(self.filters)(gap_layer)
+        output_layer = keras.layers.Dense(self.filters, use_bias=False)(gap_layer)
         output_layer = coral.CoralOrdinal(self.nb_classes)(output_layer)
         # output_layer = keras.layers.Dense(self.nb_classes,
         #                                   activation='softmax')(output_layer)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
-        model.compile(loss=coral.OrdinalCrossEntropy(num_classes=nb_classes),
+        model.compile(loss=coral.OrdinalCrossEntropy(num_classes=self.nb_classes),
                       optimizer=keras.optimizers.Adam(self.lr),
                       metrics=[coral.MeanAbsoluteErrorLabels()])
 

@@ -184,16 +184,16 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=True)
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
-        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=32, use_residual=True, lr=0.005)
+        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=64, use_residual=False, lr=0.005)
     if classifier_name == 'x-inception':
         from classifiers import x_inception
-        return x_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=32, kernel_size=41, nb_epochs=2000, bottleneck_size=16, use_residual=True, lr=0.005)
+        return x_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=16, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
     if classifier_name == 'x-inception-coral':
         from classifiers import x_inception_coral
-        return x_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=32, kernel_size=41, nb_epochs=2000, bottleneck_size=16, use_residual=True, lr=0.005)
+        return x_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=16, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
     if classifier_name == 'coral-inception-mod':
         from classifiers import coral_inception_mod
-        return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=64, use_residual=True, lr=0.005)
+        return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=64, use_residual=False, lr=0.005)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
@@ -206,10 +206,10 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         # return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64, 128], depth=2, window=[51,31,21,11], decay=False)
     if classifier_name == 'masked-xcm-2d':
         from classifiers import masked_xcm_2d
-        return masked_xcm_2d.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=128, depth=2, window=41, decay=False, batch_size=32)
+        return masked_xcm_2d.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=256, depth=1, window=41, decay=False, batch_size=32)
     if classifier_name == 'coral-xcm':
         from classifiers import coral_xcm
-        return coral_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=128, depth=2, window=41, decay=False, batch_size=32)
+        return coral_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=256, depth=1, window=41, decay=False, batch_size=32)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51, 31, 11], decay=False)
