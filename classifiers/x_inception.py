@@ -172,7 +172,7 @@ class Classifier_INCEPTION:
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
                                                    restore_best_weights=True,
-                                                   patience=300)
+                                                   patience=150)
 
         schedule = StepDecay(initAlpha=self.lr, factor=0.85, dropEvery=20)
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)

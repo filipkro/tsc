@@ -112,6 +112,12 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         cm_tmp = confusion_matrix(y[val_idx], preds)
         cnf_matrix = cnf_matrix + cm_tmp
         print(cm_tmp)
+
+        model_name = os.path.join(output_directory, f'model_fold_{fold}.hdf5')
+        dataset_name = os.path.join(output_directory, f'idx_{fold}.npz')
+        classifier.model.save(model_name)
+        np.savez(dataset_name, train_idx=train_idx, val_idx=val_idx)
+
         fold += 1
 
     print('------------------------------------------------------------------------')
