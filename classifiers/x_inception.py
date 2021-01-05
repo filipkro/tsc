@@ -132,8 +132,8 @@ class Classifier_INCEPTION:
                     input_res = input
             input = keras.layers.Lambda((lambda x: x))(input,
                                                        mask=masked_layer[:, :, 0])
-            input = keras.layers.Conv1D(
-                filters=1, kernel_size=1, padding='same', use_bias=False)(input)
+            input = keras.layers.Conv1D(filters=1, kernel_size=1, padding='same',
+                                        use_bias=False)(input)
             channels.append(input)
 
         x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
