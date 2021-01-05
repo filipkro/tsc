@@ -60,7 +60,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     if 'coral' in classifier_name:
         y_train = y_train_orig
 
-    cnf_matrix = np.zeros((3,3))
+    cnf_matrix = np.zeros((3, 3))
     for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
 
         print(f'Fold number {fold} out of {num_folds}')
@@ -71,7 +71,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        class_weight = {0:1, 1:1.5, 2:3}
+        class_weight = {0: 1, 1: 1.5, 2: 3}
         classifier.fit(x_train[train, ...], y_train[train, ...],
                        x_train[test, ...], y_train[test, ...],
                        class_weight=class_weight)
@@ -90,13 +90,15 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
             acc = accuracy_score(y_train_orig[test], preds)
 
-            print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}; Accuracy of {acc}')
+            print(
+                f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}; Accuracy of {acc}')
             abs_err.append(scores[1])
             acc_per_fold.append(acc)
             loss_per_fold.append(scores[0])
         else:
             preds = np.argmax(probs, axis=1)
-            print(f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}')
+            print(
+                f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}')
             acc_per_fold.append(scores[1])
             loss_per_fold.append(scores[0])
 
@@ -118,7 +120,8 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
     ifile = open(os.path.join(output_directory, 'x-val.txt'), 'w')
     ifile.write('Average scores for all folds: \n')
-    ifile.write(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)}) \n')
+    ifile.write(
+        f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)}) \n')
     ifile.write(f'> Loss: {np.mean(loss_per_fold)} \n \n')
     ifile.write('Confusion matrix all folds: \n')
     ifile.write(str(cnf_matrix))
@@ -178,6 +181,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'x-inception':
         from classifiers import x_inception
         return x_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=32, kernel_size=41, nb_epochs=2000, bottleneck_size=16, use_residual=True, lr=0.005)
+    if classifier_name == 'x-inception-coral':
+        from classifiers import x_inception_coral
+        return x_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=32, kernel_size=41, nb_epochs=2000, bottleneck_size=16, use_residual=True, lr=0.005)
     if classifier_name == 'coral-inception-mod':
         from classifiers import coral_inception_mod
         return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=41, nb_epochs=2000, bottleneck_size=64, use_residual=True, lr=0.005)
@@ -186,14 +192,14 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
     if classifier_name == 'masked-xcm':
         from classifiers import masked_xcm
-        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51,31,11], decay=False)
+        return masked_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51, 31, 11], decay=False)
     if classifier_name == 'masked-xcm-mod':
         from classifiers import masked_xcm_mod
         return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[128, 128, 64], depth=2, window=[41, 31, 21], decay=False, batch_size=32)
-        #return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64, 128], depth=2, window=[51,31,21,11], decay=False)
+        # return masked_xcm_mod.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64, 128], depth=2, window=[51,31,21,11], decay=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
-        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16,32,64], depth=2, window=[51,31,11], decay=False)
+        return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51, 31, 11], decay=False)
     if classifier_name == 'net1d-v2':
         from classifiers import net1d_v2
         return net1d_v2.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=32, depth=2, window=41, decay=False)
@@ -263,7 +269,8 @@ if __name__ == '__main__':
     parser.add_argument('root')
     parser.add_argument('dataset')
     parser.add_argument('classifier')
-    parser.add_argument('--idx', default='/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz')
+    parser.add_argument(
+        '--idx', default='/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz')
     parser.add_argument('--itr', default='')
     parser.add_argument('--merge_class', type=str2bool,
                         nargs='?', default=False)
