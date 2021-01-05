@@ -207,6 +207,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-xcm-2d':
         from classifiers import masked_xcm_2d
         return masked_xcm_2d.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=128, depth=2, window=41, decay=False, batch_size=32)
+    if classifier_name == 'coral-xcm':
+        from classifiers import coral_xcm
+        return coral_xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=128, depth=2, window=41, decay=False, batch_size=32)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51, 31, 11], decay=False)
