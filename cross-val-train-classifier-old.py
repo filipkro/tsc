@@ -10,28 +10,14 @@ from argparse import ArgumentParser, ArgumentTypeError
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix, accuracy_score
 import coral_ordinal as coral
-import pandas as pd
-from keras.utils import to_categorical
 
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
-def idx_same_subject(meta, subject):
-    # subj = meta[idx,1]
-    indices = np.where(meta[:,1] == subject)[0]
-    return indices
-
-def read_meta_data(info_file):
-    meta_data = pd.read_csv(info_file, delimiter=',')
-    first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
-    meta_data = np.array(meta_data.values[first_data:, :4], dtype=int)
-    return meta_data
 
 def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
     dataset = np.load(dp)
     indices = np.load(idx)
-    info_file = dp.split('.npz')[0] + '-info.txt'
-    meta_data = read_meta_data(info_file)
 
     x = dataset['mts']
     y = dataset['labels']
@@ -42,15 +28,27 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
         idx = np.where(y == 2)[0]
         y[idx] = 1
 
-    nb_classes = len(np.unique(np.concatenate(y, axis=0)))
+    if x.shape[1] > 300:
+        # long ts - suggests sequences not split
+        x_train = x[indices['train_subj'], ...]
+        y_train = y[indices['train_subj']]
+        y_test = y[indices['test_subj']]
+    else:
+        x_train = x[indices['train_idx'], ...]
+        y_train = y[indices['train_idx']]
+        y_test = y[indices['test_idx']]
+
+    nb_classes = len(np.unique(np.concatenate((y_train, y_test), axis=0)))
     print(nb_classes)
-
-    y_oh = to_categorical(y)
-    if len(x.shape) == 2:  # if univariate
+    y_train_orig = y_train.copy()
+    enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
+    enc.fit(np.concatenate((y_train), axis=0).reshape(-1, 1))
+    y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
+    if len(x_train.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension
-        x = x.reshape((x.shape[0], x.shape[1], 1))
+        x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], 1))
 
-    input_shape = x.shape[1:]
+    input_shape = x_train.shape[1:]
 
     num_folds = 5
     kfold = KFold(n_splits=num_folds, shuffle=True)
@@ -60,35 +58,12 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
     abs_err = []
 
     if 'coral' in classifier_name:
-        y_oh = y
+        y_train = y_train_orig
 
-    cnf_matrix = np.zeros((nb_classes, nb_classes))
-    # for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
-    for train, val in kfold.split(indices['train_subj']):
+    cnf_matrix = np.zeros((3, 3))
+    for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
+
         print(f'Fold number {fold} out of {num_folds}')
-
-        train_idx = []
-        val_idx = []
-        # train_idx = [train_idx, idx_same_subject(meta_data, subj)]
-        # train_idx.append(idx_same_subject(meta_data, subj)) for subj in train
-        # val_idx.append(idx_same_subject(meta_data, subj)) for subj in val
-        for subj in train:
-            train_idx.append(idx_same_subject(meta_data, subj))
-        for subj in val:
-            val_idx.append(idx_same_subject(meta_data, subj))
-
-        # train_idx = np.array(train_idx).reshape(-1)
-        # val_idx = np.array(val_idx).reshape(-1)
-        train_idx = np.concatenate(train_idx)
-        val_idx = np.concatenate(val_idx)
-        print(train_idx)
-        print(val_idx)
-
-
-        print(x[train_idx, ...].shape)
-        print(y_oh[train_idx, ...].shape)
-        print(x[val_idx, ...].shape)
-        print(y_oh[val_idx, ...].shape)
 
         classifier = create_classifier(classifier_name, input_shape,
                                        nb_classes, output_directory)
@@ -97,14 +72,14 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
             print(classifier.model.summary())
 
         class_weight = {0: 1, 1: 1.5, 2: 3}
-        classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
-                       x[val_idx, ...], y_oh[val_idx, ...],
+        classifier.fit(x_train[train, ...], y_train[train, ...],
+                       x_train[test, ...], y_train[test, ...],
                        class_weight=class_weight)
 
-        scores = classifier.model.evaluate(x[val_idx, ...],
-                                           y_oh[val_idx, ...], verbose=0)
+        scores = classifier.model.evaluate(x_train[test, ...],
+                                           y_train[test, ...], verbose=0)
 
-        probs = classifier.model(x[val_idx, ...], training=False)
+        probs = classifier.model(x_train[test, ...], training=False)
 
         if 'coral' in classifier_name:
             # print(probs)
@@ -113,7 +88,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
 
             preds = np.argmax(probs, axis=1)
 
-            acc = accuracy_score(y[val_idx], preds)
+            acc = accuracy_score(y_train_orig[test], preds)
 
             print(
                 f'Score for fold {fold}: {classifier.model.metrics_names[0]} of {scores[0]}; {classifier.model.metrics_names[1]} of {scores[1]}; Accuracy of {acc}')
@@ -127,7 +102,7 @@ def fit_classifier(dp, trp, tep, classifier_name, output_directory, idx):
             acc_per_fold.append(scores[1])
             loss_per_fold.append(scores[0])
 
-        cm_tmp = confusion_matrix(y[val_idx], preds)
+        cm_tmp = confusion_matrix(y_train_orig[test], preds)
         cnf_matrix = cnf_matrix + cm_tmp
         print(cm_tmp)
         fold += 1
