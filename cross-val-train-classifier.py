@@ -122,7 +122,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     print('------------------------------------------------------------------------')
     print('Average scores for all folds:')
-    print(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold)})')
+    print(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold) * 2 / np.sqrt(num_fold)})')
     print(f'> Loss: {np.mean(loss_per_fold)}')
     if 'coral' in classifier_name:
         print(f'> Mean absolute error: {np.mean(abs_err)}')
