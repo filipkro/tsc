@@ -53,7 +53,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
     input_shape = x.shape[1:]
 
     num_folds = 5
-    kfold = KFold(n_splits=num_folds, shuffle=True)
+    kfold = KFold(n_splits=num_folds, shuffle=True, random_state=1)
     fold = 1
     acc_per_fold = []
     loss_per_fold = []
@@ -78,7 +78,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        class_weight = {0: 1, 1: 1.5, 2: 3}
+        class_weight = {0: 1, 1: 1.2, 2: 1.5}
         classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
                        x[val_idx, ...], y_oh[val_idx, ...],
                        class_weight=class_weight)
@@ -190,7 +190,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=True)
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
-        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=64, use_residual=False, lr=0.005)
+        return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
     if classifier_name == 'x-inception':
         from classifiers import x_inception
         return x_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=16, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
@@ -199,7 +199,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return x_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=16, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
     if classifier_name == 'coral-inception-mod':
         from classifiers import coral_inception_mod
-        return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=64, use_residual=False, lr=0.005)
+        return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
