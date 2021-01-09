@@ -18,6 +18,8 @@ class Classifier_INCEPTION:
                  verbose=False, build=True, batch_size=64, lr=0.001,
                  nb_filters=32, use_residual=True, use_bottleneck=True,
                  depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32):
+        
+        input_shape = (None, input_shape[-1])
 
         self.output_directory = output_directory
 
@@ -132,8 +134,10 @@ class Classifier_INCEPTION:
                     input_res = input
             input = keras.layers.Lambda((lambda x: x))(input,
                                                        mask=masked_layer[:, :, 0])
-            input = keras.layers.Conv1D(filters=1, kernel_size=self.kernel_size, padding='same',
+            input = keras.layers.Conv1D(filters=1, kernel_size=1, padding='same',
                                         use_bias=False)(input)
+            #input = keras.layers.Conv1D(filters=1, kernel_size=self.kernel_size, padding='same',
+            #                            use_bias=False)(input)
             channels.append(input)
 
         x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
@@ -142,8 +146,8 @@ class Classifier_INCEPTION:
         # x = keras.layers.Conv1D(4 * self.nb_filters, self.kernel_size,
         #                         padding='same')(x)
         # # x = keras.layers.Dropout(0.2)(x)
-        # gap_layer = keras.layers.GlobalAveragePooling1D()(
-        #     x, mask=masked_layer[:, :, 0])
+        gap_layer = keras.layers.GlobalAveragePooling1D()(
+             x, mask=masked_layer[:, :, 0])
 
         output_layer = keras.layers.Dense(self.nb_filters,
                                           name='result1')(gap_layer)
