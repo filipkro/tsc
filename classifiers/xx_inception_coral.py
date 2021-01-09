@@ -21,7 +21,7 @@ class Classifier_INCEPTION:
                  nb_filters=32, use_residual=True, use_bottleneck=True,
                  depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32):
 
-        input_shape = (None, None, input_shape[-1])
+        input_shape = (None, input_shape[-1])
 
         self.output_directory = output_directory
 
@@ -136,8 +136,8 @@ class Classifier_INCEPTION:
                     input_res = input
             input = keras.layers.Lambda((lambda x: x))(input,
                                                        mask=masked_layer[:, :, 0])
-            input = keras.layers.Conv1D(
-                filters=1, kernel_size=self.kernel_size, padding='same', use_bias=False)(input)
+            input = keras.layers.Conv1D(filters=1, kernel_size=self.kernel_size,
+                                        padding='same', use_bias=False)(input)
             channels.append(input)
 
         x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
@@ -149,10 +149,10 @@ class Classifier_INCEPTION:
         gap_layer = keras.layers.GlobalAveragePooling1D()(
             x, mask=masked_layer[:, :, 0])
 
-        output_layer = keras.layers.Dense(self.nb_filters,
-                                          name='result1')(gap_layer)
+        #output_layer = keras.layers.Dense(self.nb_filters,
+        #                                  name='result1')(gap_layer)
         output_layer = keras.layers.Dense(self.nb_filters, name='result2',
-                                          use_bias=False)(output_layer)
+                                          use_bias=False)(gap_layer)
         output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
@@ -179,7 +179,7 @@ class Classifier_INCEPTION:
                                                    restore_best_weights=True,
                                                    patience=150)
 
-        schedule = StepDecay(initAlpha=self.lr, factor=0.85, dropEvery=20)
+        schedule = StepDecay(initAlpha=self.lr, factor=0.75, dropEvery=20)
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
 
         self.callbacks = [reduce_lr, model_checkpoint, stop_early, lr_decay]
