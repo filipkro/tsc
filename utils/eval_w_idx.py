@@ -53,6 +53,7 @@ def plot_confusion_matrix(cm, classes,
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    plt.show()
 
     if savename != '':
         plt.savefig(savename)
@@ -70,9 +71,11 @@ def main(args):
 
     x = dataset['mts']
     y = dataset['labels']
-
-    ind = np.load(idx_path)
-    test_idx = ind['test_idx'].astype(np.int)
+    ind_val = np.load(os.path.join(args.root, 'indices.npz'))
+    ind_t = np.load(idx_path)
+    test_idx = np.append(ind_val['val_idx'], ind_t['test_idx'].astype(np.int))
+    # test_idx = ind_t['test_idx'].astype(np.int)
+    # test_idx = ind_val['val_idx'].astype(np.int)
     x_test = x[test_idx, ...]
     y_test = y[test_idx]
     print(test_idx)
@@ -82,6 +85,7 @@ def main(args):
     result = model.predict(x_test)
     y_pred = np.argmax(result, axis=1)
     cnf_matrix = confusion_matrix(y_test, y_pred)
+    plot_confusion_matrix(cnf_matrix, [0,1,2], title='Each repetition')
     print(y_test)
     print(result)
     print(cnf_matrix)
@@ -89,6 +93,8 @@ def main(args):
     idx = []
     correct = 0
     corr_mean = 0
+    pred_combined = []
+    y_combined = []
     for i in test_idx:
         if i not in idx:
             idx = get_same_subject(info_file, i)
@@ -105,12 +111,17 @@ def main(args):
             print(np.sum(result, axis=0))
             print('true label')
             print(np.median(y_subj))
+            pred_combined.append(np.argmax(np.sum(result, axis=0)))
+            y_combined.append(int(np.median(y_subj)))
             correct += 1*(int(np.median(y_subj)) == np.argmax(np.sum(result, axis=0)))
             corr_mean += 1*(int(np.round(np.mean(y_subj))) == np.argmax(np.sum(result, axis=0)))
             print('\n \n')
 
     print(correct)
     print(corr_mean)
+    combined_cm = confusion_matrix(y_combined, pred_combined)
+    print(combined_cm)
+    plot_confusion_matrix(combined_cm, [0,1,2], title='combined score')
     assert False
 
 

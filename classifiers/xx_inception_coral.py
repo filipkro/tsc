@@ -21,6 +21,8 @@ class Classifier_INCEPTION:
                  nb_filters=32, use_residual=True, use_bottleneck=True,
                  depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32):
 
+        input_shape = (None, None, input_shape[-1])
+
         self.output_directory = output_directory
 
         self.nb_filters = nb_filters

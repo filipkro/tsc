@@ -11,6 +11,8 @@ import os
 from keras.utils.layer_utils import count_params
 from utils.lr_schedules import StepDecay
 
+import coral_ordinal as coral
+
 
 class Classifier_INCEPTION:
 
@@ -134,24 +136,41 @@ class Classifier_INCEPTION:
                     input_res = input
             input = keras.layers.Lambda((lambda x: x))(input,
                                                        mask=masked_layer[:, :, 0])
-            input = keras.layers.Conv1D(filters=1, kernel_size=self.kernel_size, padding='same',
-                                        use_bias=False)(input)
+            input = keras.layers.Conv1D(
+                filters=1, kernel_size=self.kernel_size, padding='same', use_bias=False)(input)
             channels.append(input)
 
+        input = x
+        input_res = x
+
+        for d in range(self.depth):
+            input = self._inception_module(input, masked_layer)
+
+            if self.use_residual and d % 3 == 2:
+                input_res = keras.layers.Lambda((lambda x: x))(input_res,
+                                                               mask=masked_layer[:, :, 0])
+                input = self._shortcut_layer(input_res, input)
+                input_res = input
+        input = keras.layers.Lambda((lambda x: x))(input,
+                                                   mask=masked_layer[:, :, 0])
+        input = keras.layers.Conv1D(
+            filters=1, kernel_size=self.kernel_size, padding='same', use_bias=False)(input)
+        channels.append(input)
+
         x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
-        x = keras.layers.Lambda((lambda x: x))(x,
-                                               mask=masked_layer[:, :, 0])
+        # x = keras.layers.Lambda((lambda x: x))(x,
+        #                                        mask=masked_layer[:, :, 0])
         # x = keras.layers.Conv1D(4 * self.nb_filters, self.kernel_size,
         #                         padding='same')(x)
-        # # x = keras.layers.Dropout(0.2)(x)
-        # gap_layer = keras.layers.GlobalAveragePooling1D()(
-        #     x, mask=masked_layer[:, :, 0])
+        # x = keras.layers.Dropout(0.2)(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(
+            x, mask=masked_layer[:, :, 0])
 
         output_layer = keras.layers.Dense(self.nb_filters,
                                           name='result1')(gap_layer)
-        output_layer = keras.layers.Dense(self.nb_filters)(output_layer)
-        output_layer = keras.layers.Dense(nb_classes, activation='softmax',
-                                          name='result2')(output_layer)
+        output_layer = keras.layers.Dense(self.nb_filters, name='result2',
+                                          use_bias=False)(output_layer)
+        output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
@@ -159,9 +178,9 @@ class Classifier_INCEPTION:
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        model.compile(loss='categorical_crossentropy',
+        model.compile(loss=coral.OrdinalCrossEntropy(num_classes=nb_classes),
                       optimizer=keras.optimizers.Adam(self.lr),
-                      metrics=['accuracy'])
+                      metrics=[coral.MeanAbsoluteErrorLabels()])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
                                                       actor=0.5, patience=50,
@@ -170,8 +189,8 @@ class Classifier_INCEPTION:
         file_path = self.output_directory + 'best_model.hdf5'
 
         model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=file_path, monitor='val_accuracy',
-            save_best_only=True, mode='max')
+            filepath=file_path, monitor='val_mean_absolute_error_labels',
+            save_best_only=True, mode='min')
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
                                                    restore_best_weights=True,
