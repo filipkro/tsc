@@ -42,10 +42,20 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         idx = np.where(y == 2)[0]
         y[idx] = 1
 
-    nb_classes = len(np.unique(np.concatenate(y, axis=0)))
-    print(nb_classes)
+    test_uncertanty_classes = True
+
+    if test_uncertanty_classes:
+        y[np.where(y == 2)[0]] = 4
+        y[np.where(y == 1)[0]] = 2
+
+        nb_classes = 5
+
+    else:
+        nb_classes = len(np.unique(np.concatenate(y, axis=0)))
+        print(nb_classes)
 
     y_oh = to_categorical(y)
+    print(y_oh.shape)
     if len(x.shape) == 2:  # if univariate
         # add a dimension to make it multivariate with one dimension
         x = x.reshape((x.shape[0], x.shape[1], 1))
@@ -80,7 +90,8 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
         #class_weight = {0: 1, 1: 2, 2: 4}
         #class_weight = {0: 1, 1: 1.3, 2: 2}
-        class_weight = {0: 1, 1: 1.5, 2: 3}
+        # class_weight = {0: 1, 1: 1.5, 2: 3}
+        class_weight = None
         classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
                        x[val_idx, ...], y_oh[val_idx, ...],
                        class_weight=class_weight)
