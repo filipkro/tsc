@@ -21,7 +21,7 @@ class Classifier_INCEPTION:
                  nb_filters=32, use_residual=True, use_bottleneck=True,
                  depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32):
 
-        input_shape = (None, None, input_shape[-1])
+        input_shape = (None, input_shape[-1])
 
         self.output_directory = output_directory
 
@@ -143,7 +143,7 @@ class Classifier_INCEPTION:
         input = x
         input_res = x
 
-        for d in range(self.depth):
+        for d in range(self.depth + 1):
             input = self._inception_module(input, masked_layer)
 
             if self.use_residual and d % 3 == 2:
