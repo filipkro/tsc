@@ -88,22 +88,28 @@ def check_grad(input, model, output):
     print('conv layer shape {}'.format(concat_out.shape))
     print('weight shape: {}'.format(qk.shape))
     print(input.shape)
-    for i in range(L1d.shape[1]):
-        plt.figure(1)
-        plt.plot(L1d[:,i], label=f'{i}')
-        plt.figure(2)
-        plt.plot(input[0,:,i], label=f'{i}')
 
-    # plt.plot(L1d)
-    plt.figure(1)
-    plt.legend()
-    plt.figure(2)
-    plt.legend()
+    # if input.shape[-1] < 5:
+    #
+    # else:
+
+    # for i in range(L1d.shape[1]):
+    #     plt.figure(1)
+    #     plt.plot(L1d[:,i], label=f'{i}')
+    #     plt.figure(2)
+    #     plt.plot(input[0,:,i], label=f'{i}')
+    #
+    # # plt.plot(L1d)
+    #
+    # plt.figure(1)
+    # plt.legend()
+    # plt.figure(2)
+    # plt.legend()
 
     # plt.figure()
     # plt.plot(concat_out)
-
-    plt.show()
+    #
+    # plt.show()
 
     # L1d = (L1d)/(np.max(L1d) - np.min(L1d))
 
@@ -112,23 +118,47 @@ def check_grad(input, model, output):
 
     return L1d
 
+def plotgradcam_input(input, heatmap, subplots_per_fig=5):
+    nb_inputs = input.shape[-1]
+    max_idx = np.where(input[..., 0] < -900)[0]
+    max_idx = max_idx[0] if len(max_idx) > 0 else input.shape[0]
+
+    if nb_inputs > subplots_per_fig:
+        raise NotImplementedError
+
+    fig, axs = plt.subplots(nb_inputs)
+    for i in range(nb_inputs):
+        sc = axs[i].scatter(np.linspace(0, max_idx - 1, max_idx),
+                            input[:max_idx, i],
+                            c=heatmap[:max_idx,i], cmap='cool',
+                            vmin=np.min(heatmap), vmax=np.max(heatmap))
+    cbar = fig.colorbar(sc, ax=axs.ravel().tolist(), shrink=0.95)
+
+
+
+
 
 def main(args):
     idx_path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
-    dataset = np.load('/home/filipkr/Documents/xjob/data/datasets/data_Grazia-Deledda.npz')
-    info_file = '/home/filipkr/Documents/xjob/data/datasets/data_Grazia-Deledda-info.txt'
+    lit = os.path.basename(args.root).split('_')[0]
+    dp = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '.npz'
+    info_file = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '-info.txt'
+    dataset = np.load(dp)
 
     x = dataset['mts']
     y = dataset['labels']
 
     fold = 1
-    idx = 479
+    idxs = [475, 384, 171]
     output = 0
 
     model_path = os.path.join(args.root, f'model_fold_{fold}.hdf5')
     model = keras.models.load_model(model_path, custom_objects={'CoralOrdinal': coral.CoralOrdinal, 'OrdinalCrossEntropy': coral.OrdinalCrossEntropy, 'MeanAbsoluteErrorLabels': coral.MeanAbsoluteErrorLabels})
 
-    check_grad(x[idx, ...], model, output)
+    for idx in idxs:
+        heatmap = check_grad(x[idx, ...], model, output)
+        plotgradcam_input(x[idx, ...], heatmap)
+    plt.show()
 
 if __name__ == '__main__':
     parser = ArgumentParser()

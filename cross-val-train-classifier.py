@@ -122,7 +122,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             acc_per_fold.append(scores[1])
             loss_per_fold.append(scores[0])
 
-        cm_tmp = confusion_matrix(y[val_idx], preds)
+        cm_tmp = confusion_matrix(y[val_idx], preds, labels=range(nb_classes))
         cnf_matrix = cnf_matrix + cm_tmp
         print(cm_tmp)
 
