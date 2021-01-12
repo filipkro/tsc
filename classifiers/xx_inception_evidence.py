@@ -176,8 +176,8 @@ class Classifier_INCEPTION:
         file_path = self.output_directory + 'best_model.hdf5'
 
         model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=file_path, monitor='val_mean_absolute_error_labels',
-            save_best_only=True, mode='min')
+            filepath=file_path, monitor='val_accuracy',
+            save_best_only=True, mode='max')
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
                                                    restore_best_weights=True,

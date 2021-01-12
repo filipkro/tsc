@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+# import tensorflow.keras.backend as K
 
 # This function to generate evidence is used for the first example
 def relu_evidence(logits):
@@ -15,16 +17,18 @@ def softplus_evidence(logits):
     return tf.nn.softplus(logits)
 
 def KL(alpha):
+    K=3
     beta=tf.constant(np.ones((1,K)),dtype=tf.float32)
     S_alpha = tf.reduce_sum(alpha,axis=1,keepdims=True)
     S_beta = tf.reduce_sum(beta,axis=1,keepdims=True)
-    lnB = tf.math.lgamma(S_alpha) - tf.reduce_sum(tf.lgamma(alpha),axis=1,keepdims=True)
+    lnB = tf.math.lgamma(S_alpha) - tf.reduce_sum(tf.math.lgamma(alpha),axis=1,keepdims=True)
     lnB_uni = tf.reduce_sum(tf.math.lgamma(beta),axis=1,keepdims=True) - tf.math.lgamma(S_beta)
 
     dg0 = tf.math.digamma(S_alpha)
     dg1 = tf.math.digamma(alpha)
 
-    kl = tf.reduce_sum((alpha - beta)*(dg1-dg0),axis=1,keep_dims=True) + lnB + lnB_uni
+    kl = tf.reduce_sum((alpha - beta)*(dg1-dg0),axis=1,keepdims=True) + lnB + lnB_uni
+
     return kl
 
 def mse_loss(p, alpha, global_step, annealing_step):
@@ -53,10 +57,11 @@ def evidence_loss(y_true, logits):
 
     # annealing_coef = tf.minimum(1.0,tf.cast(global_step/annealing_step,tf.float32))
     #
-    # alp = E*(1-p) + 1
-    # C =  annealing_coef * KL(alp)
-    # return (A + B) + C
-    return (A + B)
+    annealing_coef = 0.1
+    alp = E*(1-y_true) + 1
+    C =  annealing_coef * KL(alp)
+    return (A + B) + C
+    # return (A + B)
 
 def metric_evidence(y_true, logits):
     evidence = exp_evidence(logits)
