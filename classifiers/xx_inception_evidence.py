@@ -161,13 +161,13 @@ class Classifier_INCEPTION:
         alpha = evidence + 1
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
-                                   outputs=alpha)
+                                   outputs=output_layer)
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
         model.compile(loss=evidence_utils.evidence_loss,
-                      optimizer=keras.optimizers.Adam(self.lr)) #,
-                      # metrics=[coral.MeanAbsoluteErrorLabels()])
+                      optimizer=keras.optimizers.Adam(self.lr),
+                      metrics=['accuracy'])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
                                                       actor=0.5, patience=50,
