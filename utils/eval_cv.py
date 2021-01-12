@@ -107,7 +107,7 @@ def main(args):
             if pred[i] > 0.8:
                 pred[i] = 1
                 pred[~i] = 0
-                new_pred = [1 * (j == i) for j in range(3)]
+                new_pred = [1 * (j == i) for j in range(probs.shape[-1])]
                 probs[row,...] = new_pred
             # elif np.min(pred) < 0.1:
             #     i = np.argmin(pred)

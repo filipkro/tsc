@@ -82,6 +82,7 @@ def main(args):
     # x_test = x[test_idx, ...]
     # y_test = y[test_idx]
     # print(test_idx)
+    cnf_all_folds = np.zeros((3, 3))
 
     for fold in range(1,6):
         model_path = os.path.join(args.root, f'model_fold_{fold}.hdf5')
@@ -135,7 +136,10 @@ def main(args):
         print(corr_mean)
         combined_cm = confusion_matrix(y_combined, pred_combined)
         print(combined_cm)
+        cnf_all_folds = cnf_all_folds + combined_cm
         plot_confusion_matrix(combined_cm, [0,1,2], title='combined score')
+
+    plot_confusion_matrix(cnf_all_folds, [0,1,2], title='combined score, all folds')
     assert False
 
 

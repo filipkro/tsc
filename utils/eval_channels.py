@@ -83,17 +83,17 @@ def main(args):
         for i in range(10):
             xx = x[start:end, ...]
             yy = y[start:end, ...][:,0]
-            # result = np.sum(np.abs(check_grad(xx, model, output)), axis=0)
-            result, preds = check_grad(xx, model, return_prediction=True)
-            preds = np.argmax(coral.ordinal_softmax(preds), axis=1)
+            result = np.sum(np.abs(check_grad(xx, model, output)), axis=0)
+            # result, preds = check_grad(xx, model, return_prediction=True)
+            # preds = np.argmax(coral.ordinal_softmax(preds), axis=1)
             # print(f'preds shape {preds.shape}')
             # print(f'y shape {yy.shape}')
-            incorr = preds != yy
+            # incorr = preds != yy
             # print(f'incorr shape {incorr}')
             # print(f'result shape {result}')
-            result[incorr, ...] = -result[incorr, ...]
+            # result[incorr, ...] = -result[incorr, ...]
             # print(f'result shape {result}')
-            result = np.sum(result, axis=0)
+            # result = np.sum(result, axis=0)
             # corr = ) != yy
             # print(corr)
             # print(corr.shape)
