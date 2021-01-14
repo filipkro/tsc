@@ -57,8 +57,8 @@ class Classifier_INCEPTION:
 
     def _inception_module(self, input_tensor, masked, stride=1, activation='linear'):
 
-        input_tensor = keras.layers.Lambda((lambda x: x))(input_tensor,
-                                                          mask=masked[:, :, 0])
+        # input_tensor = keras.layers.Lambda((lambda x: x))(input_tensor,
+        #                                                   mask=masked[:, :, 0])
         if self.use_bottleneck and int(input_tensor.shape[-1]) > self.bottleneck_size:
             input_inception = keras.layers.Conv1D(filters=self.bottleneck_size,
                                                   kernel_size=1, padding='same',
@@ -72,8 +72,8 @@ class Classifier_INCEPTION:
 
         conv_l = []
 
-        input_inception = keras.layers.Lambda((lambda x: x))(input_inception,
-                                                             mask=masked[:, :, 0])
+        # input_inception = keras.layers.Lambda((lambda x: x))(input_inception,
+        #                                                      mask=masked[:, :, 0])
 
         for i in range(len(kernel_size_s)):
             conv_l.append(keras.layers.Conv1D(filters=self.nb_filters,
@@ -96,7 +96,7 @@ class Classifier_INCEPTION:
 
         x = keras.layers.Concatenate(axis=2)(conv_l)
 
-        x = keras.layers.Lambda((lambda x: x))(x, mask=masked[:, :, 0])
+        # x = keras.layers.Lambda((lambda x: x))(x, mask=masked[:, :, 0])
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.Activation(activation='relu')(x)
         return x
@@ -128,12 +128,12 @@ class Classifier_INCEPTION:
                 input = self._inception_module(input, masked_layer)
 
                 if self.use_residual and d % 3 == 2:
-                    input_res = keras.layers.Lambda((lambda x: x))(input_res,
-                                                                   mask=masked_layer[:, :, 0])
+                    # input_res = keras.layers.Lambda((lambda x: x))(input_res,
+                    #                                                mask=masked_layer[:, :, 0])
                     input = self._shortcut_layer(input_res, input)
                     input_res = input
-            input = keras.layers.Lambda((lambda x: x))(input,
-                                                       mask=masked_layer[:, :, 0])
+            # input = keras.layers.Lambda((lambda x: x))(input,
+            #                                            mask=masked_layer[:, :, 0])
             input = keras.layers.Conv1D(filters=1, kernel_size=1, padding='same',
                                         use_bias=False)(input)
             #input = keras.layers.Conv1D(filters=1, kernel_size=self.kernel_size, padding='same',
@@ -141,8 +141,8 @@ class Classifier_INCEPTION:
             channels.append(input)
 
         x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
-        x = keras.layers.Lambda((lambda x: x))(x,
-                                               mask=masked_layer[:, :, 0])
+        # x = keras.layers.Lambda((lambda x: x))(x,
+        #                                        mask=masked_layer[:, :, 0])
         # x = keras.layers.Conv1D(4 * self.nb_filters, self.kernel_size,
         #                         padding='same')(x)
         # # x = keras.layers.Dropout(0.2)(x)
