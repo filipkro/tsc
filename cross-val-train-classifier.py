@@ -12,6 +12,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 import coral_ordinal as coral
 import pandas as pd
 from keras.utils import to_categorical
+from utils.custom_train_loop import train_loop
 
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
@@ -91,12 +92,24 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         #class_weight = {0: 1, 1: 2, 2: 4}
         #class_weight = {0: 1, 1: 1.3, 2: 2}
         class_weight = {0: 1, 1: 1.5, 2: 3}
+        le = sklearn.preprocessing.LabelEncoder()
+        y_ind = le.fit_transform(y[train_idx, ...].ravel())
+        recip_freq = len(y[train_idx, ...]) / (len(le.classes_) *
+                               np.bincount(y_ind).astype(np.float64))
+        class_weight = recip_freq[le.transform([0, 1, 2])]
+
+        print(class_weight)
+        # assert False
         #class_weight = {0: 1, 1: 5, 2: 10}
         # class_weight = {0: 1, 1: 10} 
         # class_weight = None
-        classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
+        # classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
+        #                x[val_idx, ...], y_oh[val_idx, ...],
+        #                class_weight=class_weight)
+        train_loop(classifier, x[train_idx, ...], y_oh[train_idx, ...],
                        x[val_idx, ...], y_oh[val_idx, ...],
                        class_weight=class_weight)
+
 
         scores = classifier.model.evaluate(x[val_idx, ...],
                                            y_oh[val_idx, ...], verbose=0)
@@ -231,6 +244,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'coral-inception-mod':
         from classifiers import coral_inception_mod
         return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
+    if classifier_name == 'malstm-fcn':
+        from classifiers import malstm_fcn
+        return malstm_fcn.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.001, use_bottleneck=False)
     if classifier_name == 'xcm':
         from classifiers import xcm
         return xcm.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose)
