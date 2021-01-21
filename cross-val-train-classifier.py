@@ -101,8 +101,11 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             n1 = (y[train_idx, ...] == 1).sum()
             n2 = (y[train_idx, ...] == 2).sum()
             class_weight = [np.max((n0, n1 + n2)) / n0,
+                            np.max((n0 + n1, n2)) / (n1 + n2)]
+            class_weight = [5, 1]
+            class_weight = [np.max((n0, n1 + n2)) / (n1 + n2),
                             np.max((n0 + n1, n2)) / n2]
-
+            class_weight = [2, 1]
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
