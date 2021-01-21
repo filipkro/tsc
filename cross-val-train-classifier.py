@@ -16,16 +16,19 @@ from utils.custom_train_loop import train_loop
 
 IDX_PATH = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx.npz'
 
+
 def idx_same_subject(meta, subject):
     # subj = meta[idx,1]
-    indices = np.where(meta[:,1] == subject)[0]
+    indices = np.where(meta[:, 1] == subject)[0]
     return indices
+
 
 def read_meta_data(info_file):
     meta_data = pd.read_csv(info_file, delimiter=',')
     first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
     meta_data = np.array(meta_data.values[first_data:, :4], dtype=int)
     return meta_data
+
 
 def fit_classifier(dp, classifier_name, output_directory, idx):
 
@@ -83,29 +86,36 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
 
-        classifier = create_classifier(classifier_name, input_shape,
-                                       nb_classes, output_directory)
-
-        if fold == 1:
-            print(classifier.model.summary())
-
-        #class_weight = {0: 1, 1: 2, 2: 4}
-        #class_weight = {0: 1, 1: 1.3, 2: 2}
         class_weight = {0: 1, 1: 1.5, 2: 3}
         le = sklearn.preprocessing.LabelEncoder()
         y_ind = le.fit_transform(y[train_idx, ...].ravel())
         recip_freq = len(y[train_idx, ...]) / (len(le.classes_) *
-                               np.bincount(y_ind).astype(np.float64))
+                                               np.bincount(y_ind).astype(np.float64))
         class_weight = recip_freq[le.transform([0, 1, 2])]
-        #class_weight = recip_freq[le.transform([0, 1])]
-        class_weight = {0: class_weight[0], 1: class_weight[1], 2: class_weight[2]}
-        #class_weight = {0: class_weight[0], 1: class_weight[1]}
-        #class_weight = {0: 1, 1: 1.5, 2: 3}
-        print(class_weight)
-        # assert False
-        #class_weight = {0: 1, 1: 5, 2: 10}
-        # class_weight = {0: 1, 1: 10} 
-        # class_weight = None
+        
+        class_weight = {0: class_weight[0],
+                        1: class_weight[1], 2: class_weight[2]}
+
+        if 'coral' in classifier_name:
+            n0 = (y[train_idx, ...] == 0).sum()
+            n1 = (y[train_idx, ...] == 1).sum()
+            n2 = (y[train_idx, ...] == 2).sum()
+            class_weight = [np.max((n0, n1 + n2)) / n0,
+                            np.max((n0 + n1, n2)) / n2]
+
+            classifier = create_classifier(classifier_name, input_shape,
+                                           nb_classes, output_directory,
+                                           class_weight=class_weight)
+            print(f'class weight: {class_weight}')
+            class_weight = None
+        else:
+            classifier = create_classifier(classifier_name, input_shape,
+                                           nb_classes, output_directory)
+            print(f'class weight: {class_weight}')
+
+        if fold == 1:
+            print(classifier.model.summary())
+
         classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
                        x[val_idx, ...], y_oh[val_idx, ...],
                        class_weight=class_weight)
@@ -113,10 +123,8 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         #               x[val_idx, ...], y_oh[val_idx, ...],
         #               class_weight=class_weight)
 
-
         scores = classifier.model.evaluate(x[val_idx, ...],
                                            y_oh[val_idx, ...], verbose=0)
-
 
         probs = classifier.model(x[val_idx, ...], training=False)
 
@@ -154,7 +162,8 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     print('------------------------------------------------------------------------')
     print('Average scores for all folds:')
-    print(f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold) * 2 / np.sqrt(num_folds)})')
+    print(
+        f'> Accuracy: {np.mean(acc_per_fold)} (+- {np.std(acc_per_fold) * 2 / np.sqrt(num_folds)})')
     print(f'> Loss: {np.mean(loss_per_fold)}')
     if 'coral' in classifier_name:
         print(f'> Mean absolute error: {np.mean(abs_err)}')
@@ -177,7 +186,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
     # assert False
 
 
-def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=2):
+def create_classifier(classifier_name, input_shape, nb_classes, output_directory, verbose=2, class_weight=None):
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
         return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=5000, kernel_size=101, filters=8, batch_size=16, depth=3)
@@ -208,8 +217,8 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return x_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
     if classifier_name == 'xx-inception-coral':
         from classifiers import xx_inception_coral
-        #return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=51, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
-        return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False, batch_size=16)
+        # return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=51, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
+        return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False, class_weight=class_weight)
     if classifier_name == 'xx-inception-evidence':
         from classifiers import xx_inception_evidence
         # return xx_inception_evidence.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
@@ -300,7 +309,8 @@ def main(args):
         print('Already done')
     else:
         create_directory(output_directory)
-        fit_classifier(args.dataset, classifier_name, output_directory, args.idx)
+        fit_classifier(args.dataset, classifier_name,
+                       output_directory, args.idx)
         print('DONE')
 
         create_directory(output_directory + '/DONE')

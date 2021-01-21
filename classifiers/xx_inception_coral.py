@@ -19,11 +19,14 @@ class Classifier_INCEPTION:
     def __init__(self, output_directory, input_shape, nb_classes,
                  verbose=False, build=True, batch_size=64, lr=0.001,
                  nb_filters=32, use_residual=True, use_bottleneck=True,
-                 depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32):
+                 depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32,
+                 class_weight=None):
 
         input_shape = (None, input_shape[-1])
 
         self.output_directory = output_directory
+        self.loss = coral.OrdinalCrossEntropy(num_classes=nb_classes,
+                                              importance_weights=class_weight)
 
         self.nb_filters = nb_filters
         self.use_residual = use_residual
@@ -149,7 +152,7 @@ class Classifier_INCEPTION:
         gap_layer = keras.layers.GlobalAveragePooling1D()(
             x, mask=masked_layer[:, :, 0])
 
-        #output_layer = keras.layers.Dense(self.nb_filters,
+        # output_layer = keras.layers.Dense(self.nb_filters,
         #                                  name='result1')(gap_layer)
         output_layer = keras.layers.Dense(self.nb_filters, name='result2',
                                           use_bias=False)(gap_layer)
@@ -161,7 +164,7 @@ class Classifier_INCEPTION:
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        model.compile(loss=coral.OrdinalCrossEntropy(num_classes=nb_classes),
+        model.compile(loss=self.loss,
                       optimizer=keras.optimizers.Adam(self.lr),
                       metrics=[coral.MeanAbsoluteErrorLabels()])
 
