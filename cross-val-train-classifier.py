@@ -115,9 +115,29 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
+        n0 = (y[train_idx, ...] == 0).sum()
+        n1 = (y[train_idx, ...] == 1).sum()
+        n2 = (y[train_idx, ...] == 2).sum()
+
+        nmax = np.max((n0,n1,n2))
+        rep0 = np.round(nmax/n0)
+        rep1 = np.round(nmax/n1)
+        rep2 = np.round(nmax/n2)
+        # print(x[train_idx, ...].shape)
+        # print(rep2)
+        idx2 = np.where(y[train_idx, ...] == 2)[0]
+        # print(np.repeat(x[train_idx, ...][idx2, ...], rep2, axis=0).shape)
+
+        x_train = np.append(x[train_idx, ...], np.repeat(x[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
+        y_train = np.append(y_oh[train_idx, ...], np.repeat(y_oh[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
+        # print(x_train.shape)
+        classifier.fit(x_train, y_train,
                        x[val_idx, ...], y_oh[val_idx, ...],
                        class_weight=class_weight)
+
+        # classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
+        #                x[val_idx, ...], y_oh[val_idx, ...],
+        #                class_weight=class_weight)
         # train_loop(classifier, x[train_idx, ...], y_oh[train_idx, ...],
         #                x[val_idx, ...], y_oh[val_idx, ...],
         #                class_weight=class_weight)
