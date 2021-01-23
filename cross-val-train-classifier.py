@@ -86,15 +86,15 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
 
-        class_weight = {0: 1, 1: 1.5, 2: 3}
+        class_weight = {0: 1, 1: 1, 2: 1}
         le = sklearn.preprocessing.LabelEncoder()
         y_ind = le.fit_transform(y[train_idx, ...].ravel())
         recip_freq = len(y[train_idx, ...]) / (len(le.classes_) *
                                                np.bincount(y_ind).astype(np.float64))
-        class_weight = recip_freq[le.transform([0, 1, 2])]
+        #class_weight = recip_freq[le.transform([0, 1, 2])]
         
-        class_weight = {0: class_weight[0],
-                        1: class_weight[1], 2: class_weight[2]}
+        #class_weight = {0: class_weight[0],
+        #                1: class_weight[1], 2: class_weight[2]}
 
         if 'coral' in classifier_name:
             n0 = (y[train_idx, ...] == 0).sum()
@@ -105,12 +105,13 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             class_weight = [5, 1]
             class_weight = [np.max((n0, n1 + n2)) / (n1 + n2),
                             np.max((n0 + n1, n2)) / n2]
-            class_weight = [2, 1]
+            class_weight = [0, 1]
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
             print(f'class weight: {class_weight}')
             class_weight = None
+            print(f'n0: {n0}, n1: {n1}, n2: {n2}')
         else:
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory)
@@ -222,6 +223,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         from classifiers import xx_inception_coral
         # return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=51, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
         return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False, class_weight=class_weight)
+        #return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=15, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False, class_weight=class_weight)
     if classifier_name == 'xx-inception-evidence':
         from classifiers import xx_inception_evidence
         # return xx_inception_evidence.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
