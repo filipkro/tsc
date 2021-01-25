@@ -261,6 +261,10 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         from classifiers import xx_inception
         # return xx_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=8, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
         return xx_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
+    if classifier_name == 'xx-inception-conf':
+        from classifiers import xx_inception_conf
+        # return xx_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=8, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
+        return xx_inception_conf.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
     if classifier_name == 'x-inception-coral':
         from classifiers import x_inception_coral
         return x_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
