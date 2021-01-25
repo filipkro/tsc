@@ -7,9 +7,22 @@ class ConfusionCrossEntropy(tf.keras.losses.Loss):
         self.U = U
 
     def confusion_cross_entropy(self, y_t, y_p):
-        return -tf.reduce_sum(self.U * tf.math.log(tf.matmul(y_t, y_p, True, False)))
+        # print(self.U)
+        # tf.print(f'y_t: {y_t}')
+        # tf.print('yt')
+        # tf.print(y_t)
+        # tf.print('yp')
+        # tf.print(y_p)
+        # tf.print(-tf.reduce_sum(self.U * tf.math.log(tf.matmul(y_t+0.001, y_p, True, False))))
+        return -tf.reduce_sum(self.U * tf.math.log(tf.matmul(y_t+0.001, y_p, True, False)))
+
+    def confusion_square(self, y_t, y_p):
+        return tf.reduce_sum(tf.math.square(self.U - tf.matmul(y_t, y_p, True, False)))
 
     def call(self, y_t, y_p):
+        # tf.print(f'y_t: {y_t}')
+        # tf.print(f'yp: {y_p}')
+        # return self.confusion_square(y_t, y_p)
         return self.confusion_cross_entropy(y_t, y_p)
 
     def get_config(self):
