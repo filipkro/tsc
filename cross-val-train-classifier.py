@@ -39,10 +39,10 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     x = dataset['mts']
     y = dataset['labels']
-    merge_class = False
+    merge_class = False 
     if merge_class:
-        idx = np.where(y == 1)[0]
-        y[idx] = 0
+        #idx = np.where(y == 1)[0]
+        #y[idx] = 0
         idx = np.where(y == 2)[0]
         y[idx] = 1
 
@@ -86,27 +86,32 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
 
-        class_weight = {0: 1, 1: 1.5, 2: 3}
+        class_weight = {0: 2, 1: 2, 2: 1}
         le = sklearn.preprocessing.LabelEncoder()
         y_ind = le.fit_transform(y[train_idx, ...].ravel())
         recip_freq = len(y[train_idx, ...]) / (len(le.classes_) *
                                                np.bincount(y_ind).astype(np.float64))
-        class_weight = recip_freq[le.transform([0, 1, 2])]
-        class_weight = {0: class_weight[0],
-                        1: class_weight[1], 2: class_weight[2]}
+        #class_weight = recip_freq[le.transform([0, 1, 2])]
+        
+        #class_weight = {0: class_weight[0],
+        #                1: class_weight[1], 2: class_weight[2]}
 
         if 'coral' in classifier_name:
             n0 = (y[train_idx, ...] == 0).sum()
             n1 = (y[train_idx, ...] == 1).sum()
             n2 = (y[train_idx, ...] == 2).sum()
             class_weight = [np.max((n0, n1 + n2)) / n0,
+                            np.max((n0 + n1, n2)) / (n1 + n2)]
+            class_weight = [5, 1]
+            class_weight = [np.max((n0, n1 + n2)) / (n1 + n2),
                             np.max((n0 + n1, n2)) / n2]
-
+            class_weight = [1, 1]
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
             print(f'class weight: {class_weight}')
             class_weight = None
+            print(f'n0: {n0}, n1: {n1}, n2: {n2}')
         else:
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory)
@@ -131,16 +136,16 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         x_train = np.append(x[train_idx, ...], np.repeat(x[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
         y_train = np.append(y_oh[train_idx, ...], np.repeat(y_oh[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
         # print(x_train.shape)
-        classifier.fit(x_train, y_train,
+        #classifier.fit(x_train, y_train,
+        #               x[val_idx, ...], y_oh[val_idx, ...],
+        #               class_weight=class_weight)
+
+        classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
                        x[val_idx, ...], y_oh[val_idx, ...],
                        class_weight=class_weight)
-
-        # classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
-        #                x[val_idx, ...], y_oh[val_idx, ...],
-        #                class_weight=class_weight)
         # train_loop(classifier, x[train_idx, ...], y_oh[train_idx, ...],
-        #                x[val_idx, ...], y_oh[val_idx, ...],
-        #                class_weight=class_weight)
+        #               x[val_idx, ...], y_oh[val_idx, ...],
+        #               class_weight=class_weight)
 
         scores = classifier.model.evaluate(x[val_idx, ...],
                                            y_oh[val_idx, ...], verbose=0)
@@ -209,42 +214,12 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-fcn':
         from classifiers import masked_fcn
         return masked_fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose=verbose, nb_epochs=5000, kernel_size=101, filters=8, batch_size=16, depth=3)
-    if classifier_name == 'fcn':
-        from classifiers import fcn
-        return fcn.Classifier_FCN(output_directory, input_shape, nb_classes, verbose)
-    if classifier_name == 'mlp':
-        from classifiers import mlp
-        return mlp.Classifier_MLP(output_directory, input_shape, nb_classes, verbose)
-    if classifier_name == 'resnet':
-        from classifiers import resnet
-        return resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-resnet':
         from classifiers import masked_resnet
         return masked_resnet.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose, nb_epochs=5000)
     if classifier_name == 'masked-resnet-mod':
         from classifiers import masked_resnet_mod
         return masked_resnet_mod.Classifier_RESNET(output_directory, input_shape, nb_classes, verbose, nb_epochs=5000, batch_size=32, n_feature_maps=64, depth=4)
-    if classifier_name == 'mcnn':
-        from classifiers import mcnn
-        return mcnn.Classifier_MCNN(output_directory, verbose)
-    if classifier_name == 'tlenet':
-        from classifiers import tlenet
-        return tlenet.Classifier_TLENET(output_directory, verbose)
-    if classifier_name == 'twiesn':
-        from classifiers import twiesn
-        return twiesn.Classifier_TWIESN(output_directory, verbose)
-    if classifier_name == 'encoder':
-        from classifiers import encoder
-        return encoder.Classifier_ENCODER(output_directory, input_shape, nb_classes, verbose)
-    if classifier_name == 'mcdcnn':
-        from classifiers import mcdcnn
-        return mcdcnn.Classifier_MCDCNN(output_directory, input_shape, nb_classes, verbose)
-    if classifier_name == 'cnn':  # Time-CNN
-        from classifiers import cnn
-        return cnn.Classifier_CNN(output_directory, input_shape, nb_classes, verbose)
-    if classifier_name == 'inception':
-        from classifiers import inception
-        return inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose)
     if classifier_name == 'masked-inception':
         from classifiers import masked_inception
         return masked_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=5000, bottleneck_size=32, use_residual=True)
@@ -272,16 +247,18 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         from classifiers import xx_inception_coral
         # return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=51, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
         return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False, class_weight=class_weight)
+        #return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=15, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False, class_weight=class_weight)
     if classifier_name == 'xx-inception-evidence':
         from classifiers import xx_inception_evidence
         # return xx_inception_evidence.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
-        return xx_inception_evidence.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
+        return xx_inception_evidence.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.05, use_bottleneck=False, batch_size=16)
     if classifier_name == 'xx-inception-coral-ext':
         from classifiers import xx_inception_coral_ext
         return xx_inception_coral_ext.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
     if classifier_name == 'coral-inception-mod':
         from classifiers import coral_inception_mod
-        return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
+        return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, batch_size=16)
+        #return coral_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128,     kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, batch_size=4)
     if classifier_name == 'malstm-fcn':
         from classifiers import malstm_fcn
         return malstm_fcn.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.001, use_bottleneck=False)

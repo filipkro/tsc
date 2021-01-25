@@ -46,7 +46,7 @@ def mse_loss(p, alpha, global_step, annealing_step):
     return (A + B) + C
 
 def evidence_loss(y_true, logits):
-    evidence = exp_evidence(logits)
+    evidence = softplus_evidence(logits)
     alpha = evidence + 1
     S = tf.reduce_sum(alpha, axis=1, keepdims=True)
     E = alpha - 1
@@ -59,11 +59,11 @@ def evidence_loss(y_true, logits):
 
     # annealing_coef = tf.minimum(1.0,tf.cast(global_step/annealing_step,tf.float32))
     #
-    annealing_coef = 0.1
-    alp = E*(1-y_true) + 1
-    C =  annealing_coef * KL(alp)
-    return (A + B) + C
-    # return (A + B)
+    #annealing_coef = 0.0
+    #alp = E*(1-y_true) + 1
+    #C =  annealing_coef * KL(alp)
+    #return (A + B) + C
+    return (A + B)
 
 def get_evidence(logits):
     evidence = softplus_evidence(logits)
