@@ -95,7 +95,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         
         #class_weight = {0: class_weight[0],
         #                1: class_weight[1], 2: class_weight[2]}
-
+        class_weight = None
         if 'coral' in classifier_name:
             n0 = (y[train_idx, ...] == 0).sum()
             n1 = (y[train_idx, ...] == 1).sum()
@@ -143,6 +143,9 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
                        x[val_idx, ...], y_oh[val_idx, ...],
                        class_weight=class_weight)
+
+        classifier.fit(x[train_idx, ...], y_oh[train_idx, ...], 
+                       x[val_idx, ...], y_oh[val_idx, ...])
         # train_loop(classifier, x[train_idx, ...], y_oh[train_idx, ...],
         #               x[val_idx, ...], y_oh[val_idx, ...],
         #               class_weight=class_weight)
