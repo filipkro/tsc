@@ -121,12 +121,10 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         if fold == 1:
             if 'conf' in classifier_name:
                 print(f"U: \n{classifier.model.loss.get_config()['U']}")
-                # print()
+
 
             print(classifier.model.summary())
 
-            if 'conf' in classifier_name:
-                print(classifier.model.loss.get_config()['U'])
 
         if False:
             n0 = (y[train_idx, ...] == 0).sum()
@@ -238,6 +236,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'masked-inception-mod':
         from classifiers import masked_inception_mod
         return masked_inception_mod.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
+    if classifier_name == 'inception-conf':
+        from classifiers import inception_conf
+        return inception_conf.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
     if classifier_name == 'inception-coral':
         from classifiers import inception_coral
         return inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005)
