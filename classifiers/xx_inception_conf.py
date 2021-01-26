@@ -163,7 +163,13 @@ class Classifier_INCEPTION:
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        U = np.array([[1.25,0.0,0.1], [0.0, 2.0, 1.0], [0.1, 1.0, 2.0]])
+        #U = np.array([[3,0.0,0.0], [-0.5, 5.0, 5.0], [-0.5, 5.0, 5.0]])
+        U = np.array([[3,0,0],[-0.1,8,6],[0,7,8]])
+        #U = np.array([[5,0.0,5], [0.1, 3.0, 0.1], [5.0, 0.0, 5.0]])
+        #U = np.array([[5,5.0,0.0], [5, 5.0, 0.0], [0.1, 0.1, 3.0]])
+        #U = np.array([[1,0.2],[0,1.2]])
+        U = np.array([[3,2,0.0], [2, 3, 0.0], [0.5, 0.5, 1.5]])
+        U = np.array([[3,-0.1,2.0], [0.5, 2, 0.5], [2, -0.1, 3]])
         loss = ConfusionCrossEntropy(U)
 
         model.compile(loss=loss,

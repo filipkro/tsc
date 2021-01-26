@@ -39,7 +39,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     x = dataset['mts']
     y = dataset['labels']
-    merge_class = False
+    merge_class = False 
     if merge_class:
         #idx = np.where(y == 1)[0]
         #y[idx] = 0
@@ -86,8 +86,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
 
-        class_weight = {0: 2, 1: 2, 2: 1}
-        class_weight = None
+        class_weight = {0: 1, 1: 1, 2: 0.2}
         le = sklearn.preprocessing.LabelEncoder()
         y_ind = le.fit_transform(y[train_idx, ...].ravel())
         recip_freq = len(y[train_idx, ...]) / (len(le.classes_) *
@@ -96,7 +95,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
         #class_weight = {0: class_weight[0],
         #                1: class_weight[1], 2: class_weight[2]}
-        class_weight = None
+        #class_weight = None
         if 'coral' in classifier_name:
             n0 = (y[train_idx, ...] == 0).sum()
             n1 = (y[train_idx, ...] == 1).sum()
@@ -106,7 +105,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             class_weight = [5, 1]
             class_weight = [np.max((n0, n1 + n2)) / (n1 + n2),
                             np.max((n0 + n1, n2)) / n2]
-            class_weight = [1, 1]
+            class_weight = [1, 5]
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
