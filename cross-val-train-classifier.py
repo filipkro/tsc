@@ -119,7 +119,14 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             print(f'class weight: {class_weight}')
 
         if fold == 1:
+            if 'conf' in classifier_name:
+                print(f"U: \n{classifier.model.loss.get_config()['U']}")
+                # print()
+
             print(classifier.model.summary())
+
+            if 'conf' in classifier_name:
+                print(classifier.model.loss.get_config()['U'])
 
         if False:
             n0 = (y[train_idx, ...] == 0).sum()
