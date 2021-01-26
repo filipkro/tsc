@@ -39,7 +39,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     x = dataset['mts']
     y = dataset['labels']
-    merge_class = False 
+    merge_class = False
     if merge_class:
         #idx = np.where(y == 1)[0]
         #y[idx] = 0
@@ -87,12 +87,13 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         val_idx = np.concatenate(val_idx)
 
         class_weight = {0: 2, 1: 2, 2: 1}
+        class_weight = None
         le = sklearn.preprocessing.LabelEncoder()
         y_ind = le.fit_transform(y[train_idx, ...].ravel())
         recip_freq = len(y[train_idx, ...]) / (len(le.classes_) *
                                                np.bincount(y_ind).astype(np.float64))
         #class_weight = recip_freq[le.transform([0, 1, 2])]
-        
+
         #class_weight = {0: class_weight[0],
         #                1: class_weight[1], 2: class_weight[2]}
         class_weight = None
@@ -120,32 +121,33 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         if fold == 1:
             print(classifier.model.summary())
 
-        n0 = (y[train_idx, ...] == 0).sum()
-        n1 = (y[train_idx, ...] == 1).sum()
-        n2 = (y[train_idx, ...] == 2).sum()
+        if False:
+            n0 = (y[train_idx, ...] == 0).sum()
+            n1 = (y[train_idx, ...] == 1).sum()
+            n2 = (y[train_idx, ...] == 2).sum()
 
-        nmax = np.max((n0,n1,n2))
-        rep0 = np.round(nmax/n0)
-        rep1 = np.round(nmax/n1)
-        rep2 = np.round(nmax/n2)
-        # print(x[train_idx, ...].shape)
-        # print(rep2)
-        idx2 = np.where(y[train_idx, ...] == 2)[0]
-        # print(np.repeat(x[train_idx, ...][idx2, ...], rep2, axis=0).shape)
+            nmax = np.max((n0,n1,n2))
+            rep0 = np.round(nmax/n0)
+            rep1 = np.round(nmax/n1)
+            rep2 = np.round(nmax/n2)
+            # print(x[train_idx, ...].shape)
+            # print(rep2)
+            idx2 = np.where(y[train_idx, ...] == 2)[0]
+            # print(np.repeat(x[train_idx, ...][idx2, ...], rep2, axis=0).shape)
 
-        x_train = np.append(x[train_idx, ...], np.repeat(x[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
-        y_train = np.append(y_oh[train_idx, ...], np.repeat(y_oh[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
+            x_train = np.append(x[train_idx, ...], np.repeat(x[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
+            y_train = np.append(y_oh[train_idx, ...], np.repeat(y_oh[train_idx, ...][idx2, ...], rep2-1, axis=0), axis=0)
         # print(x_train.shape)
         #classifier.fit(x_train, y_train,
         #               x[val_idx, ...], y_oh[val_idx, ...],
         #               class_weight=class_weight)
 
-        classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
-                       x[val_idx, ...], y_oh[val_idx, ...],
-                       class_weight=class_weight)
+        # print(x[train_idx, ...].shape)
+        # print(y_oh[train_idx, ...].shape)
 
         classifier.fit(x[train_idx, ...], y_oh[train_idx, ...], 
-                       x[val_idx, ...], y_oh[val_idx, ...])
+                       x[val_idx, ...], y_oh[val_idx, ...])#,
+                        # class_weight=class_weight)
         # train_loop(classifier, x[train_idx, ...], y_oh[train_idx, ...],
         #               x[val_idx, ...], y_oh[val_idx, ...],
         #               class_weight=class_weight)

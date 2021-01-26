@@ -55,6 +55,8 @@ def evidence_loss(y_true, logits):
     A = tf.reduce_sum((y_true-m)**2, axis=1, keepdims=True)
     B = tf.reduce_sum(alpha*(S-alpha)/(S*S*(S+1)), axis=1, keepdims=True)
 
+    return (A + B)
+
     # annealing_coef = tf.minimum(1.0,tf.cast(global_step/annealing_step,tf.float32))
     #
     #annealing_coef = 0.0
@@ -63,15 +65,23 @@ def evidence_loss(y_true, logits):
     #return (A + B) + C
     return (A + B)
 
-def metric_evidence(y_true, logits):
-    evidence = exp_evidence(logits)
+def get_evidence(logits):
+    evidence = softplus_evidence(logits)
     return evidence
 
-def metric_uncertainty(y_true, logits):
-    evidence = logits2evidence(logits)
+def get_uncertainty(logits):
+    K = 3
+    evidence = get_evidence(logits)
     alpha = evidence + 1
     u = K / tf.reduce_sum(alpha, axis=1, keepdims=True) #uncertainty
 
     return u
+
+def get_prob(logits):
+    evidence = get_evidence(logits)
+    alpha = evidence + 1
+    prob = alpha/tf.reduce_sum(alpha, 1, keepdims=True)
+
+    return prob
 
 # def metric_prob

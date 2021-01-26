@@ -26,6 +26,8 @@ class Classifier_INCEPTION:
 
         self.output_directory = output_directory
 
+        self.loss = evidence_utils.evidence_loss
+
         self.nb_filters = nb_filters
         self.use_residual = use_residual
         self.use_bottleneck = use_bottleneck
@@ -165,7 +167,7 @@ class Classifier_INCEPTION:
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        model.compile(loss=evidence_utils.evidence_loss,
+        model.compile(loss=self.loss,
                       optimizer=keras.optimizers.Adam(self.lr),
                       metrics=['accuracy'])
 
