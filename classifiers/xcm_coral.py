@@ -68,24 +68,31 @@ class Classifier_XCM:
 
         for i in range(self.depth):
             if self.use_inception:
-                conv_2d_incep = keras.layers.Conv2D(self.filters, (int(self.window/2), 1),
+                kernel_size_s = [self.window // (2 ** i) for i in range(3)]
+                conv_l = []
+                for i in range(len(kernel_size_s)):
+                    layer = keras.layers.Conv2D(self.filters,(kernel_size_s[i],1), padding='same', use_bias=True, activation='relu')(conv_2d)
+                    conv_l.append(keras.layers.Lambda((lambda x: x))(layer,
+                                                                 mask=masked[:, :, 0]))
+
+                conv_2d = keras.layers.Concatenate(axis=-1)(conv_l)
+                # conv_2d_incep = keras.layers.Conv2D(self.filters, (int(self.window/2), 1),
+                #                               padding='same')(conv_2d)
+                # conv_2d_incep = keras.layers.Lambda((lambda x: x))(conv_2d_incep,
+                #                                              mask=masked[:, :, 0])
+                # conv_2d_incep = keras.layers.BatchNormalization()(conv_2d_incep)
+                # conv_2d_incep = keras.layers.Activation(activation='relu')(conv_2d_incep)
+            else:
+                conv_2d = keras.layers.Conv2D(self.filters, (self.window, 1),
                                               padding='same')(conv_2d)
-                conv_2d_incep = keras.layers.Lambda((lambda x: x))(conv_2d_incep,
+                conv_2d = keras.layers.Lambda((lambda x: x))(conv_2d,
                                                              mask=masked[:, :, 0])
-                conv_2d_incep = keras.layers.BatchNormalization()(conv_2d_incep)
-                conv_2d_incep = keras.layers.Activation(activation='relu')(conv_2d_incep)
+                # print('after conv2d: {}'.format(conv_2d))
+                conv_2d = keras.layers.BatchNormalization()(conv_2d)
+                conv_2d = keras.layers.Activation(activation='relu')(conv_2d)
 
-
-            conv_2d = keras.layers.Conv2D(self.filters, (self.window, 1),
-                                          padding='same')(conv_2d)
-            conv_2d = keras.layers.Lambda((lambda x: x))(conv_2d,
-                                                         mask=masked[:, :, 0])
-            # print('after conv2d: {}'.format(conv_2d))
-            conv_2d = keras.layers.BatchNormalization()(conv_2d)
-            conv_2d = keras.layers.Activation(activation='relu')(conv_2d)
-
-            if self.use_inception:
-                conv_2d = keras.layers.Concatenate(axis=-1)([conv_2d, conv_2d_incep])
+                # if self.use_inception:
+                #     conv_2d = keras.layers.Concatenate(axis=-1)([conv_2d, conv_2d_incep])
 
 
 
@@ -97,24 +104,32 @@ class Classifier_XCM:
 
             if self.use_1d:
                 if self.use_inception:
-                    conv_1d_incep = keras.layers.Conv1D(self.filters, int(self.window/2),
+                    kernel_size_s = [self.window // (2 ** i) for i in range(3)]
+                    conv_l = []
+                    for i in range(len(kernel_size_s)):
+                        layer = keras.layers.Conv1D(self.filters,kernel_size_s[i], padding='same', use_bias=True, activation='relu')(conv_1d)
+                        conv_l.append(keras.layers.Lambda((lambda x: x))(layer,
+                                                                     mask=masked[:, :, 0]))
+
+                    conv_1d = keras.layers.Concatenate(axis=-1)(conv_l)
+                    # conv_1d_incep = keras.layers.Conv1D(self.filters, int(self.window/2),
+                    #                               padding='same')(conv_1d)
+                    # conv_1d_incep = keras.layers.Lambda((lambda x: x))(conv_1d_incep,
+                    #                                              mask=masked[:, :, 0])
+                    # # print('after conv2d: {}'.format(conv_2d))
+                    # conv_1d_incep = keras.layers.BatchNormalization()(conv_1d_incep)
+                    # conv_1d_incep = keras.layers.Activation(activation='relu')(conv_1d_incep)
+                else:
+                    conv_1d = keras.layers.Conv1D(self.filters, self.window,
                                                   padding='same')(conv_1d)
-                    conv_1d_incep = keras.layers.Lambda((lambda x: x))(conv_1d_incep,
+                    conv_1d = keras.layers.Lambda((lambda x: x))(conv_1d,
                                                                  mask=masked[:, :, 0])
                     # print('after conv2d: {}'.format(conv_2d))
-                    conv_1d_incep = keras.layers.BatchNormalization()(conv_1d_incep)
-                    conv_1d_incep = keras.layers.Activation(activation='relu')(conv_1d_incep)
+                    conv_1d = keras.layers.BatchNormalization()(conv_1d)
+                    conv_1d = keras.layers.Activation(activation='relu')(conv_1d)
 
-                conv_1d = keras.layers.Conv1D(self.filters, self.window,
-                                              padding='same')(conv_1d)
-                conv_1d = keras.layers.Lambda((lambda x: x))(conv_1d,
-                                                             mask=masked[:, :, 0])
-                # print('after conv2d: {}'.format(conv_2d))
-                conv_1d = keras.layers.BatchNormalization()(conv_1d)
-                conv_1d = keras.layers.Activation(activation='relu')(conv_1d)
-
-                if self.use_inception:
-                    conv_1d = keras.layers.Concatenate(axis=-1)([conv_1d, conv_1d_incep])
+                # if self.use_inception:
+                #     conv_1d = keras.layers.Concatenate(axis=-1)([conv_1d, conv_1d_incep])
 
                 if self.use_bottleneck:
                     conv_1d = keras.layers.Conv1D(self.bottleneck_size, 1,
