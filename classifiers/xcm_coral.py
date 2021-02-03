@@ -20,7 +20,7 @@ class Classifier_XCM:
     def __init__(self, output_directory, input_shape, nb_classes, lr=0.001,
                  batch_size=16, verbose=2, nb_epochs=2000, depth=1,
                  filters=16, window=21, decay=False, use_1d=True,
-                 use_bottleneck=True, bottleneck_size=16):
+                 use_bottleneck=True, bottleneck_size=16, use_inception=True):
 
         input_shape = (None, None, input_shape[-1])
         self.output_directory = output_directory
@@ -38,6 +38,7 @@ class Classifier_XCM:
         self.use_1d = use_1d
         self.use_bottleneck = use_bottleneck
         self.bottleneck_size = bottleneck_size
+        self.use_inception = use_inception
 
         self.model = self.build_model()
 
@@ -48,7 +49,8 @@ class Classifier_XCM:
                        'input_shape': input_shape, 'epochs': nb_epochs,
                        'trainable_params': trainable_count, 'use_1d': use_1d,
                        'use_bottleneck': use_bottleneck,
-                       'bottleneck_size': bottleneck_size}
+                       'bottleneck_size': bottleneck_size,
+                       'use_inception': use_inception}
 
         f = open(os.path.join(self.output_directory, 'hyperparams.txt'), "w")
         f.write(str(model_hyper))
@@ -65,6 +67,15 @@ class Classifier_XCM:
             conv_1d = masked
 
         for i in range(self.depth):
+            if self.use_inception:
+                conv_2d_incep = keras.layers.Conv2D(self.filters, (int(self.window/2), 1),
+                                              padding='same')(conv_2d)
+                conv_2d_incep = keras.layers.Lambda((lambda x: x))(conv_2d_incep,
+                                                             mask=masked[:, :, 0])
+                conv_2d_incep = keras.layers.BatchNormalization()(conv_2d_incep)
+                conv_2d_incep = keras.layers.Activation(activation='relu')(conv_2d_incep)
+
+
             conv_2d = keras.layers.Conv2D(self.filters, (self.window, 1),
                                           padding='same')(conv_2d)
             conv_2d = keras.layers.Lambda((lambda x: x))(conv_2d,
@@ -73,6 +84,11 @@ class Classifier_XCM:
             conv_2d = keras.layers.BatchNormalization()(conv_2d)
             conv_2d = keras.layers.Activation(activation='relu')(conv_2d)
 
+            if self.use_inception:
+                conv_2d = keras.layers.Concatenate(axis=-1)([conv_2d, conv_2d_incep])
+
+
+
             if self.use_bottleneck:
                 conv_2d = keras.layers.Conv2D(self.bottleneck_size, (1, 1),
                                               padding='same')(conv_2d)
@@ -80,6 +96,15 @@ class Classifier_XCM:
                                                              mask=masked[:, :, 0])
 
             if self.use_1d:
+                if self.use_inception:
+                    conv_1d_incep = keras.layers.Conv1D(self.filters, int(self.window/2),
+                                                  padding='same')(conv_1d)
+                    conv_1d_incep = keras.layers.Lambda((lambda x: x))(conv_1d_incep,
+                                                                 mask=masked[:, :, 0])
+                    # print('after conv2d: {}'.format(conv_2d))
+                    conv_1d_incep = keras.layers.BatchNormalization()(conv_1d_incep)
+                    conv_1d_incep = keras.layers.Activation(activation='relu')(conv_1d_incep)
+
                 conv_1d = keras.layers.Conv1D(self.filters, self.window,
                                               padding='same')(conv_1d)
                 conv_1d = keras.layers.Lambda((lambda x: x))(conv_1d,
@@ -87,6 +112,9 @@ class Classifier_XCM:
                 # print('after conv2d: {}'.format(conv_2d))
                 conv_1d = keras.layers.BatchNormalization()(conv_1d)
                 conv_1d = keras.layers.Activation(activation='relu')(conv_1d)
+
+                if self.use_inception:
+                    conv_1d = keras.layers.Concatenate(axis=-1)([conv_1d, conv_1d_incep])
 
                 if self.use_bottleneck:
                     conv_1d = keras.layers.Conv1D(self.bottleneck_size, 1,
