@@ -97,7 +97,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
         #class_weight = {0: class_weight[0],
         #                1: class_weight[1], 2: class_weight[2]}
-        #class_weight = None
+        class_weight = None
         if 'coral' in classifier_name:
             n0 = (y[train_idx, ...] == 0).sum()
             n1 = (y[train_idx, ...] == 1).sum()
@@ -166,7 +166,23 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
         probs = classifier.model(x[val_idx, ...], training=False)
 
-        if 'coral' in classifier_name:
+        if 'reg' in classifier_name:
+            preds = np.zeros(probs.shape)
+            for i, pred in enumerate(probs):
+                pred = int(np.round(pred))
+                if pred > 6:
+                    pred = 6
+                elif pred < 0:
+                    pred = 0
+                preds[i] = pred
+
+            acc = accuracy_score(y[val_idx], preds)
+            print(
+                f'Score for fold {fold}: Loss of {scores}; Accuracy of {acc}')
+            acc_per_fold.append(acc)
+            loss_per_fold.append(scores)
+
+        elif 'coral' in classifier_name:
             # print(probs)
             probs = coral.ordinal_softmax(probs)
             # print(probs)
@@ -264,6 +280,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         # return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=51, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
         return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=True, class_weight=class_weight)
         #return xx_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=15, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False, class_weight=class_weight)
+    if classifier_name == 'xx-inception-reg':
+        from classifiers import xx_inception_reg
+        return xx_inception_reg.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
     if classifier_name == 'xx-inception-evidence':
         from classifiers import xx_inception_evidence
         # return xx_inception_evidence.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=64, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
