@@ -142,7 +142,16 @@ class Classifier_INCEPTION:
         model = keras.models.Model(inputs=input_layer,
                                    outputs=output_layer)
 
-        U = np.array([[1,0.05,0.05], [0.05, 1, 0.05], [0.05, 0.05, 1]])
+        U = np.array([[1,0.01,0.01], [0.0, 1, 0.1], [0.0, 0.1, 1]])
+        U = np.array([[3,0.2,0.2], [0.0, 5, 5], [0.0, 5, 5]])
+        #U = np.array([[5,0.,5], [0.2, 3, 0.2], [5.0, 0, 5]])
+        #U = np.array([[5,5,0], [5, 5, 0], [0.2, 0.2, 3]])
+        #U = np.array([[1,0,1], [0.2, 0.5, 0.2], [1, 0, 1]])
+        U = np.array([[1,0,0], [0.55, 0.7, 0.55], [0,0, 1]])
+        U = np.array([[0.4,0.1,0.1], [0, 1, 1], [0,1, 1]])
+        #U = np.array([[1,1,0], [1, 1, 0], [0.2, 0.2, 0.8]])
+        #U = np.array([[3,1.5,0], [3, 1.5, 0], [0, 0, 0.4]])
+        #U = np.array([[1,0,0], [0.35, 0.6, 0.35], [0, 0, 1]])
         loss = ConfusionCrossEntropy(U)
 
         model.compile(loss=loss,

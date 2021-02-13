@@ -55,7 +55,8 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         nb_classes = 5
 
     else:
-        nb_classes = len(np.unique(np.concatenate(y, axis=0)))
+        #nb_classes = len(np.unique(np.concatenate(y, axis=0)))
+        nb_classes = len(np.unique(y))
         print(nb_classes)
 
     y_oh = to_categorical(y)
@@ -87,7 +88,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
 
-        class_weight = {0: 1, 1: 0.5, 2: 1}
+        class_weight = {0: 2, 1: 1, 2: 1.5}
         le = sklearn.preprocessing.LabelEncoder()
         y_ind = le.fit_transform(y[train_idx, ...].ravel())
         recip_freq = len(y[train_idx, ...]) / (len(le.classes_) *
@@ -106,8 +107,10 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             class_weight = [5, 1]
             class_weight = [np.max((n0, n1 + n2)) / (n1 + n2),
                             np.max((n0 + n1, n2)) / n2]
-            class_weight = [1, 10]
+            class_weight = [0.1, 1]
+            #class_weight = [10, 1] #what worked good for finding 2 femval
             class_weight = [1, 1]
+            class_weight = None
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
@@ -242,7 +245,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return inception_conf.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=False, lr=0.005)
     if classifier_name == 'inception-coral':
         from classifiers import inception_coral
-        return inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=64, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
+        return inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
     if classifier_name == 'x-inception':
         from classifiers import x_inception
         return x_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
@@ -290,7 +293,7 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         return masked_xcm_2d.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=256, depth=1, window=41, decay=False, batch_size=32)
     if classifier_name == 'xcm-coral':
         from classifiers import xcm_coral
-        return xcm_coral.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=128, depth=2, window=31, decay=False, batch_size=32)
+        return xcm_coral.Classifier_XCM(output_directory, input_shape, nb_classes, nb_epochs=2000, verbose=verbose, filters=32, depth=2, window=31, decay=False, batch_size=32, use_bottleneck=True, use_1d=False)
     if classifier_name == 'net1d':
         from classifiers import net1d
         return net1d.Classifier_NET1d(output_directory, input_shape, nb_classes, nb_epochs=5000, verbose=verbose, filters=[16, 32, 64], depth=2, window=[51, 31, 11], decay=False)
