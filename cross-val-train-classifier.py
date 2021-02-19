@@ -75,7 +75,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
     loss_per_fold = []
     abs_err = []
 
-    if 'coral' in classifier_name:
+    if 'coral' in classifier_name or 'focal' in classifier_name:
         y_oh = y
 
     cnf_matrix = np.zeros((nb_classes, nb_classes))
@@ -270,6 +270,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
         from classifiers import xx_inception
         # return xx_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=8, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
         return xx_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
+    if classifier_name == 'xx-inception-focal':
+        from classifiers import xx_inception_focal
+        return xx_inception_focal.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=32, kernel_size=31, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.005, use_bottleneck=False)
     if classifier_name == 'xx-inception-conf':
         from classifiers import xx_inception_conf
         # return xx_inception.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=1, nb_filters=8, kernel_size=21, nb_epochs=2000, bottleneck_size=32, use_residual=False, lr=0.01, use_bottleneck=False)
