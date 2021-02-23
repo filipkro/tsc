@@ -57,8 +57,8 @@ class Classifier_INCEPTION:
 
     def _inception_module(self, input_tensor, masked, stride=1, activation='linear'):
 
-        input_tensor = keras.layers.Lambda((lambda x: x))(input_tensor,
-                                                          mask=masked[:, :, 0])
+        # input_tensor = keras.layers.Lambda((lambda x: x))(input_tensor,
+        #                                                   mask=masked)
         if self.use_bottleneck and int(input_tensor.shape[-1]) > self.bottleneck_size:
             input_inception = keras.layers.Conv1D(filters=self.bottleneck_size,
                                                   kernel_size=1, padding='same',
@@ -73,32 +73,30 @@ class Classifier_INCEPTION:
         conv_l = []
 
         input_inception = keras.layers.Lambda((lambda x: x))(input_inception,
-                                                             mask=masked[:, :, 0])
+                                                             mask=masked)
 
         for i in range(len(kernel_size_s)):
             conv_l.append(keras.layers.Conv1D(filters=self.nb_filters,
                                               kernel_size=kernel_size_s[i],
                                               strides=stride, padding='same',
                                               activation=activation,
-                                              use_bias=False)(input_inception))
+                                              use_bias=True)(input_inception))
 
-        max_pool_1 = keras.layers.MaxPool1D(
-            pool_size=3, strides=stride, padding='same')(input_tensor)
+        max_pool_1 = keras.layers.MaxPool1D(pool_size=3, strides=stride,
+                                            padding='same')(input_inception)
 
         conv_6 = keras.layers.Conv1D(filters=self.nb_filters, kernel_size=1,
                                      padding='same', activation=activation,
-                                     use_bias=False)(max_pool_1)
-
-        conv_6 = keras.layers.Lambda((lambda x: x))(conv_6,
-                                                    mask=masked[:, :, 0])
+                                     use_bias=True)(max_pool_1)
 
         conv_l.append(conv_6)
 
         x = keras.layers.Concatenate(axis=2)(conv_l)
 
-        x = keras.layers.Lambda((lambda x: x))(x, mask=masked[:, :, 0])
+        x = keras.layers.Lambda((lambda x: x))(x, mask=masked)
         x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.Activation(activation='relu')(x)
+        x = keras.layers.LeakyReLU()(x)
+        # x = keras.layers.Activation(activation='relu')(x)
         return x
 
     def _shortcut_layer(self, input_tensor, out_tensor):
@@ -108,47 +106,46 @@ class Classifier_INCEPTION:
         shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
 
         x = keras.layers.Add()([shortcut_y, out_tensor])
-        x = keras.layers.Activation('relu')(x)
+        # x = keras.layers.Activation('relu')(x)
+        x = keras.layers.LeakyReLU()(x)
         return x
 
     def build_model(self, input_shape, nb_classes):
         input_layer = keras.layers.Input(input_shape)
-        masked_layer = keras.layers.Masking(mask_value=-1000,
-                                            name='mask')(input_layer)
+        masked_layer = keras.layers.Masking(mask_value=-1000)(input_layer)
         x = masked_layer
         input_res = masked_layer
+        mask = masked_layer[:, :, 0]
 
         for d in range(self.depth):
 
-            x = self._inception_module(x, masked_layer)
+            x = self._inception_module(x, mask)
 
             if self.use_residual and d % 3 == 2:
                 input_res = keras.layers.Lambda((lambda x: x))(input_res,
-                                                               mask=masked_layer[:, :, 0])
+                                                               mask=mask)
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
+        # x = keras.layers.Dropout(0.2)(x)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
 
-        x = keras.layers.Dropout(0.2)(x)
-        gap_layer = keras.layers.GlobalAveragePooling1D()(
-            x, mask=masked_layer[:, :, 0])
-
-        output_layer = keras.layers.Dense(self.nb_filters,
-                                          name='result1')(gap_layer)
-        output_layer = keras.layers.Dense(nb_classes, activation='softmax',
-                                          name='result2')(output_layer)
+        output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
+        output_layer = keras.layers.LeakyReLU()(output_layer)
+        output_layer = keras.layers.Dense(nb_classes,
+                                          activation='softmax')(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
                                    outputs=output_layer)
 
-        U = np.array([[1,0.01,0.01], [0.0, 1, 0.1], [0.0, 0.1, 1]])
-        U = np.array([[3,0.2,0.2], [0.0, 5, 5], [0.0, 5, 5]])
+        U = np.array([[1, 0.01, 0.01], [0.0, 1, 0.1], [0.0, 0.1, 1]])
+        U = np.array([[3, 0.2, 0.2], [0.0, 5, 5], [0.0, 5, 5]])
         #U = np.array([[5,0.,5], [0.2, 3, 0.2], [5.0, 0, 5]])
         #U = np.array([[5,5,0], [5, 5, 0], [0.2, 0.2, 3]])
         #U = np.array([[1,0,1], [0.2, 0.5, 0.2], [1, 0, 1]])
-        U = np.array([[1,0,0], [0.55, 0.7, 0.55], [0,0, 1]])
-        U = np.array([[0.4,0.1,0.1], [0, 1, 1], [0,1, 1]])
+        U = np.array([[1, 0, 0], [0.55, 0.7, 0.55], [0, 0, 1]])
+        U = np.array([[0.4, 0.1, 0.1], [0, 1, 1], [0, 1, 1]])
         #U = np.array([[1,1,0], [1, 1, 0], [0.2, 0.2, 0.8]])
         #U = np.array([[3,1.5,0], [3, 1.5, 0], [0, 0, 0.4]])
         #U = np.array([[1,0,0], [0.35, 0.6, 0.35], [0, 0, 1]])

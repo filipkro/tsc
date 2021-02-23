@@ -119,8 +119,9 @@ class Classifier_INCEPTION:
         masked_layer = keras.layers.Masking(mask_value=-1000,
                                             name='mask')(input_layer)
         x = masked_layer
-        input_res = masked_layer
-        mask = masked_layer[:,:,0]
+        if self.use_residual:
+            input_res = masked_layer
+        mask = masked_layer[:, :, 0]
 
         for d in range(self.depth):
 
@@ -132,15 +133,13 @@ class Classifier_INCEPTION:
                 x = self._shortcut_layer(input_res, x)
                 input_res = x
 
-
         # x = keras.layers.Dropout(0.2)(x)
-        gap_layer = keras.layers.GlobalAveragePooling1D()(
-            x, mask=mask)
+        gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
 
-        output_layer = keras.layers.Dense(self.nb_filters,
-                                          name='result1')(gap_layer)
+        output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
         output_layer = keras.layers.LeakyReLU()(output_layer)
-        output_layer = keras.layers.Dense(self.nb_filters, use_bias=False)(output_layer)
+        output_layer = keras.layers.Dense(self.nb_filters,
+                                          use_bias=False)(output_layer)
         output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
