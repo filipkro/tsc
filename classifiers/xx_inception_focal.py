@@ -163,7 +163,7 @@ class Classifier_INCEPTION:
 
         # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
         #               metrics=['accuracy'])
-        loss = SparseCategoricalFocalLoss(gamma=2)
+        loss = SparseCategoricalFocalLoss(gamma=4)
         model.compile(loss=loss,
                       optimizer=keras.optimizers.Adam(self.lr),
                       metrics=['accuracy'])
@@ -186,6 +186,7 @@ class Classifier_INCEPTION:
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
 
         self.callbacks = [reduce_lr, model_checkpoint, stop_early, lr_decay]
+        self.callbacks = [reduce_lr, model_checkpoint, lr_decay]
 
         return model
 

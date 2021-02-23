@@ -152,10 +152,10 @@ class Classifier_INCEPTION:
         gap_layer = keras.layers.GlobalAveragePooling1D()(
             x, mask=masked_layer[:, :, 0])
 
-        # output_layer = keras.layers.Dense(self.nb_filters,
-        #                                  name='result1')(gap_layer)
+        output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
+        output_layer = keras.layers.LeakyReLU()(output_layer)
         output_layer = keras.layers.Dense(self.nb_filters, name='result2',
-                                          use_bias=False)(gap_layer)
+                                          use_bias=False)(output_layer)
         output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
