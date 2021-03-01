@@ -351,7 +351,7 @@ def main(args):
     classifier_name = args.classifier.replace('_', '-')
     # rate = args.dataset.split('-')[-1].split('.')[0]
     lit = os.path.basename(args.dataset).split('_')[1].split('.')[0]
-
+    lit = lit + '-len100' if 'len100' in args.dataset else lit
     root_dir = args.root + '/' + classifier_name + '/' + lit + '/'
     if args.itr == '':
         itr = 0
