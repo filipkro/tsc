@@ -39,7 +39,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     x = dataset['mts']
     y = dataset['labels']
-    merge_class = False 
+    merge_class = False
     if merge_class:
         #idx = np.where(y == 1)[0]
         #y[idx] = 0
@@ -126,6 +126,13 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             if 'conf' in classifier_name:
                 print(f"U: \n{classifier.model.loss.get_config()['U']}")
 
+            ifile = open(os.path.join(output_directory, 'class_weights.txt'), 'w')
+            ifile.write(f'model type: {classifier_name}\n')
+            U = classifier.model.loss.get_config()['U'] if 'conf' in classifier_name else class_weight
+            ifile.write(f'Training weight:\n')
+            ifile.write(str(U))
+            ifile.close()
+            print('file done')
 
             print(classifier.model.summary())
 
