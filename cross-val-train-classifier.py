@@ -109,7 +109,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
                             np.max((n0 + n1, n2)) / n2]
             class_weight = [0.1, 1]
             #class_weight = [10, 1] #what worked good for finding 2 femval
-            class_weight = [1, 1]
+            class_weight = [1, 10]
             #class_weight = None
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
