@@ -18,9 +18,12 @@ def check_grad(input, model, return_prediction=False):
                                    outputs=[model.get_layer(concat_layer).output,
                                    model.get_layer(output_layer).output])
 
+    # print(gradModel.summary())
+
 
     # input = np.expand_dims(input[np.where(input[:,0] > -900)[0], ...], axis=0)
     inp = tf.convert_to_tensor(input)
+    # print(inp)
 
     # print(model.predict(inp))
     with tf.GradientTape() as tape:
@@ -29,7 +32,8 @@ def check_grad(input, model, return_prediction=False):
         pred_output = preds[:, 0]
         # pred2 = preds[:, 1]
 
-    # print(concat_out)
+    # print(concat_out.shape)
+    # print(preds.shape)
     # assert False
 
     concat_grad1d = tape.gradient(pred_output, concat_out)
@@ -84,6 +88,7 @@ def main(args):
             xx = x[start:end, ...]
             yy = y[start:end, ...][:,0]
             result = np.sum(np.abs(check_grad(xx, model, output)), axis=0)
+            # print(result)
             # result, preds = check_grad(xx, model, return_prediction=True)
             # preds = np.argmax(coral.ordinal_softmax(preds), axis=1)
             # print(f'preds shape {preds.shape}')
@@ -100,7 +105,7 @@ def main(args):
             # corr = preds == yy
             # print(result.shape)
             # assert False
-            channels[fold-1, ...] = channels[fold-1, ...] + result / np.linalg.norm(result)
+            channels[fold-1, ...] = channels[fold-1, ...] + result / np.linalg.norm(result) if np.linalg.norm(result) != 0 else channels[fold-1, ...] + result
             print(f'{i} of 9 done in fold {fold}')
             start += 53
             end += 53

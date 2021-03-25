@@ -74,6 +74,8 @@ def main(args):
 
     x = dataset['mts']
     y = dataset['labels']
+    print(x.shape)
+    print(y.shape)
     # ind_val = np.load(os.path.join(args.root, 'indices.npz'))
     ind_t = np.load(idx_path)
     # test_idx = np.append(ind_val['val_idx'], ind_t['test_idx'].astype(np.int))
@@ -88,6 +90,10 @@ def main(args):
         idx = np.load(os.path.join(args.root, f'idx_{fold}.npz'))
         x_val = x[idx['val_idx']]
         y_val = y[idx['val_idx']]
+
+        print(x_val.shape)
+        print(y_val.shape)
+        assert False
         # x_val = x[ind_t['test_idx']]
         # y_val = y[ind_t['test_idx']]
         model = keras.models.load_model(model_path, custom_objects={'CoralOrdinal': coral.CoralOrdinal, 'OrdinalCrossEntropy': coral.OrdinalCrossEntropy, 'MeanAbsoluteErrorLabels': coral.MeanAbsoluteErrorLabels})

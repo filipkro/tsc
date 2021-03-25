@@ -8,6 +8,7 @@ import pandas as pd
 import itertools
 
 import coral_ordinal as coral
+from confusion_utils import ConfusionCrossEntropy
 
 def get_same_subject(info_file, idx):
     meta_data = pd.read_csv(info_file, delimiter=',')
@@ -91,7 +92,8 @@ def main(args):
         # y_val = y[idx['val_idx']]
         # # x_val = x[ind_t['test_idx']]
         # # y_val = y[ind_t['test_idx']]
-        model = keras.models.load_model(model_path, custom_objects={'CoralOrdinal': coral.CoralOrdinal, 'OrdinalCrossEntropy': coral.OrdinalCrossEntropy, 'MeanAbsoluteErrorLabels': coral.MeanAbsoluteErrorLabels})
+        model = keras.models.load_model(model_path, custom_objects={'CoralOrdinal': coral.CoralOrdinal, 'OrdinalCrossEntropy': coral.OrdinalCrossEntropy, 'MeanAbsoluteErrorLabels': coral.MeanAbsoluteErrorLabels, 'ConfusionCrossEntropy': ConfusionCrossEntropy})
+        # model = keras.models.load_model(model_path, custom_objects={'ConfusionCrossEntropy': ConfusionCrossEntropy})
 
         # assert False
         subject_indices = []
@@ -108,7 +110,12 @@ def main(args):
                 result = model.predict(x_subj)
                 if 'coral' in model_path:
                     result = coral.ordinal_softmax(result).numpy()
-                print('result for indices: {}'.format(subject_indices))
+                # print('result for indices: {}'.format(subject_indices))
+
+                if 398 in subject_indices:
+                    print(result)
+                    print(y_subj)
+                    print(np.mean(result, axis=0))
                 # print('likelihoods')
                 # print(result)
                 for row in range(result.shape[0]):
@@ -119,23 +126,24 @@ def main(args):
                         pred[~i] = 0
                         new_pred = [1 * (j == i) for j in range(3)]
                         result[row,...] = new_pred
-                print(result)
-                print('correct')
-                print(y_subj)
-                print('summed likelihoods')
-                print(np.sum(result, axis=0))
-                print('true label')
-                print(np.median(y_subj))
-                pred_combined.append(np.argmax(np.sum(result, axis=0)))
-                y_combined.append(int(np.median(y_subj)))
-                correct += 1*(int(np.median(y_subj)) == np.argmax(np.sum(result, axis=0)))
-                corr_mean += 1*(int(np.round(np.mean(y_subj))) == np.argmax(np.sum(result, axis=0)))
-                print('\n \n')
+                # print(result)
+                # print('correct')
+                # print(y_subj)
+                # print('summed likelihoods')
+                # print(np.sum(result, axis=0))
+                # print('true label')
+                # print(np.median(y_subj))
+                if np.max(np.mean(result, axis=0)) > 0.5:
+                    pred_combined.append(np.argmax(np.sum(result, axis=0)))
+                    y_combined.append(int(np.median(y_subj)))
+                    correct += 1*(int(np.median(y_subj)) == np.argmax(np.sum(result, axis=0)))
+                    corr_mean += 1*(int(np.round(np.mean(y_subj))) == np.argmax(np.sum(result, axis=0)))
+                # print('\n \n')
 
-        print(correct)
-        print(corr_mean)
-        combined_cm = confusion_matrix(y_combined, pred_combined)
-        print(combined_cm)
+        # print(correct)
+        # print(corr_mean)
+        combined_cm = confusion_matrix(y_combined, pred_combined, labels=[0,1,2])
+        # print(combined_cm)
         cnf_all_folds = cnf_all_folds + combined_cm
         plot_confusion_matrix(combined_cm, [0,1,2], title='combined score')
 
