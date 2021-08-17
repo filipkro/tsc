@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 import os
 import tensorflow.keras as keras
 import matplotlib.pyplot as plt
@@ -21,6 +21,8 @@ kmfp_cert = {'1':1, '4':1, '8':1, '13':1, '14':3,'19':1, '23':1, '25':2, '42':1,
 
 
 def get_same_subject(info_file, idx):
+    '''extract repetitions made by the same subject,
+    based on information in info_file'''
     meta_data = pd.read_csv(info_file, delimiter=',')
     first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
     data = np.array(meta_data.values[first_data:, :4], dtype=int)
@@ -34,6 +36,7 @@ def get_same_subject(info_file, idx):
 
 
 def get_POE_field(info_file):
+    '''get POE evaluated in dataset'''
     data = pd.read_csv(info_file, delimiter=',')
     poe = data.values[np.where(data.values[:, 0] == 'Action:')[0][0], 1]
     return poe.split('_')[-1]
@@ -81,21 +84,22 @@ def plot_confusion_matrix(cm, classes,
 
 
 def plot_confusion_matrix_mean(all_matrices, classes,
-                                normalize=False,
-                                title='Confusion matrix',
-                                cmap=plt.cm.Blues, savename=''):
+                               normalize=False,
+                               title='Confusion matrix',
+                               cmap=plt.cm.Blues, savename=''):
     """
-    This function prints and plots the confusion matrix.
+    This function prints and plots the confusion matrix,
+    along with the corresponding standard deviations.
     Normalization can be applied by setting `normalize=True`.
     """
-    cm = np.mean(all_matrices,axis=0)
+    cm = np.mean(all_matrices, axis=0)
     plt.figure()
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title, fontsize=18)
     plt.colorbar()
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, classes, rotation=45, fontsize=14)
-    plt.yticks(tick_marks, classes,fontsize=14)
+    plt.yticks(tick_marks, classes, fontsize=14)
 
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -103,7 +107,7 @@ def plot_confusion_matrix_mean(all_matrices, classes,
     else:
         print('Confusion matrix, without normalization')
 
-    print(cm)
+    # print(cm)
 
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
@@ -113,7 +117,7 @@ def plot_confusion_matrix_mean(all_matrices, classes,
                  color="white" if cm[i, j] > thresh else "black")
 
     plt.tight_layout()
-    plt.ylabel('True label',fontsize=16)
+    plt.ylabel('True label', fontsize=16)
     plt.xlabel('Predicted label', fontsize=16)
     plt.subplots_adjust(bottom=0.124, top=0.938)
 
@@ -121,7 +125,9 @@ def plot_confusion_matrix_mean(all_matrices, classes,
         plt.savefig(savename)
         plt.close()
 
+
 def get_subj_idx(info_file, idx):
+    ''' get subject index of repetitition'''
     meta_data = pd.read_csv(info_file, delimiter=',')
     first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
     data = np.array(meta_data.values[first_data:, :4], dtype=int)
@@ -137,7 +143,6 @@ def main(args):
     else:
         lit = os.path.basename(args.root).split('_')[0]
 
-    # if any(char.isdigit() for char in lit):
     num_folds = 5
     if lit[-2].isdigit():
         assert lit[-1].isdigit()
@@ -149,6 +154,7 @@ def main(args):
         print('lol')
         assert False
 
+    # load datasets, TODO: fix non static paths
     dp = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '.npz'
     dp100 = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '_len100' + '.npz'
     info_file = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '-info-fix.txt'
@@ -158,15 +164,9 @@ def main(args):
     if poe in uncert_data:
         uncert_file = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/uncertainties-' + poe + '.npy'
         uncertainties = np.load(uncert_file)
-        uncert = True
-    # print(os.path.basename(args.root).split('_')[0])
-    # lit = os.path.basename(args.root).split('_')[0]
-    # dp = os.path.join(args.data, 'data_') + 'Herta-Moller.npz'
-    # dataset = np.load(dp)
+        # uncert = True
 
-    # print(poe)
     idx_path = f'/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx-{poe}.npz'
-
 
     if poe == 'femval':
         uncertainties = femval_cert
@@ -182,16 +182,12 @@ def main(args):
     x = dataset['mts']
     x100 = dataset100['mts']
     y = dataset['labels']
-    # ind_val = np.load(os.path.join(args.root, 'indices.npz'))
     ind_t = np.load(idx_path)
-    # test_idx = np.append(ind_val['val_idx'], ind_t['test_idx'].astype(np.int))
     test_idx = ind_t['test_idx'].astype(np.int)
 
-    # # test_idx = ind_val['val_idx'].astype(np.int)
-    x_test = x[test_idx, ...]
-    x_test100 = x100[test_idx, ...]
     y_test = y[test_idx]
-    # print(test_idx)
+
+    # empty confusion matrices
     cnf_all_folds = np.zeros((3, 3))
     cnf_all_folds_thresh = np.zeros((3, 3))
     cnf_all_folds3 = np.zeros((3, 3))
@@ -200,108 +196,49 @@ def main(args):
     all_confusions_ignored = np.zeros((num_folds,3,3))
     all_rep_cnf = np.zeros((num_folds,3,3))
     confusions_certain = np.zeros((num_folds,3,3))
-    # [11,13,14,15]#[20, 21, 22,23,24]#[21,23,24]#[30,31,32,33]#[140, 141]
-    models = [300, 303, 304]
 
+    # ensemble choices
     if lit == 'Olga-Tokarczuk':
-        models = ['coral-100-7000', 'xx-coral-100-7000','xx-conf-100-7000','xx-conf-3020', 'xx-conf-9000']
-        weights = np.array([[1/3,1/3,1/3],[1/3,1/3,1/3],[1/3,0,0],[0,0,1/3], [0,1/3,0]])
-        # xx-conf-100-11000
-        models = ['coral-100-7000', 'xx-coral-100-7000','xx-conf-100-7000', 'xx-conf-9000','xx-conf-100-11000']
-        weights = np.array([[1/3,1.25/3,1/3],[1/3,1.25/3,1/3],[1/3,0,0], [0,1.25/3,0],[0,0,1/3]])
-        # models = ['xx-conf-100-3004',
-        #           'xx-coral-100-3000']
-        # weights = np.array([[1/3, 0, 0],
-        #                     [2/3, 1, 1]])
-        # models = ['coral-3000', 'xx-conf-100-3004',
-        #           'xx-coral-100-3000', 'reg-3030', 'xx-conf-3020']
-        # weights = np.array([[1 / 4, 1 / 3, 0.25], [1 / 4, 0, 0],
-        #                     [1 / 4, 1 / 3, 0.25], [1/4, 1/3, 0.2],
-        #                     [0,0,0.3]])
+        models = ['coral-100-7000', 'xx-coral-100-7000', 'xx-conf-100-7000',
+                  'xx-conf-100-11000', 'xx-conf-9000']
+        weights = np.array([[1/3, 1.25/3, 1/3], [1/3, 1.25/3, 1/3],
+                            [1/3, 0, 0], [0, 0, 1/3], [0, 1.25/3, 0]])
     elif lit == 'Nadine-Gordimer':
-        models = ['x-incep-600', 'coral-511', 'coral-702', 'coral-x-501',
-                  'conf-x-700']
-        weights = np.array([[0, 0, 0.8 / 3], [0.3, 0.35, 0.8 / 3], [0.3, 0.35, 0.8 / 3],
-                            [0, 0.4, 0.2], [0.4, 0, 0]])
-        models = ['coral-100-3100', 'coral-3100', 'xx-conf-100-3100', 'xx-coral-100-3100',
-                  'xx-coral-100-3101']
-        weights = np.array([[1/4, 1/4, 1/4], [1/4, 1/4, 1/4], [1/4, 0, 0],
-                            [0, 1/4, 1/4], [1/4, 1/4, 1/4]])
-        weights = np.array([[1/4, 1/3, 1/4], [1/4, 1/3, 1/4], [1/4, 0, 0],
-                            [0, 0, 1/4], [1/4, 1/3, 1/4]])
-        models = ['coral-100-3100', 'coral-3100', 'xx-conf-100-3100','conf-100-12000', 'xx-coral-100-3100']
-        weights = np.array([[1/3, 1.05/3, 1/3], [1/3, 1.05/3, 1/3], [1/3, 0, 0], [0, 1.05/3, 0],
-                            [0, 0, 1/3]])
-
+        models = ['coral-100-3100', 'coral-3100', 'xx-conf-100-3100',
+                  'xx-coral-100-3100', 'conf-100-12000']
+        weights = np.array([[1/3, 1.15/3, 1/3], [1/3, 1.15/3, 1/3],
+                            [1/3, 0, 0], [0, 0, 1/3], [0, 1.15/3, 0]])
     elif lit == 'Albert-Camus':
-        models = ['x-incep-600', 'conf-x-800', 'coral-x-500', 'coral-x-501', 'conf-x-707',
-                  'conf-x-708']
-        weights = np.array([[0.25, 0, 0], [0.35, 0, 0], [0.2, 0.5, 0], [0.2, 0.5, 0],
-                            [0, 0, 0.5], [0, 0, 0.5]])
+        models = ['x-incep-600', 'conf-x-800', 'coral-x-500', 'coral-x-501',
+                  'conf-x-707', 'conf-x-708']
+        weights = np.array([[0.25, 0, 0], [0.35, 0, 0], [0.2, 0.5, 0],
+                            [0.2, 0.5, 0], [0, 0, 0.5], [0, 0, 0.5]])
     elif lit == 'Sigrid-Undset':
-        models = ['conf-100', 'coral-100', 'coral-100-100', 'xx-conf-100-1100', 'xx-conf-1200']
-        weights = np.array([[0.4, 0, 0], [0.3, 0.3, 0.2], [0.3, 0.35, 0.5], [0, 0, 0.3],
-                            [0, 0.35, 0]])
-        models = ['conf-100', 'coral-100', 'coral-100-100', 'xx-conf-1100', 'xx-conf-1200']
-        weights = np.array([[0.4, 0, 0], [0.3, 0.3, 0.2], [0.3, 0.3, 0.4], [0, 0, 0.4],
-                            [0, 0.4, 0]])
-
-        models = ['conf-100', 'conf-100-10000', 'coral-100-100', 'xx-conf-1200', 'conf-10001', 'coral-10000', 'coral-100-10000','xx-coral-100-10003','coral-100-10003']
-        weights = np.array([[0.1, 0, 0], [0.3,0,0], [0.1, 0.1, 0.1],
-                            [0, 0.1, 0],[0,0.3,0], [0.1,0.1,0.1],[0.1,0.1,0.1], [0,0,0.35], [0.3,0.3,0.35]])
-        models = ['conf-100-10000', 'coral-100-100', 'conf-10001', 'coral-10000', 'coral-100-10000','xx-coral-100-10003','coral-100-10003']
-        weights = np.array([[0.4,0,0], [0.1, 0.1, 0.1],[0,0.4,0], [0.1,0.1,0.1],[0.1,0.1,0.1], [0,0,1.1*0.35], [0.3,0.3,0.35]])
-        models = ['conf-100-10000', 'conf-10001', 'xx-coral-100-10003']
-        weights = np.array([[1,0,0], [0,1,0], [0,0,1.5]])
-        models = ['coral-13000','coral-100-13000', 'conf-100-10000', 'coral-100-100', 'conf-10001', 'xx-coral-100-10003','coral-100-10003']
-        weights = np.array([[0.15,0.15,0.15],[0.15,0.15,0.15],[0.4,0,0], [0.15, 0.15, 0.15],[0,0.4,0], [0,0,0.4], [0.15,0.15,0.15]])
-        models = ['coral-100-13000', 'coral-13000', 'conf-100-10000', 'conf-10001', 'xx-coral-100-10003']
-        weights = np.array([[1/4,1.08/4,1.5/4],[1/4,1.08/4,1.5/4],[1/2,0,0], [0,1.08/2,0], [0,0,1.5/2]])
-        # models = ['conf-100-10000', 'conf-10001', 'xx-coral-100-10003']
-        # weights = np.array([[1,0,0], [0,1,0], [0,0,1.5]])
-        # models =['coral-100-13000']
-        # weights = np.array([[1,1,1]])
-
-
+        models = ['coral-100-13000', 'coral-13000', 'conf-100-10000',
+                  'conf-10001', 'xx-coral-100-10003']
+        weights = np.array([[1/4, 1.05/4, 1.5/4], [1/4, 1.05/4, 1.5/4],
+                            [1/2, 0, 0], [0, 1.05/2, 0], [0, 0, 1.5/2]])
     elif lit == 'Mikhail-Sholokhov':
-        models = ['conf-3020', 'inception-3010', 'xx-conf-100-3015', 'xx-conf-3010', 'xx-conf-3020', 'xx-conf-3025', 'xx-inception-100-3010', 'xx-inception-3010']
-        weights = np.array([[0, 0.2, 0], [0.2, 0.2, 0.2], [0, 0, 0.2], [0.4, 0, 0],
-                            [0, 0.2, 0], [0,0,0.2], [0.2,0.2,0.2], [0.2,0.2,0.2]])
-        models = ['inception-3010', 'xx-conf-100-3015', 'xx-conf-3010', 'conf-100-13000', 'xx-conf-3025', 'xx-inception-100-3010', 'xx-inception-3010']
-        weights = np.array([[0.25, 0.2, 0.2], [0, 0, 0.2], [0.25, 0, 0],
-                            [0, 0.4, 0], [0,0,0.2], [0.25,0.2,0.2], [0.25,0.2,0.2]])
-        # models = ['inception-3010', 'xx-conf-100-3015', 'xx-conf-3010', 'conf-100-13000', 'xx-conf-3025']
-        # weights = np.array([[0.5, 0.95*0.5, 1/3], [0, 0, 1/3], [0.5, 0, 0],
-        #                     [0, 0.95*0.5, 0], [0,0,1/3]])
-        models = ['inception-3010', 'xx-inception-3010', 'xx-conf-3010', 'conf-100-13000', 'xx-conf-3025']
-        weights = np.array([[1/3, 0.95*1/3, 1/3],[1/3, 0.95*1/3, 1/3], [1/3, 0, 0],
-                            [0, 0.95*1/3, 0], [0,0,1/3]])
-
+        models = ['inception-3010', 'xx-inception-3010', 'xx-conf-3010',
+                  'conf-100-13000', 'xx-conf-3025']
+        weights = np.array([[1/3, 1.25*1/3, 1.25/3], [1/3, 1.25*1/3, 1.25/3],
+                            [1/3, 0, 0], [0, 1.25*1/3, 0], [0, 0, 1.25/3]])
     elif lit == 'Isaac-Bashevis-Singer':
-        models = ['coral-100-11', 'coral-100-10', 'xx-conf-100-11', 'conf-15', 'xx-coral-100-10']
-        weights = np.array([[1/3,0.9/3,1/3], [1/3,0.9/3,1/3],[1/3,0,0],[0,0.95/3,0],[0,0,1/3]])
+        models = ['coral-100-11', 'coral-100-10', 'xx-conf-100-11', 'conf-15',
+                  'xx-coral-100-10']
+        weights = np.array([[1/3, 1.15/3, 1/3], [1/3, 1.15/3, 1/3],
+                            [1/3, 0, 0], [0, 1.15/3, 0],[0, 0, 1/3]])
 
-    ensembles = [os.path.join(args.root, i) for i in models] if 'ensembles' in args.root else [
-        args.root + str(i) for i in models]
+    ensembles = [os.path.join(args.root, i) for i in models] if 'ensembles' \
+        in args.root else [args.root + str(i) for i in models]
 
     fold_ens = 0
-    fold_individual = np.zeros(len(models))
 
     nbr_of_3 = 0
-    correctly_ignored = 0
-    incorrectly_ignored = 0
-
-    correctly_kept = 0
-    incorrectly_kept = 0
 
     incorr_info = []
 
-    probs0 = []
-    probs1 = []
-    probs2 = []
-    probs0w1 = []
-    probs1w0 = []
-
+    # results:
     f1 = []
     acc = []
     acc_thresh = []
@@ -327,52 +264,42 @@ def main(args):
     precision_c2 = []
     precision_c3 = []
 
-    prob_mean_all = -1* np.ones((num_folds,30,3,3))
-    prob_mean_pred = -1* np.ones((num_folds,30,3,3))
-    prob_reps = -1* np.ones((num_folds,130,3,3))
-    prob_reps_pred = -1* np.ones((num_folds,130,3,3))
+    prob_mean_all = -1 * np.ones((num_folds, 30, 3, 3))
+    prob_mean_pred = -1 * np.ones((num_folds, 30, 3, 3))
+    prob_reps = -1 * np.ones((num_folds, 130, 3, 3))
+    prob_reps_pred = -1 * np.ones((num_folds, 130, 3, 3))
 
-    max_nbrs = 0
+    max_nbrs = 0  # to check max size
 
     rep_list = []
     rep_labels = []
     individual_accs = np.zeros((num_folds, len(models)))
     individual_f1 = np.zeros((num_folds, len(models)))
 
-    certs = np.empty((1,2))
-    corr_certs = np.empty((1,2))
+    certs = np.empty((1, 2))
+    corr_certs = np.empty((1, 2))
 
     if args.confusion:
         path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/' + lit + '_confusion-test.csv'
         confusion_file = open(path, 'w')
 
-
+    # evaluate all models in the ensembles from all folds
     for fold in range(1, num_folds + 1):
-
+        # iterate over folds
         if fold == 10 and lit == 'Sigrid-Undset':
-            weights = np.array([[1/4,1.7/4,1.5/4],[1/4,1.7/4,1.5/4],[1/2,0,0], [0,1.7/2,0], [0,0,1.5/2]])
-            print('LOLOLOLOLOLOLOL')
-        paths = [os.path.join(
-            root, f'model_fold_{fold}.hdf5') for root in ensembles]
-        idx = np.load(os.path.join(ensembles[0], f'idx_{fold}.npz'))
+            # weights = np.array([[1/4,1.7/4,1.5/4],[1/4,1.7/4,1.5/4],[1/2,0,0], [0,1.7/2,0], [0,0,1.5/2]])
+            # print('LOLOLOLOLOLOLOL')
+            print(f'sigrid undset fold 10, weights: {weights}')
 
-        y_val = y[idx['val_idx']]
-        y_val = y_test
-        max_nbrs = np.max((len(y_val), max_nbrs))
+        paths = [os.path.join(root,
+                              f'model_fold_{fold}.hdf5') for root in ensembles]
 
-        # non_unique = 0
-        # for i in ind_t['test_idx']:
-        #     if i in idx['train_idx']:
-        #         print(f'{i} in both!!!')
-        #         non_unique += 1
-        #
-        # print(non_unique)
+        # y_val = y_test
 
-        accuracies = np.zeros(len(models))
-        cnfs = np.zeros((len(models), 3, 3))
+        # max_nbrs = np.max((len(y_val), max_nbrs))  # to check max size
+
+        # all ensemble predictions
         all_probs = np.zeros((len(models), x.shape[0], 3))
-        correct_individual = np.zeros(len(models))
-        correct_ensemble = 0
 
         subject_indices = []
         individual_acc = np.zeros(len(models))
@@ -380,11 +307,8 @@ def main(args):
         corr_rep = []
         pred_rep = []
 
-
         for model_i, model_path in enumerate(paths):
-            x_val = x100[idx['val_idx']
-                         ] if '-100-' in model_path else x[idx['val_idx']]
-
+            # iterate over models in ensemble
             input = x100 if '-100-' in model_path else x
             # print(model_path)
             model = keras.models.load_model(model_path, custom_objects={
@@ -403,46 +327,48 @@ def main(args):
             for row in range(probs.shape[0]):
                 pred = probs[row, ...]
                 i = np.argmax(pred)
+                # upper threshold to round to one-hot, 1 gives no rounding
                 if pred[i] > 1:  # 0.8:
                     pred[i] = 1
                     pred[~i] = 0
                     new_pred = [1 * (j == i) for j in range(3)]
                     probs[row, ...] = new_pred
-            # / np.sum(weights[model_i, ...])
+
+            # predicted probabilities,
+            # weighted by the model weight in the ensemble:
             probs = probs * weights[model_i, ...]
 
             all_probs[model_i, ...] = probs
 
-            subject_indices = []
-            total = 0
-            correct = 0
+            all_subject_indices = []
 
             y_corr = []
             y_pred_comb = []
             for i in ind_t['test_idx']:
-                # print(int(y[i]))
-
-                if i not in subject_indices:
+                # check the results for the individual models
+                if i not in all_subject_indices:
+                    # make sure each subject only evaluated once
                     subject_indices, _ = get_same_subject(info_file, i)
-
+                    all_subject_indices.append(subject_indices)
                     y_subj = y[subject_indices]
                     pred_subj = probs[subject_indices, ...]
 
                     y_corr.append(int(np.median(y_subj)))
                     y_pred_comb.append(np.argmax(np.mean(pred_subj, axis=0)))
 
-
-                    total += 1
-            individual_accs[fold-1, model_i] = accuracy_score(y_corr,y_pred_comb)
+            # accuracy and f1 for individual models
+            individual_accs[fold-1, model_i] = accuracy_score(y_corr,
+                                                              y_pred_comb)
             individual_f1[fold-1, model_i] = f1_score(y_corr, y_pred_comb,
-                                   labels=[0, 1, 2], average='macro')
+                                                      labels=[0, 1, 2],
+                                                      average='macro')
 
         subject_indices = []
         total = 0
-        correct = 0
         preds = []
         truth = []
 
+        # results
         preds_thresh = []
         truth_thresh = []
         preds_ignored = []
@@ -456,30 +382,32 @@ def main(args):
         p3 = []
         t3 = []
 
-        preds_certain = []
-        corr_certain = []
-
         ensemble_probs = np.sum(all_probs, axis=0)
 
+        # threshold
         ensemble_probs = (ensemble_probs > 0.2) * ensemble_probs
 
-        if fold == 10:
-            print(ensemble_probs)
+        # if fold == 10:
+        #     # debug
+        #     print(ensemble_probs)
 
         for_hist = np.sum(all_probs, axis=0)
         hist_index = 0
         for i in ind_t['test_idx']:
+            # check results for ensemble predictions for repetitions
             prob_reps[fold-1, hist_index, int(y[i]), :] = ensemble_probs[i, ...]
             predicted_class = np.argmax(ensemble_probs[i, ...])
 
-            prob_reps_pred[fold-1, hist_index, int(y[i]), predicted_class] = ensemble_probs[i, predicted_class]
+            prob_reps_pred[fold-1, hist_index, int(y[i]), predicted_class] = \
+                ensemble_probs[i, predicted_class]
             hist_index += 1
 
             corr_rep.append(y[i][0])
             pred_rep.append(np.argmax(ensemble_probs[i, ...]))
 
-        all_rep_cnf[fold-1, ...] = confusion_matrix(corr_rep, pred_rep, labels=[0,1,2])
-
+        # ensemble results for repetitions
+        all_rep_cnf[fold-1, ...] = confusion_matrix(corr_rep, pred_rep,
+                                                    labels=[0, 1, 2])
         rep_f1.append(f1_score(corr_rep, pred_rep,
                                labels=[0, 1, 2], average='macro'))
         rep_acc.append(accuracy_score(corr_rep, pred_rep))
@@ -487,174 +415,159 @@ def main(args):
                                labels=[0, 1, 2], average='macro'))
         recall_rep.append(recall_score(corr_rep, pred_rep,
                                labels=[0, 1, 2], average='macro'))
-
         rep_list = np.append(rep_list, pred_rep, axis=0)
         rep_labels = np.append(rep_labels, corr_rep, axis=0)
 
         hist_index = 0
+        all_subject_indices = []
         for i in ind_t['test_idx']:
+            # check results for combined ensemble scores
             if i not in subject_indices:
                 subject_indices, global_ind = get_same_subject(info_file, i)
+                all_subject_indices.append(subject_indices)
 
                 y_subj = y[subject_indices]
                 pred_subj = ensemble_probs[subject_indices, ...]
-                 # np.sum(
-                 #    all_probs[:, subject_indices, ...], axis=0)  # / len(models)
-                # print(np.sum(pred_subj, axis=0))
-                # if np.sum(pred_subj) > 0.8:
+
                 summed = np.mean(pred_subj, axis=0)
-                # print(summed)
-                # if uncert:
-                #     # print('jennys uncertainty')
-                #     # print(uncertainties[global_ind])
-                #     if global_ind < 103:
-                #         nbr_of_3 = nbr_of_3 + \
-                #             1 if uncertainties[global_ind] == 3 else nbr_of_3
 
-                test_median = True
+                pred = np.argmax(pred_subj, axis=1)
+                corr_combined = int(np.ceil(np.median(y_subj)))
 
-                if test_median:
-                    max_like = np.max(pred_subj, axis=1)
-                    pred = np.argmax(pred_subj, axis=1)
+                # mean or median? -use mean
+                pred_combined = int(np.ceil(np.median(pred)))
+                pred_combined = int(np.argmax(np.mean(pred_subj, axis=0)))
 
-                    # for likelihoods, corr in zip(pred_subj, y_subj):
-                    #     print(f'shapes: {likelihoods.shape}, {corr.shape}')
-                    #     mean_probs = np.mean()
-                    #     if corr == 0:
-                    #         probs0.append(likelihoods[0])
-                    #         probs1w0.append(likelihoods[1])
-                    #     elif corr ==  1:
-                    #         probs1.append(likelihoods[1])
-                    #         probs0w1.append(likelihoods[0])
-                    #     elif corr == 2:
-                    #         probs2.append(likelihoods[2])
-                    ''' test
-                    conf_samples = max_like > 0.35
-                    summed = np.sum(pred_subj[conf_samples,:], axis=0)/np.sum(conf_samples)
-                    '''
+                '''
+                # DEBUGGING
+                if corr_combined != pred_combined:
+                    print(f'incorrect prediction of subject: {global_ind}')
+                    print(f'class {corr_combined} classified as {pred_combined}')
+                '''
 
-                    mean_prob = np.mean(pred_subj, axis=0)
+                prob_mean_all[fold-1, hist_index,
+                              corr_combined, :] = summed
+                preds.append(int(np.round(pred_combined)))
+                truth.append(int(np.round(corr_combined)))
 
-                    # print(f'correct: {y_subj}')
-                    # print(f'preds: {pred}')
-                    # print(f'probs: {max_like}')
-
-                    corr_combined = int(np.ceil(np.median(y_subj)))
-                    pred_combined = int(np.ceil(np.median(pred)))
+                pred_class = int(np.round(pred_combined))
+                prob_mean_pred[fold-1, hist_index, corr_combined,
+                               pred_class] = summed[pred_class]
 
 
+                # for some scatter plots, didn't really give anything...
+                certs = np.append(certs,
+                                  np.array([[uncertainties[str(global_ind)],
+                                           np.max(summed)]]), axis=0)
+                corr_certs = np.append(corr_certs,
+                                       np.array([[uncertainties[str(global_ind)],
+                                                int(int(np.round(pred_combined)) ==
+                                                    int(np.round(corr_combined)))]]),
+                                       axis=0)
 
+                # threshold to ignore uncertain predictions
+                thres = 0.35 if (lit == 'Sigrid-Undset' or
+                                 lit == 'Mikhail-Sholokhov') else 0.4
+                if np.max(summed) > thres:
+                    # samples kept after threshold
+                    preds_thresh.append(int(np.round(pred_combined)))
+                    truth_thresh.append(int(np.round(corr_combined)))
+                else:
+                    # ignored by threshold
+                    preds_ignored.append(int(np.round(pred_combined)))
+                    truth_ignored.append(int(np.round(corr_combined)))
 
-                    # pred_combined = int(np.argmax(np.mean(pred_subj[conf_samples, ...], axis=0)))
-                    pred_combined = int(np.argmax(np.mean(pred_subj, axis=0)))
+                '''
+                # DEBBUGUNG 2-0 INCORRECT
+                if (int(np.round(pred_combined)) == 0 and
+                    int(np.round(corr_combined)) == 2):
 
-                    if corr_combined != pred_combined:
-                        print(f'incorrect prediction of subject: {global_ind}')
-                        print(f'class {corr_combined} classified as {pred_combined}')
+                    print(f'INCORRRR :: 2-0, ind {global_ind}')
+                    print(f'preds:: {pred_subj}')
+                    print(f'corr:: {y_subj}')
+                '''
 
-                    prob_mean_all[fold-1, hist_index, corr_combined, :] = summed
-                    preds.append(int(np.round(pred_combined)))
-                    truth.append(int(np.round(corr_combined)))
-
-                    pred_class = int(np.round(pred_combined))
-                    prob_mean_pred[fold-1, hist_index, corr_combined, pred_class] = summed[pred_class]
-                    # prob_mean_all[fold-1, hist_index, corr_combined, :] = summed
-                    # if np.max(summed) > 0.4:
-                    # if np.max(summed) > 0.45:
-                    # if np.max(summed) > 0.35:
-                    # if np.max(summed) > 0.25: #for kmfp
-                    if uncertainties[str(global_ind)] == 1:
-                        preds_certain.append(int(np.round(pred_combined)))
-                        corr_certain.append(int(np.round(corr_combined)))
-
-                    certs = np.append(certs, np.array([[uncertainties[str(global_ind)], np.max(summed)]]), axis=0)
-                    corr_certs =np.append(corr_certs, np.array([[uncertainties[str(global_ind)], int(int(np.round(pred_combined)) == int(np.round(corr_combined))) ]]), axis=0)
-                    thres = 0.35 if lit == 'Sigrid-Undset' or lit == 'Mikhail-Sholokhov' else 0.4
-                    # thres = 0
-                    # thres = 0.4
-                    if np.max(summed) > thres:
-                        preds_thresh.append(int(np.round(pred_combined)))
-                        truth_thresh.append(int(np.round(corr_combined)))
-                    else:
-                        preds_ignored.append(int(np.round(pred_combined)))
-                        truth_ignored.append(int(np.round(corr_combined)))
-
-                    if int(np.round(pred_combined)) == 0 and int(np.round(corr_combined)) == 2:
-                        print(f'INCORRRR :: 2-0, ind {global_ind}')
-                        print(f'preds:: {pred_subj}')
-                        print(f'corr:: {y_subj}')
-
-
-                    if uncertainties[str(global_ind)] == 1:
-                        p1.append(int(np.round(pred_combined)))
-                        t1.append(int(np.round(corr_combined)))
-                    elif uncertainties[str(global_ind)] == 2:
-                        p2.append(int(np.round(pred_combined)))
-                        t2.append(int(np.round(corr_combined)))
-                    elif uncertainties[str(global_ind)] == 3:
-                        p3.append(int(np.round(pred_combined)))
-                        t3.append(int(np.round(corr_combined)))
-                        # prob_mean_some
-                    hist_index += 1
+                # resuklts for Jenny's certainty levels
+                if uncertainties[str(global_ind)] == 1:
+                    p1.append(int(np.round(pred_combined)))
+                    t1.append(int(np.round(corr_combined)))
+                elif uncertainties[str(global_ind)] == 2:
+                    p2.append(int(np.round(pred_combined)))
+                    t2.append(int(np.round(corr_combined)))
+                elif uncertainties[str(global_ind)] == 3:
+                    p3.append(int(np.round(pred_combined)))
+                    t3.append(int(np.round(corr_combined)))
+                    # prob_mean_some
+                hist_index += 1
 
                 total += 1
 
+        # result metrics
         ensemble_acc = accuracy_score(truth, preds)
-        fold_ens += ensemble_acc
-        # fold_individual = fold_individual + individual_acc
-        # print('TITTTAAAAAAA HAAAAR')
-        # print(len(preds))
 
         labels = np.sort(np.unique(np.append(truth, preds)))
         f1.append(f1_score(truth, preds, labels=labels, average='macro'))
         acc.append(accuracy_score(truth, preds))
-        precision.append(precision_score(truth, preds, labels=labels, average='macro'))
-        recall.append(recall_score(truth, preds, labels=labels, average='macro'))
+        precision.append(precision_score(truth, preds, labels=labels,
+                                         average='macro'))
+        recall.append(recall_score(truth, preds, labels=labels,
+                                   average='macro'))
 
         labels = np.sort(np.unique(np.append(truth_thresh, preds_thresh)))
-        f1_thresh.append(f1_score(truth_thresh, preds_thresh, labels=labels, average='macro'))
+        f1_thresh.append(f1_score(truth_thresh, preds_thresh, labels=labels,
+                                  average='macro'))
         acc_thresh.append(accuracy_score(truth_thresh, preds_thresh))
-        precision_thresh.append(precision_score(truth_thresh, preds_thresh, labels=labels, average='macro'))
-        recall_thresh.append(recall_score(truth_thresh, preds_thresh, labels=labels, average='macro'))
+        precision_thresh.append(precision_score(truth_thresh, preds_thresh,
+                                                labels=labels,
+                                                average='macro'))
+        recall_thresh.append(recall_score(truth_thresh, preds_thresh,
+                                          labels=labels, average='macro'))
 
-
+        # confusion matrices
         cnf = confusion_matrix(truth_thresh, preds_thresh, labels=[0, 1, 2])
         cnf_all_folds_thresh = cnf_all_folds_thresh + cnf
-        all_confusions_thresh[fold-1,...] = cnf
+        all_confusions_thresh[fold-1, ...] = cnf
         cnf = confusion_matrix(truth_ignored, preds_ignored, labels=[0, 1, 2])
-        all_confusions_ignored[fold-1,...] = cnf
+        all_confusions_ignored[fold-1, ...] = cnf
         cnf = confusion_matrix(truth3, preds3, labels=[0, 1, 2])
         cnf_all_folds3 = cnf_all_folds3 + cnf
         cnf = confusion_matrix(truth, preds, labels=[0, 1, 2])
         cnf_all_folds = cnf_all_folds + cnf
-        all_confusions[fold-1,...] = cnf
+        all_confusions[fold-1, ...] = cnf
 
+        # metrics for different certainty levels
         acc_c1.append(accuracy_score(t1, p1))
         labels = np.sort(np.unique(np.append(t1, p1)))
         f1_c1.append(f1_score(t1, p1, labels=labels, average='macro'))
         recall_c1.append(recall_score(t1, p1, labels=labels, average='macro'))
-        precision_c1.append(precision_score(t1, p1, labels=labels, average='macro'))
+        precision_c1.append(precision_score(t1, p1, labels=labels,
+                                            average='macro'))
 
         acc_c2.append(accuracy_score(t2, p2))
         labels = np.sort(np.unique(np.append(t1, p1)))
         f1_c2.append(f1_score(t2, p2, labels=labels, average='macro'))
         recall_c2.append(recall_score(t2, p2, labels=labels, average='macro'))
-        precision_c2.append(precision_score(t2, p2, labels=labels, average='macro'))
+        precision_c2.append(precision_score(t2, p2, labels=labels,
+                                            average='macro'))
+
         if len(t3) > 0:
+            # certainty level 3 does not alsways exist
             acc_c3.append(accuracy_score(t3, p3))
             labels = np.sort(np.unique(np.append(t1, p1)))
             f1_c3.append(f1_score(t3, p3, labels=labels, average='macro'))
-            recall_c3.append(recall_score(t3, p3, labels=labels, average='macro'))
-            precision_c3.append(precision_score(t3, p3, labels=labels, average='macro'))
-
-        confusions_certain[fold-1,...] = confusion_matrix(corr_certain, preds_certain, labels=[0,1,2])
+            recall_c3.append(recall_score(t3, p3, labels=labels,
+                             average='macro'))
+            precision_c3.append(precision_score(t3, p3, labels=labels,
+                                average='macro'))
 
         if args.confusion and False:
+            # write confusion matrices to file,
+            # currently disabled to not overwrite
             confusion_file.write(f'Confusion for fold {fold},,\n')
             cnf_str = str(cnf).replace(' [', '')
             cnf_str = cnf_str.replace('[', '')
-            cnf_str = cnf_str.replace(']','')
-            cnf_str = cnf_str.replace(' ',',')
+            cnf_str = cnf_str.replace(']', '')
+            cnf_str = cnf_str.replace(' ', ',')
             confusion_file.write(cnf_str)
             confusion_file.write('\n,,\n')
 
@@ -662,68 +575,67 @@ def main(args):
         print(f'ensemble acc: {ensemble_acc}')
         print(f'ensemble confusion:\n{cnf}')
         print(f'f1 score: {f1[-1]}')
-        # individual_acc
-
-        # assert fold != 2
 
     print('----------------------')
-    print(f'correctly ignored: {correctly_ignored}')
-    print(f'incorrectly ignored: {incorrectly_ignored}')
-    print(f'correctly kept: {correctly_kept}')
-    print(f'incorrectly kept: {incorrectly_kept}')
 
-    fig, axs = plt.subplots(3, gridspec_kw={'hspace':0.1})
-    fig.suptitle(f'Accuracies', fontsize=18)
+    # histograms over probabilities
+    fig, axs = plt.subplots(3, gridspec_kw={'hspace': 0.1})
+    fig.suptitle('Accuracies', fontsize=18)
     plt.subplots_adjust(bottom=0.12, top=0.89)
-    p = seaborn.histplot(data=acc_thresh,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[0])
+    p = seaborn.histplot(data=acc_thresh, bins=15, kde=False, binrange=(0, 1),
+                         stat='probability', ax=axs[0])
     plt.sca(axs[0])
     plt.yticks(fontsize=12)
-    p.set_ylabel(f'Threshold', fontsize=14)
+    p.set_ylabel('Threshold', fontsize=14)
     axs[0].axes.xaxis.set_ticklabels([])
 
-    p = seaborn.histplot(data=acc,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[1])
+    p = seaborn.histplot(data=acc, bins=15, kde=False, binrange=(0, 1),
+                         stat='probability', ax=axs[1])
     plt.sca(axs[1])
     plt.yticks(fontsize=12)
-    p.set_ylabel(f'Combined', fontsize=14)
+    p.set_ylabel('Combined', fontsize=14)
     axs[1].axes.xaxis.set_ticklabels([])
-    p = seaborn.histplot(data=rep_acc,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[2])
+    p = seaborn.histplot(data=rep_acc, bins=15, kde=False, binrange=(0, 1),
+                         stat='probability', ax=axs[2])
     plt.sca(axs[2])
     plt.yticks(fontsize=12)
     plt.xticks(fontsize=15)
-    p.set_ylabel(f'Repetitions', fontsize=14)
+    p.set_ylabel('Repetitions', fontsize=14)
     p.set_xlabel('Accuracies', fontsize=15)
 
-    fig, axs = plt.subplots(3, gridspec_kw={'hspace':0.1})
-    fig.suptitle(f'F1 scores', fontsize=18)
+    fig, axs = plt.subplots(3, gridspec_kw={'hspace': 0.1})
+    fig.suptitle('F1 scores', fontsize=18)
     plt.subplots_adjust(bottom=0.12, top=0.89)
-    p = seaborn.histplot(data=f1_thresh,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[0])
+    p = seaborn.histplot(data=f1_thresh, bins=15, kde=False, binrange=(0, 1),
+                         stat='probability', ax=axs[0])
     plt.sca(axs[0])
     plt.yticks(fontsize=12)
-    p.set_ylabel(f'Threshold', fontsize=14)
+    p.set_ylabel('Threshold', fontsize=14)
     axs[0].axes.xaxis.set_ticklabels([])
 
-    p = seaborn.histplot(data=f1,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[1])
+    p = seaborn.histplot(data=f1, bins=15, kde=False, binrange=(0, 1),
+                         stat='probability', ax=axs[1])
     plt.sca(axs[1])
     plt.yticks(fontsize=12)
-    p.set_ylabel(f'Combined', fontsize=14)
+    p.set_ylabel('Combined', fontsize=14)
     axs[1].axes.xaxis.set_ticklabels([])
 
-    p = seaborn.histplot(data=rep_f1,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[2])
+    p = seaborn.histplot(data=rep_f1, bins=15, kde=False, binrange=(0, 1),
+                         stat='probability', ax=axs[2])
     plt.sca(axs[2])
     plt.yticks(fontsize=12)
     plt.xticks(fontsize=15)
-    p.set_ylabel(f'Repetitions', fontsize=14)
+    p.set_ylabel('Repetitions', fontsize=14)
     p.set_xlabel('F1 scores', fontsize=15)
 
-    hp_models = 3 #if lit == 'Mikhail-Sholokhov' else 3
-
-    individual_acc = np.mean(individual_accs, axis=0)
-    # fig,axs = plt.subplots(len(models))
-    fig, axs = plt.subplots(len(models)-hp_models, gridspec_kw={'hspace':0.1})
-    fig.suptitle(f'Accuracies for individual models', fontsize=18)
+    # histograms over individual accuracies
+    hp_models = 3
+    fig, axs = plt.subplots(len(models)-hp_models, gridspec_kw={'hspace': 0.1})
+    fig.suptitle('Accuracies for individual models', fontsize=18)
     plt.subplots_adjust(bottom=0.12, top=0.89)
     for i in range(len(models)-hp_models):
-        p = seaborn.histplot(data=individual_accs[:,i],bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[i])
+        p = seaborn.histplot(data=individual_accs[:, i], bins=15, kde=False,
+                             binrange=(0, 1), stat='probability', ax=axs[i])
         plt.sca(axs[i])
         plt.yticks(fontsize=12)
         if i < len(models)-hp_models-1:
@@ -731,12 +643,13 @@ def main(args):
     plt.xticks(fontsize=15)
     p.set_xlabel('Accuracies', fontsize=15)
 
-    # fig,axs = plt.subplots(len(models))
-    fig, axs = plt.subplots(len(models)-hp_models, gridspec_kw={'hspace':0.1})
-    fig.suptitle(f'F1 scores for individual models', fontsize=18)
+    # histograms over individual f1
+    fig, axs = plt.subplots(len(models)-hp_models, gridspec_kw={'hspace': 0.1})
+    fig.suptitle('F1 scores for individual models', fontsize=18)
     plt.subplots_adjust(bottom=0.12, top=0.89)
     for i in range(len(models)-hp_models):
-        p = seaborn.histplot(data=individual_f1[:,i],bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[i])
+        p = seaborn.histplot(data=individual_f1[:, i], bins=15, kde=False,
+                             binrange=(0, 1), stat='probability', ax=axs[i])
         plt.sca(axs[i])
         plt.yticks(fontsize=12)
         if i < len(models)-hp_models-1:
@@ -745,14 +658,9 @@ def main(args):
     p.set_xlabel('F1 scores', fontsize=15)
 
     print('---------------------')
-    # print(f'individual accs: {individual_acc}')
-    # print(f'ensemble acvc: {fold_ens/num_folds}')
-    # print(f'ensemble confusion:\n{cnf_all_folds}')
-    # print(f'f1: {f1}')
     print(f'f1: {np.mean(f1)} +- {np.std(f1)}')
     print(f'f1 thresh: {np.mean(f1_thresh)} +- {np.std(f1_thresh)}')
     print('\n')
-    # print(f'acc: {acc}')
     print(f'acc: {np.mean(acc)} +- {np.std(acc)}')
     print(f'acc: {np.mean(acc_thresh)} +- {np.std(acc_thresh)}')
     print('--------------------')
@@ -771,13 +679,11 @@ def main(args):
     print('-----------------')
     print(f'Amounts:: c1: {len(p1)}, c2: {len(p2)}, c3: {len(p3)}')
 
-    # print(f'rep f1: {rep_f1}')
     print(f'rep f1: {np.mean(rep_f1)} +- {np.std(rep_f1)}')
-    # print(f'rep acc: {rep_acc}')
     print(f'rep acc: {np.mean(rep_acc)} +- {np.std(rep_acc)}')
 
     print('----')
-    print(f'Recall, rep, comb, thresh')
+    print('Recall, rep, comb, thresh')
     print(f'{np.mean(recall_rep)} +- {np.std(recall_rep)}')
     print(f'{np.mean(recall)} +- {np.std(recall)}')
     print(f'{np.mean(recall_thresh)} +- {np.std(recall_thresh)}')
@@ -786,7 +692,7 @@ def main(args):
     print(f'{np.mean(recall_c2)} +- {np.std(recall_c2)}')
     print(f'{np.mean(recall_c3)} +- {np.std(recall_c3)}')
     print('----')
-    print(f'Precision, rep, comb, thresh')
+    print('Precision, rep, comb, thresh')
     print(f'{np.mean(precision_rep)} +- {np.std(precision_rep)}')
     print(f'{np.mean(precision)} +- {np.std(precision)}')
     print(f'{np.mean(precision_thresh)} +- {np.std(precision_thresh)}')
@@ -798,115 +704,100 @@ def main(args):
     print('-----------------------')
     print(incorr_info)
 
-    if args.confusion:
-        confusion_file.write(f'Confusions for all repetitions,,\n')
+    if args.confusion and False:
+        # writes confusion matrices to file (disabled),
+        # currently overwrites and some incorrect formatting.. fix this
+        confusion_file.write('Confusions for all repetitions,,\n')
         for fold, c in enumerate(all_rep_cnf):
             confusion_file.write(f'matrix for fold {fold+1},,\n')
             cnf_str = str(c.astype(int)).replace(' [', '')
             cnf_str = str(cnf_str).replace('[ ', '')
             cnf_str = str(cnf_str).replace('[', '')
             cnf_str = str(cnf_str).replace(']', '')
-            cnf_str = cnf_str.replace(' ',',')
+            cnf_str = cnf_str.replace(' ', ',')
             confusion_file.write(cnf_str)
             confusion_file.write('\n')
-        confusion_file.write(f'Average of above,,\n')
-        cnf_str = str(np.mean(all_rep_cnf,axis=0)).replace(' [', '')
+        confusion_file.write('Average of above,,\n')
+        cnf_str = str(np.mean(all_rep_cnf, axis=0)).replace(' [', '')
         cnf_str = str(cnf_str).replace('[ ', '')
         cnf_str = str(cnf_str).replace('[', '')
         cnf_str = str(cnf_str).replace(']', '')
-        cnf_str = cnf_str.replace(' ',',')
+        cnf_str = cnf_str.replace(' ', ',')
         confusion_file.write(cnf_str)
         confusion_file.write('\n\n')
 
-        confusion_file.write(f'Confusions for combined scores,,\n')
+        confusion_file.write('Confusions for combined scores,,\n')
         for fold, c in enumerate(all_confusions):
             confusion_file.write(f'matrix for fold {fold+1},,\n')
             cnf_str = str(c.astype(int)).replace(' [', '')
             cnf_str = str(cnf_str).replace('[ ', '')
             cnf_str = str(cnf_str).replace('[', '')
             cnf_str = str(cnf_str).replace(']', '')
-            cnf_str = cnf_str.replace(' ',',')
+            cnf_str = cnf_str.replace(' ', ',')
             confusion_file.write(cnf_str)
             confusion_file.write('\n')
-        confusion_file.write(f'Average of above,,\n')
-        cnf_str = str(np.mean(all_confusions,axis=0)).replace(' [', '')
+        confusion_file.write('Average of above,,\n')
+        cnf_str = str(np.mean(all_confusions, axis=0)).replace(' [', '')
         cnf_str = str(cnf_str).replace('[ ', '')
         cnf_str = str(cnf_str).replace('[', '')
         cnf_str = str(cnf_str).replace(']', '')
-        cnf_str = cnf_str.replace(' ',',')
+        cnf_str = cnf_str.replace(' ', ',')
         confusion_file.write(cnf_str)
         confusion_file.write('\n\n')
 
-        confusion_file.write(f'Confusions for combined scores with threshold,,\n')
+        confusion_file.write('Confusions for combined scores w threshold,,\n')
         for fold, c in enumerate(all_confusions_thresh):
             confusion_file.write(f'matrix for fold {fold+1},,\n')
             cnf_str = str(c.astype(int)).replace(' [', '')
             cnf_str = str(cnf_str).replace('[ ', '')
             cnf_str = str(cnf_str).replace('[', '')
             cnf_str = str(cnf_str).replace(']', '')
-            cnf_str = cnf_str.replace(' ',',')
+            cnf_str = cnf_str.replace(' ', ',')
             confusion_file.write(cnf_str)
             confusion_file.write('\n')
-        confusion_file.write(f'Average of above,,\n')
-        cnf_str = str(np.mean(all_confusions_thresh,axis=0)).replace(' [', '')
+        confusion_file.write('Average of above,,\n')
+        cnf_str = str(np.mean(all_confusions_thresh, axis=0)).replace(' [', '')
         cnf_str = str(cnf_str).replace('[ ', '')
         cnf_str = str(cnf_str).replace('[', '')
         cnf_str = str(cnf_str).replace(']', '')
-        cnf_str = cnf_str.replace(' ',',')
+        cnf_str = cnf_str.replace(' ', ',')
         confusion_file.write(cnf_str)
         confusion_file.write('\n\n')
 
         confusion_file.close()
 
-    plot_confusion_matrix_mean(all_confusions, [0,1,2], title='Combined scores')
-    plot_confusion_matrix_mean(all_confusions_thresh, [0,1,2], title='Combined scores, with threshold')
-    plot_confusion_matrix_mean(all_rep_cnf, [0,1,2], title='Repetitions')
-    plot_confusion_matrix_mean(all_confusions_ignored, [0,1,2], title='Ignored')
-    # plot_confusion_matrix(cnf_all_folds, [0, 1, 2])
-    # plot_confusion_matrix(cnf_all_folds2, [0, 1, 2])
-    # plot_confusion_matrix(cnf_all_folds3, [0, 1, 2])
+    plot_confusion_matrix_mean(all_confusions, [0, 1, 2],
+                               title='Combined scores')
+    plot_confusion_matrix_mean(all_confusions_thresh, [0, 1, 2],
+                               title='Combined scores, with threshold')
+    plot_confusion_matrix_mean(all_rep_cnf, [0, 1, 2], title='Repetitions')
+    plot_confusion_matrix_mean(all_confusions_ignored, [0, 1, 2],
+                               title='Ignored')
 
-    # print(prob_mean_all)
-    # print(prob_reps)
-    # print(prob_reps_pred)
-    #
-    hist_save_path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/' + lit + '_prob_matrices-test.npz'
+    # hist_save_path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/' + lit + '_prob_matrices-test.npz'
     # np.savez(hist_save_path, reps=prob_reps, comb=prob_mean_all, reps_max=prob_reps_pred, comb_max=prob_mean_pred)
 
     stuff_sp = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/' + lit + '-stat-stuff.npz'
-    np.savez(stuff_sp, rep_acc=rep_acc, rep_f1=rep_f1, comb_acc=acc, comb_f1=f1, thresh_acc=acc_thresh, thresh_f1=f1_thresh, acc_ind=individual_accs, f1_ind=individual_accs)
+    np.savez(stuff_sp, rep_acc=rep_acc, rep_f1=rep_f1, comb_acc=acc,
+             comb_f1=f1, thresh_acc=acc_thresh, thresh_f1=f1_thresh,
+             acc_ind=individual_accs, f1_ind=individual_accs)
 
-    print(f'nbr of 3s: {nbr_of_3}')
-    # plt.figure()
-    # plt.hist(acc, bins=4)
-    # plt.figure()
-    # plt.hist(rep_acc, bins=4)
-    # plt.figure()
-    # plt.hist(probs2, bins=10)
-    # plt.figure()
-    # plt.hist(probs0w1)
-    # plt.figure()
-    # plt.hist(probs1w0)
-    # print(f'repetition mean: {np.mean(rep_list) +- np.std(rep_list)}')
     print(confusion_matrix(rep_labels, rep_list))
 
+    # scatter plots of mean accuracies etc, didn't tell anythoing...
     plt.figure()
-    plt.scatter(certs[:,0], certs[:,1])
-    means = np.array([[x,np.mean(certs[certs[:,0]==x,1])] for x in range(1, int(np.max(certs[:,0])) + 1)])
+    plt.scatter(certs[:, 0], certs[:, 1])
+    means = np.array([[x, np.mean(certs[certs[:, 0] == x, 1])]
+                      for x in range(1, int(np.max(certs[:, 0])) + 1)])
     print(means)
-    plt.scatter(means[:,0], means[:,1], marker='x', s=100)
-    # plt.scatter(1,np.mean(certs[certs[:,0]==1,1]), marker='x')
-    # plt.scatter(2,np.mean(certs[certs[:,0]==2,1]), marker='x')
-    # plt.scatter(3,np.mean(certs[certs[:,0]==3,1]), marker='x')
-    # plt.scatter(mean[:,])
-    # print(corr_certs)
-    for i in range(1,4):
-        print(f'certainty {i}, acc: {np.mean(corr_certs[corr_certs[:,0]==i,1])}')
-
+    plt.scatter(means[:, 0], means[:, 1], marker='x', s=100)
+    for i in range(1, 4):
+        print(f'certainty {i}, acc: {np.mean(corr_certs[corr_certs[:, 0] == i, 1])}')
     plt.show()
 
 
 def str2bool(v):
+    ''' pass bool wtih argparse'''
     if isinstance(v, bool):
         return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
