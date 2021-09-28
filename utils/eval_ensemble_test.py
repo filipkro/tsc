@@ -345,6 +345,8 @@ def main(args):
             y_corr = []
             y_pred_comb = []
             for i in ind_t['test_idx']:
+                print(i)
+                print(all_subject_indices)
                 # check the results for the individual models
                 if i not in all_subject_indices:
                     # make sure each subject only evaluated once

@@ -380,9 +380,6 @@ def main(args):
         corr_rep = []
         pred_rep = []
 
-        '''note'''
-        # ind_t['test_idx'] = [434, 435, 436, 437, 438]
-        test_subj = [434, 435, 436, 437, 438]
 
         for model_i, model_path in enumerate(paths):
             x_val = x100[idx['val_idx']
@@ -403,8 +400,6 @@ def main(args):
             probs = coral.ordinal_softmax(
                 result).numpy() if 'coral' in model_path else result
 
-            print(probs[test_subj, ...])
-
             for row in range(probs.shape[0]):
                 pred = probs[row, ...]
                 i = np.argmax(pred)
@@ -415,7 +410,6 @@ def main(args):
                     probs[row, ...] = new_pred
             # / np.sum(weights[model_i, ...])
             probs = probs * weights[model_i, ...]
-            print(probs[test_subj, ...])
 
             all_probs[model_i, ...] = probs
 
@@ -425,8 +419,7 @@ def main(args):
 
             y_corr = []
             y_pred_comb = []
-            # for i in ind_t['test_idx']:
-            for i in test_subj:
+            for i in ind_t['test_idx']:
                 # print(int(y[i]))
 
                 if i not in subject_indices:
@@ -470,17 +463,12 @@ def main(args):
 
         ensemble_probs = (ensemble_probs > 0.2) * ensemble_probs
 
-        print('ENSEMBLE')
-        print(ensemble_probs[test_subj, ...])
-        print(np.mean(ensemble_probs[test_subj, ...], axis=0))
-
         if fold == 10:
             print(ensemble_probs)
 
         for_hist = np.sum(all_probs, axis=0)
         hist_index = 0
-        # for i in ind_t['test_idx']:
-        for i in test_subj:
+        for i in ind_t['test_idx']:
             prob_reps[fold-1, hist_index, int(y[i]), :] = ensemble_probs[i, ...]
             predicted_class = np.argmax(ensemble_probs[i, ...])
 
@@ -504,8 +492,7 @@ def main(args):
         rep_labels = np.append(rep_labels, corr_rep, axis=0)
 
         hist_index = 0
-        # for i in ind_t['test_idx']:
-        for i in test_subj:
+        for i in ind_t['test_idx']:
             if i not in subject_indices:
                 subject_indices, global_ind = get_same_subject(info_file, i)
 
@@ -576,13 +563,12 @@ def main(args):
                     # if np.max(summed) > 0.45:
                     # if np.max(summed) > 0.35:
                     # if np.max(summed) > 0.25: #for kmfp
+                    if uncertainties[str(global_ind)] == 1:
+                        preds_certain.append(int(np.round(pred_combined)))
+                        corr_certain.append(int(np.round(corr_combined)))
 
-                    # if uncertainties[str(global_ind)] == 1:
-                    #     preds_certain.append(int(np.round(pred_combined)))
-                    #     corr_certain.append(int(np.round(corr_combined)))
-
-                    # certs = np.append(certs, np.array([[uncertainties[str(global_ind)], np.max(summed)]]), axis=0)
-                    # corr_certs =np.append(corr_certs, np.array([[uncertainties[str(global_ind)], int(int(np.round(pred_combined)) == int(np.round(corr_combined))) ]]), axis=0)
+                    certs = np.append(certs, np.array([[uncertainties[str(global_ind)], np.max(summed)]]), axis=0)
+                    corr_certs =np.append(corr_certs, np.array([[uncertainties[str(global_ind)], int(int(np.round(pred_combined)) == int(np.round(corr_combined))) ]]), axis=0)
                     thres = 0.35 if lit == 'Sigrid-Undset' or lit == 'Mikhail-Sholokhov' else 0.4
                     # thres = 0
                     # thres = 0.4
@@ -599,15 +585,15 @@ def main(args):
                         print(f'corr:: {y_subj}')
 
 
-                    # if uncertainties[str(global_ind)] == 1:
-                    #     p1.append(int(np.round(pred_combined)))
-                    #     t1.append(int(np.round(corr_combined)))
-                    # elif uncertainties[str(global_ind)] == 2:
-                    #     p2.append(int(np.round(pred_combined)))
-                    #     t2.append(int(np.round(corr_combined)))
-                    # elif uncertainties[str(global_ind)] == 3:
-                    #     p3.append(int(np.round(pred_combined)))
-                    #     t3.append(int(np.round(corr_combined)))
+                    if uncertainties[str(global_ind)] == 1:
+                        p1.append(int(np.round(pred_combined)))
+                        t1.append(int(np.round(corr_combined)))
+                    elif uncertainties[str(global_ind)] == 2:
+                        p2.append(int(np.round(pred_combined)))
+                        t2.append(int(np.round(corr_combined)))
+                    elif uncertainties[str(global_ind)] == 3:
+                        p3.append(int(np.round(pred_combined)))
+                        t3.append(int(np.round(corr_combined)))
                         # prob_mean_some
                     hist_index += 1
 
@@ -914,8 +900,8 @@ def main(args):
     # plt.scatter(3,np.mean(certs[certs[:,0]==3,1]), marker='x')
     # plt.scatter(mean[:,])
     # print(corr_certs)
-    # for i in range(1,4):
-    #     print(f'certainty {i}, acc: {np.mean(corr_certs[corr_certs[:,0]==i,1])}')
+    for i in range(1,4):
+        print(f'certainty {i}, acc: {np.mean(corr_certs[corr_certs[:,0]==i,1])}')
 
     plt.show()
 
