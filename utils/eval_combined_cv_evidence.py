@@ -6,6 +6,9 @@ import tensorflow.keras as keras
 import matplotlib.pyplot as plt
 import pandas as pd
 import itertools
+import evidence_utils
+
+import tensorflow as tf
 
 import coral_ordinal as coral
 
@@ -74,8 +77,6 @@ def main(args):
 
     x = dataset['mts']
     y = dataset['labels']
-    print(x.shape)
-    print(y.shape)
     # ind_val = np.load(os.path.join(args.root, 'indices.npz'))
     ind_t = np.load(idx_path)
     # test_idx = np.append(ind_val['val_idx'], ind_t['test_idx'].astype(np.int))
@@ -84,66 +85,83 @@ def main(args):
     # x_test = x[test_idx, ...]
     # y_test = y[test_idx]
     # print(test_idx)
+    cnf_all_folds = np.zeros((3, 3))
 
     for fold in range(1,6):
         model_path = os.path.join(args.root, f'model_fold_{fold}.hdf5')
         idx = np.load(os.path.join(args.root, f'idx_{fold}.npz'))
-        x_val = x[idx['val_idx']]
-        y_val = y[idx['val_idx']]
+        # x_val = x[idx['val_idx']]
+        # y_val = y[idx['val_idx']]
+        # # x_val = x[ind_t['test_idx']]
+        # # y_val = y[ind_t['test_idx']]
+        model = keras.models.load_model(model_path, custom_objects={'evidence_loss': evidence_utils.evidence_loss, 'OrdinalCrossEntropy': coral.OrdinalCrossEntropy, 'MeanAbsoluteErrorLabels': coral.MeanAbsoluteErrorLabels})
 
-        print(x_val.shape)
-        print(y_val.shape)
-        assert False
-        # x_val = x[ind_t['test_idx']]
-        # y_val = y[ind_t['test_idx']]
-        model = keras.models.load_model(model_path, custom_objects={'CoralOrdinal': coral.CoralOrdinal, 'OrdinalCrossEntropy': coral.OrdinalCrossEntropy, 'MeanAbsoluteErrorLabels': coral.MeanAbsoluteErrorLabels})
-        result = model.predict(x_val)
+        # assert False
+        subject_indices = []
+        correct = 0
+        corr_mean = 0
+        pred_combined = []
+        y_combined = []
+        for i in idx['val_idx']:
+            if i not in subject_indices:
+                subject_indices = get_same_subject(info_file, i)
 
-        # print(result)
-        probs = coral.ordinal_softmax(result).numpy()
-        # print(probs)
-        # print(np.append(probs, y_val, axis=1))
+                x_subj = x[subject_indices, ...]
+                y_subj = y[subject_indices]
+                result = model.predict(x_subj)
+                evidence = evidence_utils.get_evidence(result)
+                uncertainty = evidence_utils.get_uncertainty(result)
+                prob = evidence_utils.get_prob(result)
+                # print(result)
+                # print(np.expand_dims(np.max(result, axis=1), 1))
+                # np.expand_dims(poses[0, 0, :], 1)
+                exp = np.exp(result - np.expand_dims(np.max(result, axis=1), 1))
+                # print(exp)
+                softmax = exp / np.expand_dims(exp.sum(axis=1), 1)
+                if 'coral' in model_path:
+                    result = coral.ordinal_softmax(result).numpy()
+                print('result for indices: {}'.format(subject_indices))
+                # print('likelihoods')
+                # print(result)
+                # for row in range(result.shape[0]):
+                #     pred = result[row,...]
+                #     i = np.argmax(pred)
+                #     if pred[i] > 0.7:
+                #         pred[i] = 1
+                #         pred[~i] = 0
+                #         new_pred = [1 * (j == i) for j in range(3)]
+                #         result[row,...] = new_pred
+                print(result)
+                print('correct')
+                print(y_subj)
+                print('evidence')
+                print(evidence)
+                print('uncertainty')
+                print(uncertainty)
+                print('probs')
+                print(prob)
+                # print('softmax')
+                # print(softmax)
 
-        incorr = 0
-        corr = 0
+                print('summed likelihoods')
+                print(np.sum(prob, axis=0))
+                print('true label')
+                print(np.median(y_subj))
+                pred_combined.append(np.argmax(np.sum(prob, axis=0)))
+                y_combined.append(int(np.median(y_subj)))
+                correct += 1*(int(np.median(y_subj)) == np.argmax(np.sum(prob, axis=0)))
+                corr_mean += 1*(int(np.round(np.mean(y_subj))) == np.argmax(np.sum(prob, axis=0)))
+                print('\n \n')
 
-        for row in range(probs.shape[0]):
-            pred = probs[row,...]
-            i = np.argmax(pred)
-            if pred[i] > 0.8:
-                pred[i] = 1
-                pred[~i] = 0
-                new_pred = [1 * (j == i) for j in range(probs.shape[-1])]
-                probs[row,...] = new_pred
-            # elif np.min(pred) < 0.1:
-            #     i = np.argmin(pred)
-            #     pred[i] = 0
-            #     result[row,...] = pred
-                # i = np.where(pred < 0.3)[0]
-                # pred
-                # new_pred = [1 * (j == i) for j in range(3)]
-                # pred[i] = 0
-                # result[row,...] = pred
+        print(correct)
+        print(corr_mean)
+        combined_cm = confusion_matrix(y_combined, pred_combined)
+        print(combined_cm)
+        cnf_all_folds = cnf_all_folds + combined_cm
+        plot_confusion_matrix(combined_cm, [0,1,2], title='combined score')
 
-            zeros = np.where(probs[row, ...] == 0)
-            if len(zeros) > 0:
-                i = zeros[0]
-                incorr = incorr + 1 if y_val[row] in i else incorr
-                # if y_val[row] in i:
-                #     incorr += 1
-
-
-                if np.sum(probs[row, ...]) == 1:
-                    corr = corr + 1 if y_val[row] == np.argmax(probs[row, ...]) else corr
-
-
-        print(np.append(probs, y_val, axis=1))
-        print(f'incorrect: {incorr} of {row + 1}, {incorr / (row + 1)}')
-        print(f'correct: {corr} of {row + 1}, {corr / (row + 1)}')
-
-        y_pred = np.argmax(probs, axis=1)
-        cnf_matrix = confusion_matrix(y_val, y_pred)
-        plot_confusion_matrix(cnf_matrix, [0,1,2], title='Each repetition')
+    plot_confusion_matrix(cnf_all_folds, [0,1,2], title='combined score, all folds')
+    assert False
 
 
 

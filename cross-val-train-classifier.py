@@ -159,8 +159,8 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         #               x[val_idx, ...], y_oh[val_idx, ...],
         #               class_weight=class_weight)
 
-        # print(x[train_idx, ...].shape)
-        # print(y_oh[train_idx, ...].shape)
+        print(x[train_idx, ...].shape)
+        print(y_oh[train_idx, ...].shape)
 
         classifier.fit(x[train_idx, ...], y_oh[train_idx, ...],
                        x[val_idx, ...], y_oh[val_idx, ...])#,
@@ -273,6 +273,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'inception-coral':
         from classifiers import inception_coral
         return inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
+    if classifier_name == 'simple-bays-coral':
+        from classifiers import simple_bays_coral
+        return simple_bays_coral.Classifier_SIMPLE_BAYS_CORAL(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, lr=0.005)
     if classifier_name == 'inception-focal':
         from classifiers import inception_focal
         return inception_focal.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)

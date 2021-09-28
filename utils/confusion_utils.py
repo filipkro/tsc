@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 class ConfusionCrossEntropy(tf.keras.losses.Loss):
-    def __init__(self, U, name='confidence_crossent'):
-        super().__init__(name=name)
+    def __init__(self, U, name='confidence_crossent', **kwargs):
+        super().__init__(name=name, **kwargs)
         # self.U = tf.convert_to_tensor(U, dtype=tf.float32)
         self.U = U
 
@@ -14,7 +14,7 @@ class ConfusionCrossEntropy(tf.keras.losses.Loss):
         # tf.print('yp')
         # tf.print(y_p)
         # tf.print(-tf.reduce_sum(self.U * tf.math.log(tf.matmul(y_t+0.001, y_p, True, False))))
-        return -tf.reduce_sum(self.U * tf.math.log(tf.matmul(y_t+0.001, y_p, True, False)))
+        return -tf.reduce_sum(self.U * tf.math.log(tf.matmul(y_t+0.0001, y_p, True, False)))
 
     def confusion_square(self, y_t, y_p):
         return tf.reduce_sum(tf.math.square(self.U - tf.matmul(y_t, y_p, True, False)))
