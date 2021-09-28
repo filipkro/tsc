@@ -102,7 +102,7 @@ class Classifier_INCEPTION:
 
         x = keras.layers.Lambda((lambda x: x))(x, mask=masked)
         x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.LeakyReLU(alpha=0.1)(x)
+        x = keras.layers.LeakyReLU(alpha=0.01)(x)
         # x = keras.layers.Activation(activation='relu')(x)
         return x
 
@@ -148,16 +148,17 @@ class Classifier_INCEPTION:
         x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
         # x = keras.layers.Lambda((lambda x: x))(x,
         #                                        mask=masked_layer[:, :, 0])
-        # x = keras.layers.Conv1D(4 * self.nb_filters, self.kernel_size,
-        #                         padding='same')(x)
+        # x = keras.layers.Conv1D(1, self.kernel_size, use_bias=True,
+        #                        padding='same')(x)
         # x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
-
-        output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
-        output_layer = keras.layers.LeakyReLU()(output_layer)
-        output_layer = keras.layers.Dense(self.nb_filters,
-                                          use_bias=False)(output_layer)
+        nbr_units = np.min((input_shape[-1], self.nb_filters))
+        output_layer = keras.layers.Dense(int(nbr_units))(gap_layer)
+        output_layer = keras.layers.LeakyReLU(alpha=0.01)(output_layer)
+        output_layer = keras.layers.Dense(int((nbr_units + nb_classes)/2),
+                                          use_bias=True)(output_layer)
         output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
+        #output_layer = coral.CoralOrdinal(nb_classes)(gap_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,

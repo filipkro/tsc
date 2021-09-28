@@ -39,7 +39,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     x = dataset['mts']
     y = dataset['labels']
-    merge_class = False
+    merge_class = False 
     if merge_class:
         #idx = np.where(y == 1)[0]
         #y[idx] = 0
@@ -67,7 +67,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     input_shape = x.shape[1:]
 
-    num_folds = 10
+    num_folds =10 
     kfold = KFold(n_splits=num_folds, shuffle=True, random_state=1) #CHANGE BACK TO 1!!!!!!!!!!!!!!!!!!!
     #print('RANDOM STATE FOR FOLD 0!!!!!!!!!!!!!! \n\n\n\n\n\n\nn\n\n\n\n')
     fold = 1
@@ -109,8 +109,9 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
                             np.max((n0 + n1, n2)) / n2]
             class_weight = [0.1, 1]
             #class_weight = [10, 1] #what worked good for finding 2 femval
-            class_weight = [1, 10]
-            #class_weight = None
+            #class_weight = [1, 5]
+            class_weight = [1,10]
+            class_weight = None
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
@@ -135,7 +136,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             print('file done')
 
             print(classifier.model.summary())
-
+          
 
         if False:
             n0 = (y[train_idx, ...] == 0).sum()

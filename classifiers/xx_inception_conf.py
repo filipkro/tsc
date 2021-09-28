@@ -147,8 +147,13 @@ class Classifier_INCEPTION:
         #                         padding='same')(x)
         # x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
-
-        output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
+        #output_layer = keras.layers.Dense(nb_classes, activation='softmax')(gap_layer)
+        nbr_units = np.min((input_shape[-1], self.nb_filters))
+        output_layer = keras.layers.Dense(int(nbr_units))(gap_layer)
+        output_layer = keras.layers.LeakyReLU(alpha=0.01)(output_layer)
+        output_layer = keras.layers.Dense(int((nbr_units + nb_classes)/2),
+                                          use_bias=True)(output_layer)
+        #output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
         output_layer = keras.layers.LeakyReLU()(output_layer)
         output_layer = keras.layers.Dense(nb_classes,
                                           activation='softmax')(output_layer)
@@ -171,7 +176,17 @@ class Classifier_INCEPTION:
         U = np.array([[1,0,0], [0.65, 0.7, 0.65], [0, 0, 1]])
         U = np.array([[0.4,0.1,0.1], [0, 1, 1], [0, 1, 1]])
         #U = np.array([[1,1,0], [1, 1, 0], [0, 0, 0.1]])
-        #U = np.array([[1,0,0], [0.35, 0.6, 0.35], [0, 0, 1]])
+        U = np.array([[1,0,0], [0.35, 0.6, 0.35], [0, 0, 1]])
+        U = np.array([[0.6,0.04,0.04], [0, 1, 1], [0, 1, 1]])
+        U = np.array([[1,1,0.0], [1, 1, 0], [0.04, 0.04, 0.6]])
+        U = np.array([[1,1,0.0], [1, 1, 0], [0.08, 0.08, 0.5]])
+        U = np.array([[1,0,0], [0.1, 0.8, 0.1], [0, 0, 1]])
+        U = np.array([[0.6,0.04,0.04], [0, 1, 1], [0, 1, 1]])
+        U = np.array([[1,1,0.0], [1, 1, 0], [0.1, 0.1, 0.2]])
+        #U = np.array([[1,0,0], [0.1, 0.6, 0.1], [0, 0, 0.8]])
+        #U = np.array([[0.8,0.4,0.4], [0, 1, 1], [0.0, 1, 1]])
+        #U = np.array([[0.4,0.1,0.1], [0, 1, 1], [0, 1, 1]])
+        #U = np.array([[1,0,0], [0.3, 0.45, 0.3], [0, 0, 1]])
         loss = ConfusionCrossEntropy(U)
 
         model.compile(loss=loss,

@@ -182,7 +182,7 @@ class Classifier_INCEPTION:
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
 
         self.callbacks = [reduce_lr, model_checkpoint, stop_early, lr_decay]
-        self.callbacks = [reduce_lr, model_checkpoint, lr_decay]
+        #self.callbacks = [reduce_lr, model_checkpoint, lr_decay]
 
         return model
 

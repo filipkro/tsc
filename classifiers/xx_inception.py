@@ -145,8 +145,12 @@ class Classifier_INCEPTION:
         #                         padding='same')(x)
         # x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
-
-        output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
+        nbr_units = np.min((input_shape[-1], self.nb_filters))
+        output_layer = keras.layers.Dense(int(nbr_units))(gap_layer)
+        output_layer = keras.layers.LeakyReLU(alpha=0.01)(output_layer)
+        output_layer = keras.layers.Dense(int((nbr_units + nb_classes)/2),
+                                use_bias=True)(output_layer)
+        #output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
         output_layer = keras.layers.LeakyReLU()(output_layer)
         output_layer = keras.layers.Dense(nb_classes,
                                           activation='softmax')(output_layer)
