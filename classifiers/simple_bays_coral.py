@@ -71,18 +71,18 @@ class Classifier_SIMPLE_BAYS_CORAL:
                                     kernel_size=self.kernel_size,
                                     activation='relu', use_bias=True)(x)
             x = keras.layers.Lambda((lambda x: x))(x, mask=mask)
-            x = keras.layers.Dropout(0.2)(x)
+            x = keras.layers.Dropout(0.5)(x)
 
         # x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
 
         output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
         output_layer = keras.layers.LeakyReLU()(output_layer)
-        output_layer = keras.layers.Dropout(0.2)(output_layer)
+        output_layer = keras.layers.Dropout(0.5)(output_layer)
         output_layer = keras.layers.Dense(self.nb_filters,
                                           use_bias=False)(output_layer)
         # output_layer = keras.layers.LeakyReLU()(output_layer)
-        output_layer = keras.layers.Dropout(0.2)(output_layer)
+        output_layer = keras.layers.Dropout(0.5)(output_layer)
         output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
@@ -105,7 +105,7 @@ class Classifier_SIMPLE_BAYS_CORAL:
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
                                                    restore_best_weights=True,
-                                                   patience=200)
+                                                   patience=300)
 
         schedule = StepDecay(initAlpha=self.lr, factor=0.85, dropEvery=20)
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
