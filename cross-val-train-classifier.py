@@ -273,6 +273,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'inception-coral':
         from classifiers import inception_coral
         return inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
+    if classifier_name == 'bayes-inception-coral':
+        from classifiers import bayes_inception_coral
+        return bayes_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
     if classifier_name == 'simple-bays-coral':
         from classifiers import simple_bays_coral
         return simple_bays_coral.Classifier_SIMPLE_BAYS_CORAL(output_directory, input_shape, nb_classes, verbose, depth=3, nb_filters=64, kernel_size=41, nb_epochs=2000, lr=0.005)
