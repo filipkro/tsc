@@ -40,8 +40,8 @@ def get_POE_field(info_file):
 def fit_classifier(dp, classifier_name, output_directory, idx):
 
     dataset = np.load(dp)
-    idx_path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx2.npz'
-    indices = np.load(idx_path)
+    # idx_path = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/idx2.npz'
+    indices = np.load(args.idx)
     train_idx = indices['train_idx']
     val_idx = indices['val_idx']
 
