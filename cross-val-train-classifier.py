@@ -88,6 +88,9 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
 
+        # print(len(train_idx))
+        # assert False
+
         class_weight = {0: 2, 1: 1, 2: 1.5}
         le = sklearn.preprocessing.LabelEncoder()
         y_ind = le.fit_transform(y[train_idx, ...].ravel())
