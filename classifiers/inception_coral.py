@@ -151,7 +151,7 @@ class Classifier_INCEPTION:
                       metrics=[coral.MeanAbsoluteErrorLabels()])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
-                                                      actor=0.5, patience=50,
+                                                      factor=0.5, patience=50,
                                                       min_lr=0.0001)
 
         file_path = self.output_directory + 'best_model.hdf5'

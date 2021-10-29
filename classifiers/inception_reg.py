@@ -10,11 +10,9 @@ from utils.utils import save_test_duration
 import os
 from keras.utils.layer_utils import count_params
 from utils.lr_schedules import StepDecay
+from utils.regression_utils import OneSidedMSE
 
-import coral_ordinal as coral
-
-
-class Classifier_INCEPTION:
+class Classifier_REGRESSION:
 
     def __init__(self, output_directory, input_shape, nb_classes,
                  verbose=False, build=True, batch_size=64, lr=0.001,
@@ -22,13 +20,10 @@ class Classifier_INCEPTION:
                  depth=6, kernel_size=41, nb_epochs=2000, bottleneck_size=32,
                  class_weight=None):
 
-        input_shape = (None, input_shape[-1])
-
         self.output_directory = output_directory
-        print(f'NB CLASSES:: {nb_classes}')
-        print(f'weight: {class_weight}')
-        self.loss = coral.OrdinalCrossEntropy(num_classes=nb_classes,
-                                              importance_weights=class_weight)
+
+        # self.loss = keras.losses.MeanSquaredError()
+        self.loss = OneSidedMSE(0, 2)
 
         self.nb_filters = nb_filters
         self.use_residual = use_residual
@@ -102,7 +97,7 @@ class Classifier_INCEPTION:
 
         x = keras.layers.Lambda((lambda x: x))(x, mask=masked)
         x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.LeakyReLU(alpha=0.1)(x)
+        x = keras.layers.LeakyReLU()(x)
         # x = keras.layers.Activation(activation='relu')(x)
         return x
 
@@ -122,52 +117,37 @@ class Classifier_INCEPTION:
         masked_layer = keras.layers.Masking(mask_value=-1000,
                                             name='mask')(input_layer)
         x = masked_layer
+        if self.use_residual:
+            input_res = masked_layer
         mask = masked_layer[:, :, 0]
 
-        channels = []
+        for d in range(self.depth):
 
-        for i in range(input_shape[-1]):
+            x = self._inception_module(x, mask)
 
-            input = tf.keras.backend.expand_dims(x[..., i], axis=-1)
             if self.use_residual and d % 3 == 2:
-                input_res = tf.keras.backend.expand_dims(x[..., i], axis=-1)
+                input_res = keras.layers.Lambda((lambda x: x))(input_res,
+                                                               mask=mask)
+                x = self._shortcut_layer(input_res, x)
+                input_res = x
 
-            for d in range(self.depth):
-                input = self._inception_module(input, mask)
-
-                if self.use_residual and d % 3 == 2:
-                    input_res = keras.layers.Lambda((lambda x: x))(input_res,
-                                                                   mask=mask)
-                    input = self._shortcut_layer(input_res, input)
-                    input_res = input
-            input = keras.layers.Lambda((lambda x: x))(input, mask=mask)
-            input = keras.layers.Conv1D(filters=1, kernel_size=self.kernel_size,
-                                        padding='same', use_bias=False)(input)
-            channels.append(input)
-
-        x = keras.layers.Concatenate(axis=-1, name='concat')(channels)
-        # x = keras.layers.Lambda((lambda x: x))(x,
-        #                                        mask=masked_layer[:, :, 0])
-        # x = keras.layers.Conv1D(4 * self.nb_filters, self.kernel_size,
-        #                         padding='same')(x)
         # x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
 
         output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
         output_layer = keras.layers.LeakyReLU()(output_layer)
         output_layer = keras.layers.Dense(self.nb_filters,
-                                          use_bias=False)(output_layer)
-        output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
+                                          use_bias=True)(output_layer)
+        output_layer = keras.layers.Dense(3)(output_layer)
+        output_layer = keras.layers.Dense(1)(output_layer)
 
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
                                    outputs=output_layer)
 
-        # model.compile(loss='categorical_crossentropy', optimizer=keras.optimizers.Adam(self.lr),
-        #               metrics=['accuracy'])
         model.compile(loss=self.loss,
                       optimizer=keras.optimizers.Adam(self.lr),
-                      metrics=[coral.MeanAbsoluteErrorLabels()])
+                      metrics=[keras.metrics.MeanSquaredError()])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
                                                       factor=0.5, patience=50,
@@ -176,14 +156,14 @@ class Classifier_INCEPTION:
         file_path = self.output_directory + 'best_model.hdf5'
 
         model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=file_path, monitor='val_mean_absolute_error_labels',
+            filepath=file_path, monitor='val_loss',
             save_best_only=True, mode='min')
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',
                                                    restore_best_weights=True,
                                                    patience=300)
 
-        schedule = StepDecay(initAlpha=self.lr, factor=0.75, dropEvery=20)
+        schedule = StepDecay(initAlpha=self.lr, factor=0.85, dropEvery=20)
         lr_decay = keras.callbacks.LearningRateScheduler(schedule)
 
         self.callbacks = [reduce_lr, model_checkpoint, stop_early, lr_decay]
@@ -202,10 +182,6 @@ class Classifier_INCEPTION:
             mini_batch_size = self.batch_size
 
         start_time = time.time()
-
-        print(
-            f'X SHAPE IN FIT: {x_train.shape}, \nY SHAPE IN FIT: {y_train.shape}')
-        print(class_weight)
 
         hist = self.model.fit(x_train, y_train, batch_size=mini_batch_size,
                               epochs=self.nb_epochs, verbose=self.verbose,

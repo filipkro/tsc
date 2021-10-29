@@ -75,7 +75,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
     loss_per_fold = []
     abs_err = []
 
-    if 'coral' in classifier_name or 'focal' in classifier_name:
+    if 'coral' in classifier_name or 'focal' in classifier_name or 'reg' in classifier_name:
         y_oh = y
 
     cnf_matrix = np.zeros((nb_classes, nb_classes))
@@ -275,6 +275,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'inception-coral':
         from classifiers import inception_coral
         return inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
+    if classifier_name == 'inception-reg':
+        from classifiers import inception_reg
+        return inception_reg.Classifier_REGRESSION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
     if classifier_name == 'bayes-inception-coral':
         from classifiers import bayes_inception_coral
         return bayes_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
