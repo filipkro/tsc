@@ -114,7 +114,8 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             #class_weight = [10, 1] #what worked good for finding 2 femval
             #class_weight = [1, 5]
             class_weight = [1,10]
-            class_weight = None
+            class_weight = [2,1]
+            # class_weight = None
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
@@ -279,9 +280,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'bayes-inception-coral':
         from classifiers import bayes_inception_coral
         return bayes_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
-    if classifier_name == 'simple-bays-coral':
+    if classifier_name == 'simple-bayes-coral':
         from classifiers import simple_bays_coral
-        return simple_bays_coral.Classifier_SIMPLE_BAYS_CORAL(output_directory, input_shape, nb_classes, verbose, depth=3, nb_filters=64, kernel_size=41, nb_epochs=2000, lr=0.005)
+        return simple_bays_coral.Classifier_SIMPLE_BAYS_CORAL(output_directory, input_shape, nb_classes, verbose, depth=5, nb_filters=128, kernel_size=41, nb_epochs=2000, lr=0.005)
     if classifier_name == 'inception-focal':
         from classifiers import inception_focal
         return inception_focal.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
