@@ -80,13 +80,17 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
 
     cnf_matrix = np.zeros((nb_classes, nb_classes))
     # for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
-    for train, val in kfold.split(indices['train_subj']):
+    # for train, val in kfold.split(indices['train_subj']):
+    for train, val in kfold.split(np.arange(x.shape[0])):
         print(f'Fold number {fold} out of {num_folds}')
 
         train_idx = [idx_same_subject(meta_data, subj) for subj in train]
         val_idx = [idx_same_subject(meta_data, subj) for subj in val]
         train_idx = np.concatenate(train_idx)
         val_idx = np.concatenate(val_idx)
+
+        print(f'train data len: {len(train_idx)}')
+        print(f'val data len: {len(val_idx)}')
 
         # print(len(train_idx))
         # assert False
@@ -115,7 +119,7 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
             #class_weight = [1, 5]
             class_weight = [1,10]
             class_weight = [2,1]
-            # class_weight = None
+            class_weight = None
             classifier = create_classifier(classifier_name, input_shape,
                                            nb_classes, output_directory,
                                            class_weight=class_weight)
