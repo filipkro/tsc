@@ -23,6 +23,14 @@ def idx_same_subject(meta, subject):
     return indices
 
 
+def get_max_subj(info_file):
+    meta_data = pd.read_csv(info_file, delimiter=',')
+    first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
+    data = np.array(meta_data.values[first_data:, 1], dtype=int)
+
+    return max(data)
+
+
 def read_meta_data(info_file):
     meta_data = pd.read_csv(info_file, delimiter=',')
     first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
@@ -78,9 +86,15 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
     if 'coral' in classifier_name or 'focal' in classifier_name or 'reg' in classifier_name:
         y_oh = y
 
+    print(x.shape[0])
+
+    # assert False
+
     cnf_matrix = np.zeros((nb_classes, nb_classes))
     # for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
-    for train, val in kfold.split(indices['train_subj']):
+    # for train, val in kfold.split(indices['train_subj']):
+    # for train, val in kfold.split(np.arange(x.shape[0])):
+    for train, val in kfold.split(np.arange(get_max_subj(info_file) + 1)):
         print(f'Fold number {fold} out of {num_folds}')
 
         train_idx = [idx_same_subject(meta_data, subj) for subj in train]
