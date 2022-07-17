@@ -10,11 +10,9 @@ from utils.utils import save_test_duration
 import os
 from keras.utils.layer_utils import count_params
 from utils.lr_schedules import StepDecay
+from utils.regression_utils import OneSidedMSE
 
-import coral_ordinal as coral
-
-
-class Classifier_INCEPTION:
+class Classifier_REGRESSION:
 
     def __init__(self, output_directory, input_shape, nb_classes,
                  verbose=False, build=True, batch_size=64, lr=0.001,
@@ -24,8 +22,8 @@ class Classifier_INCEPTION:
 
         self.output_directory = output_directory
 
-        self.loss = coral.OrdinalCrossEntropy(num_classes=nb_classes,
-                                              importance_weights=class_weight)
+        # self.loss = keras.losses.MeanSquaredError()
+        self.loss = OneSidedMSE(0, 2)
 
         self.nb_filters = nb_filters
         self.use_residual = use_residual
@@ -135,24 +133,21 @@ class Classifier_INCEPTION:
 
         # x = keras.layers.Dropout(0.2)(x)
         gap_layer = keras.layers.GlobalAveragePooling1D()(x, mask=mask)
-        nbr_units = self.nb_filters
-        output_layer = keras.layers.Dense(int(nbr_units))(gap_layer)
-        output_layer = keras.layers.LeakyReLU(alpha=0.01)(output_layer)
-        output_layer = keras.layers.Dense(int((nbr_units + nb_classes)/2),
+
+        output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
+        output_layer = keras.layers.LeakyReLU()(output_layer)
+        output_layer = keras.layers.Dense(self.nb_filters,
                                           use_bias=True)(output_layer)
-        #output_layer = keras.layers.Dense(self.nb_filters)(gap_layer)
-        #output_layer = keras.layers.LeakyReLU()(output_layer)
-        #output_layer = keras.layers.Dense(self.nb_filters,
-        #                                  use_bias=True)(output_layer)
-        output_layer = coral.CoralOrdinal(nb_classes)(output_layer)
-        #output_layer = coral.CoralOrdinal(nb_classes)(gap_layer)
+        output_layer = keras.layers.Dense(3)(output_layer)
+        output_layer = keras.layers.Dense(1)(output_layer)
+
         # model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model = keras.models.Model(inputs=input_layer,
                                    outputs=output_layer)
 
         model.compile(loss=self.loss,
                       optimizer=keras.optimizers.Adam(self.lr),
-                      metrics=[coral.MeanAbsoluteErrorLabels()])
+                      metrics=[keras.metrics.MeanSquaredError()])
 
         reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor='loss',
                                                       factor=0.5, patience=50,
@@ -161,7 +156,7 @@ class Classifier_INCEPTION:
         file_path = self.output_directory + 'best_model.hdf5'
 
         model_checkpoint = keras.callbacks.ModelCheckpoint(
-            filepath=file_path, monitor='val_mean_absolute_error_labels',
+            filepath=file_path, monitor='val_loss',
             save_best_only=True, mode='min')
 
         stop_early = keras.callbacks.EarlyStopping(monitor='val_loss',

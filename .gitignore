@@ -8,6 +8,10 @@ __pycache__/
 *.out
 *.pdf
 
+# numpy files
+*.npy
+*.npz
+
 hyper/untitled_project/*
 
 # Distribution / packaging

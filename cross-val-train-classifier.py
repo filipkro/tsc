@@ -23,6 +23,14 @@ def idx_same_subject(meta, subject):
     return indices
 
 
+def get_max_subj(info_file):
+    meta_data = pd.read_csv(info_file, delimiter=',')
+    first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
+    data = np.array(meta_data.values[first_data:, 1], dtype=int)
+
+    return max(data)
+
+
 def read_meta_data(info_file):
     meta_data = pd.read_csv(info_file, delimiter=',')
     first_data = np.where(meta_data.values[:, 0] == 'index')[0][0] + 1
@@ -75,13 +83,18 @@ def fit_classifier(dp, classifier_name, output_directory, idx):
     loss_per_fold = []
     abs_err = []
 
-    if 'coral' in classifier_name or 'focal' in classifier_name:
+    if 'coral' in classifier_name or 'focal' in classifier_name or 'reg' in classifier_name:
         y_oh = y
+
+    print(x.shape[0])
+
+    # assert False
 
     cnf_matrix = np.zeros((nb_classes, nb_classes))
     # for train, test in kfold.split(x_train[:, 0], y_train[:, 0]):
     # for train, val in kfold.split(indices['train_subj']):
-    for train, val in kfold.split(np.arange(x.shape[0])):
+    # for train, val in kfold.split(np.arange(x.shape[0])):
+    for train, val in kfold.split(np.arange(get_max_subj(info_file) + 1)):
         print(f'Fold number {fold} out of {num_folds}')
 
         train_idx = [idx_same_subject(meta_data, subj) for subj in train]
@@ -281,6 +294,9 @@ def create_classifier(classifier_name, input_shape, nb_classes, output_directory
     if classifier_name == 'inception-coral':
         from classifiers import inception_coral
         return inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
+    if classifier_name == 'inception-reg':
+        from classifiers import inception_reg
+        return inception_reg.Classifier_REGRESSION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
     if classifier_name == 'bayes-inception-coral':
         from classifiers import bayes_inception_coral
         return bayes_inception_coral.Classifier_INCEPTION(output_directory, input_shape, nb_classes, verbose, depth=2, nb_filters=128, kernel_size=31, nb_epochs=2000, bottleneck_size=8, use_residual=True, lr=0.005)
