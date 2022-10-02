@@ -19,6 +19,9 @@ hip_cert = {'1':1, '4':2, '8':1, '13':1, '14':1,'19':2, '23':1, '25':1, '42':2, 
 
 kmfp_cert = {'1':1, '4':1, '8':1, '13':1, '14':3,'19':1, '23':1, '25':2, '42':1, '45':1, '52':1, '54':1, '67':1, '73':1, '74':1, '78':1, '86':1, '90':2, '92':1, '93':1, '97':1, '103':1}
 
+OUT_DIR = '/home/filipkr/Documents/xjob/consensus_w_cuts'
+
+
 
 def get_same_subject(info_file, idx):
     meta_data = pd.read_csv(info_file, delimiter=',')
@@ -29,7 +32,8 @@ def get_same_subject(info_file, idx):
     in_cohort_nbr = data[idx, 3]
     indices = np.where(data[:, 1] == subj)[0]
     idx_same_leg = np.where(data[indices, 3] == in_cohort_nbr)
-    # print(indices[idx_same_leg])
+    print(indices[idx_same_leg])
+    print(type(indices[idx_same_leg]))
     return indices[idx_same_leg], subj
 
 
@@ -290,47 +294,32 @@ def main(args):
         weights = np.array([[1/3,0.9/2,1/2], [2/3, 0, 0], [0,1/2,0], [0,0,1.0/2]])
         weights = np.array([[1/3,0.9,1.1/2], [2/3, 0, 0], [0,0,1.05/2]])
     elif lit == 'foot_con':
-        models = ['coral-3', 'xx-conf-0', 'conf-2']
+        models = ['coral-3', ':::xx-conf-0', 'conf-2']
         weights = np.array([[1.1/4,0.8,0.8/2], [3/4, 0, 0], [0,0,0.8/2]])
     elif lit == 'trunk_aug':
-        models = ['coral-1']
-        weights = np.array([[1,1,1]])
-        # models = ['coral-2','xx-conf-100-2']
-        # weights = np.array([[0.7/2,0.9/3,1.1/2], [1.1/2, 0, 0], [0,0,1.1/2]])
-        # weights = np.array([[1,0.9,1]])
+        models = ['coral-1', 'conf-0', 'conf-100-1', 'conf-2']
+        weights = np.array([[0.5,0.5,0.5], [0.5,0,0],[0,0.5,0],[0,0,0.5]])
+        # weights = np.array([[0.6,0.6,0.6], [0.4,0,0],[0,0.4,0],[0,0,0.4]])
     elif lit == 'hip_aug':
-        models = ['coral-2', 'conf-100-0', 'xx-conf-1', 'xx-conf-100-2']
-        models = ['coral-2', 'conf-100-0', 'xx-conf-100-2']
-        weights = np.array([[1/2,0.85/2,1.1/2], [1.2/2, 0, 0], [0,0.9/2,0],[0,0,1.1/2]])
-        weights = np.array([[1/2,0.9,1.1/2], [1.2/2, 0, 0], [0,0,1.1/2]])
-        models = ['coral-1']
-        weights = np.array([[1,1,1]])
+        models = ['coral-1', 'conf-0', 'conf-100-1', 'conf-100-2']
+        weights = np.array([[0.5,0.5,0.6], [0.5, 0, 0], [0, 0.5, 0], [0,0,0.5]])
+        # weights = np.array([[0.6,0.6,0.7], [0.4, 0, 0], [0, 0.4, 0], [0,0,0.4]])
     elif lit == 'femval_aug':
-        models = ['coral-2', 'conf-100-0', 'conf-1', 'conf-2']
-        models = ['coral-2', 'conf-100-0', 'conf-2']
-        weights = np.array([[1/2,0.7/2,0.8/2], [1/2, 0, 0], [0,1.3/2,0], [0,0,1.5/2]])
-        weights = np.array([[1/2,1,1.1/2], [1/2, 0, 0], [0,0,1.1/2]])
-        models = ['coral-1']
-        weights = np.array([[1,1,1]])
-        # models = ['coral-2']
-        # weights = np.array([1,1,1])
+        models = ['coral-1', 'conf-0', 'conf-1', 'conf-2']
+        weights = np.array([[0.5,0.5,0.8],[0.5,0,0], [0,0.5,0],[0,0,0.3]])
+        weights = np.array([[0.6,0.6,1],[0.4,0,0], [0,0.4,0],[0,0,0.1]])
     elif lit == 'kmfp_aug':
-        models = ['coral-3', 'xx-conf-100-0']
-        weights = np.array([[0,0.85,1.5], [1,0,0]])
-        models = ['coral-1']
-        weights = np.array([[1,1,1]])
+        models = ['coral-1', 'conf-0', 'conf-2']
+        weights = np.array([[0.5,1,0.8], [0.5,0,0], [0,0,0.4]])
+        weights = np.array([[0.6,1.1,0.9], [0.4,0,0], [0,0,0.3]])
     elif lit == 'fms_aug':
-        models = ['coral-3', 'conf-0', 'conf-100-1', 'xx-conf-2']
-        models = ['coral-3', 'conf-0', 'xx-conf-2']
-        weights = np.array([[1/3,0.9/2,1/2], [2/3, 0, 0], [0,1/2,0], [0,0,1.0/2]])
-        weights = np.array([[1/3,0.9,1.1/2], [2/3, 0, 0], [0,0,1.05/2]])
-        models = ['coral-1']
-        weights = np.array([[1,1,1]])
+        models = ['coral-1', 'conf-0', 'conf-100-1']
+        weights = np.array([[0.5,0.5,1.1], [0.5,0,0], [0,0.5,0]])
+        weights = np.array([[0.6,0.6,1.1], [0.4,0,0], [0,0.4,0]])
     elif lit == 'foot_aug':
-        models = ['coral-3', 'xx-conf-0', 'conf-2']
-        weights = np.array([[1.1/4,0.8,0.8/2], [3/4, 0, 0], [0,0,0.8/2]])
-        models = ['coral-1']
-        weights = np.array([[1,1,1]])
+        models = ['coral-1', 'conf-100-0', 'conf-100-2']
+        weights = np.array([[0.5,1,0.8], [0.5,0,0],[0,0,0.4]])
+        weights = np.array([[0.6,1,0.9], [0.4,0,0],[0,0,0.3]])
 
     print(args.root)
     print(models)
@@ -362,9 +351,19 @@ def main(args):
             '-cut_rate0.1', '-cut_rate0.15']
 
     cuts = ['', '-cut5', '-cut20', '-cut_rate0.05', '-cut_rate0.15']
+    cuts = ['', '-cut5', '-cut_rate0.05', '-cut_rate0.1']
+    # cuts = ['', '-cut5', '-cut_rate0.05']
     cut_results = {}
+
+    dp = f'/home/filipkr/Documents/xjob/data/datasets/data_{ds_name}.npz'
+
+    dataset = np.load(dp)
+    y = dataset['labels']
+    all_cut_preds = np.zeros((num_folds, len(cuts), len(y), 3))
+    # corrects
+    lens = []
     
-    for cut in cuts:
+    for cut_index, cut in enumerate(cuts):
 
         f1 = []
         acc = []
@@ -405,6 +404,7 @@ def main(args):
         x = dataset['mts']
         x100 = dataset100['mts']
         y = dataset['labels']
+        lens.append(len(y))
 
         for fold in range(1, num_folds + 1):
 
@@ -473,6 +473,7 @@ def main(args):
             truth_ignored = []
 
             ensemble_probs = np.sum(all_probs, axis=0)
+            all_cut_preds[fold-1, cut_index, ...] = ensemble_probs
             # print(ensemble_probs)
 
             ensemble_probs = (ensemble_probs > 0.2) * ensemble_probs
@@ -790,7 +791,141 @@ def main(args):
 
     # stuff_sp = '/home/filipkr/Documents/xjob/motion-analysis/classification/tsc/' + lit + '-stat-stuff.npz'
     # np.savez(stuff_sp, rep_acc=rep_acc, rep_f1=rep_f1, comb_acc=acc, comb_f1=f1, thresh_acc=acc_thresh, thresh_f1=f1_thresh, acc_ind=individual_accs, f1_ind=individual_accs)
+    print(lens)
 
+    cut_preds = np.mean(all_cut_preds, axis=1)
+    # print(cut_preds[0, ...])
+    subject_indices = []
+
+    # preds_reps = []
+    acc_reps = []
+    f1_reps = []
+    prec_reps = []
+    recall_reps = []
+    acc_comb = []
+    f1_comb = []
+    prec_comb = []
+    recall_comb = []
+
+    conf_reps = np.zeros((num_folds, 3, 3))
+    conf_combs = np.zeros((num_folds, 3, 3))
+    plt.close('all')
+    for f in range(num_folds):
+        
+        preds_combined = []
+        truth_combined = []
+        preds_reps = np.argmax(cut_preds[f, ...], axis=1)
+
+        labels = np.sort(np.unique(np.append(y, preds_reps)))
+
+        acc_reps.append(accuracy_score(y, preds_reps))
+        f1_reps.append(f1_score(y, preds_reps, labels=labels, average='macro'))
+        prec_reps.append(precision_score(y, preds_reps, labels=labels, average='macro'))
+        recall_reps.append(recall_score(y, preds_reps, labels=labels, average='macro'))
+        
+        subject_indices = []
+        for i in range(len(y)):
+            print(i)
+            try:
+                if not i in subject_indices:
+                    subject_indices, global_ind = get_same_subject(info_file, i)
+                    # if type(si) == list:
+                    #     subject_indices.extend(si[0])
+                    # else:
+                    #     subject_indices.extend(si[0])
+                    y_subj = y[subject_indices]
+                    pred_subj = cut_preds[f, subject_indices, ...]
+
+                    
+                    corr_combined = int(np.ceil(np.median(y_subj)))
+                    pred_combined = int(np.argmax(np.mean(pred_subj, axis=0)))
+                    preds_combined.append(int(np.round(pred_combined)))
+                    truth_combined.append(int(np.round(corr_combined)))
+            except ValueError:
+                print(i)
+                print(subject_indices)
+                print(i in subject_indices)
+                print(i not in subject_indices)
+        acc_comb.append(accuracy_score(truth_combined, preds_combined))
+        f1_comb.append(f1_score(truth_combined, preds_combined, labels=labels, average='macro'))
+        prec_comb.append(precision_score(truth_combined, preds_combined, labels=labels, average='macro'))
+        recall_comb.append(recall_score(truth_combined, preds_combined, labels=labels, average='macro'))
+
+        cnf_rep = confusion_matrix(y, preds_reps, labels=[0, 1, 2])
+        print(cnf_rep)
+        conf_reps[f, ...] = cnf_rep
+        cnf_comb = confusion_matrix(truth_combined, preds_combined, labels=[0, 1, 2])
+        print(cnf_comb)
+        conf_combs[f, ...] = cnf_comb
+    print()
+    print('--------------')
+    print(f'acc rep: {np.mean(acc_reps)} +- {np.std(acc_reps)}')
+    print(f'acc comb: {np.mean(acc_comb)} +- {np.std(acc_comb)}')
+    print()
+    print(f'f1 rep: {np.mean(f1_reps)} +- {np.std(f1_reps)}')
+    print(f'f1 comb: {np.mean(f1_comb)} +- {np.std(f1_comb)}')
+    print()
+    print(f'prec rep: {np.mean(prec_reps)} +- {np.std(prec_reps)}')
+    print(f'prec comb: {np.mean(prec_comb)} +- {np.std(prec_comb)}')
+    print()
+    print(f'recall rep: {np.mean(recall_reps)} +- {np.std(recall_reps)}')
+    print(f'recall comb: {np.mean(recall_comb)} +- {np.std(recall_comb)}')
+
+    plot_confusion_matrix_mean(conf_reps, [0,1,2], title='Repetition scores',
+                               savename=os.path.join(OUT_DIR, 
+                                                     f'{lit}/{lit}-conf-rep.png'))
+    plot_confusion_matrix_mean(conf_combs, [0,1,2], title='Combined scores',
+                               savename=os.path.join(OUT_DIR, 
+                                                     f'{lit}/{lit}-conf-comb.png'))
+
+    fig, axs = plt.subplots(2, gridspec_kw={'hspace':0.1})
+    fig.suptitle(f'F1 scores', fontsize=18)
+    plt.subplots_adjust(bottom=0.12, top=0.89)
+    p = seaborn.histplot(data=f1_comb,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[0])
+    plt.sca(axs[0])
+    plt.yticks(fontsize=12)
+    p.set_ylabel(f'Combined', fontsize=14)
+    axs[0].axes.xaxis.set_ticklabels([])
+
+    p = seaborn.histplot(data=f1_reps,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[1])
+    plt.sca(axs[1])
+    plt.yticks(fontsize=12)
+    p.set_ylabel(f'Repetitions', fontsize=14)
+    # axs[1].axes.xaxis.set_ticklabels([])
+    plt.savefig(os.path.join(OUT_DIR, f'{lit}/{lit}-f1-hist.png'))
+
+    fig, axs = plt.subplots(2, gridspec_kw={'hspace':0.1})
+    fig.suptitle(f'Accuracy scores', fontsize=18)
+    plt.subplots_adjust(bottom=0.12, top=0.89)
+    p = seaborn.histplot(data=acc_comb,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[0])
+    plt.sca(axs[0])
+    plt.yticks(fontsize=12)
+    p.set_ylabel(f'Combined', fontsize=14)
+    axs[0].axes.xaxis.set_ticklabels([])
+
+    p = seaborn.histplot(data=acc_reps,bins=15,kde=False, binrange=(0,1), stat='probability', ax=axs[1])
+    plt.sca(axs[1])
+    plt.yticks(fontsize=12)
+    p.set_ylabel(f'Repetitions', fontsize=14)
+    # axs[1].axes.xaxis.set_ticklabels([])
+    plt.savefig(os.path.join(OUT_DIR, f'{lit}/{lit}-acc-hist.png'))
+
+    with open(os.path.join(OUT_DIR, f'{lit}/{lit}-confs-reps.txt'), 'w') as fo:
+        fo.write(np.array2string(conf_reps))
+    with open(os.path.join(OUT_DIR, f'{lit}/{lit}-confs-combined.txt'), 'w') as fo:
+        fo.write(np.array2string(conf_combs))
+
+    with open(os.path.join(OUT_DIR, f'{lit}/{lit}-stats.txt'), 'w') as fo:
+        fo.write(f'accuracy repettitions: {np.mean(acc_reps)} +- {np.std(acc_reps)}\n')
+        fo.write(f'accuracy combined scores: {np.mean(acc_comb)} +- {np.std(acc_comb)}\n\n')
+        fo.write(f'f1 repettitions: {np.mean(f1_reps)} +- {np.std(f1_reps)}\n')
+        fo.write(f'f1 combined scores: {np.mean(f1_comb)} +- {np.std(f1_comb)}\n\n')
+        fo.write(f'precision repettitions: {np.mean(prec_reps)} +- {np.std(prec_reps)}\n')
+        fo.write(f'precision combined scores: {np.mean(prec_comb)} +- {np.std(prec_comb)}\n\n')
+        fo.write(f'recall repettitions: {np.mean(recall_reps)} +- {np.std(recall_reps)}\n')
+        fo.write(f'recall combined scores: {np.mean(recall_comb)} +- {np.std(recall_comb)}\n\n')
+
+        
     plt.show()
 
 
