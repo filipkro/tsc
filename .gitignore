@@ -12,6 +12,8 @@ __pycache__/
 *.npy
 *.npz
 
+.idea
+
 hyper/untitled_project/*
 
 # Distribution / packaging
