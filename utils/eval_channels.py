@@ -59,6 +59,7 @@ def main(args):
     lit = os.path.basename(args.root).split('_')[0]
     dp = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '.npz'
     info_file = '/home/filipkr/Documents/xjob/data/datasets/data_' + lit + '-info.txt'
+    print(lit)
     dataset = np.load(dp)
 
     x = dataset['mts']

@@ -1,0 +1,65 @@
+OLD MODELS
+'Olga-Tokarczuk':
+    models = ['coral-100-7000', 'xx-coral-100-7000','xx-conf-100-7000', 'xx-conf-9000','xx-conf-100-11000']
+    weights = np.array([[1/3, 1.25/3, 1/3], [1/3, 1.25/3, 1/3], [1/3, 0, 0], [0, 1.25/3, 0], [0, 0, 1/3]])
+'Nadine-Gordimer':
+    models = ['coral-100-3100', 'coral-3100', 'xx-conf-100-3100','conf-100-12000', 'xx-coral-100-3100']
+    weights = np.array([[1/3, 1.05/3, 1/3], [1/3, 1.05/3, 1/3], [1/3, 0, 0], [0, 1.05/3, 0], [0, 0, 1/3]])
+'Albert-Camus':
+    models = ['x-incep-600', 'conf-x-800', 'coral-x-500', 'coral-x-501', 'conf-x-707', 'conf-x-708']
+    weights = np.array([[0.25, 0, 0], [0.35, 0, 0], [0.2, 0.5, 0], [0.2, 0.5, 0], [0, 0, 0.5], [0, 0, 0.5]])
+'Sigrid-Undset':
+    models = ['coral-100-13000', 'coral-13000', 'conf-100-10000', 'conf-10001', 'xx-coral-100-10003']
+    weights = np.array([[1/4,1.08/4,1.5/4],[1/4,1.08/4,1.5/4],[1/2,0,0], [0,1.08/2,0], [0,0,1.5/2]])
+'Mikhail-Sholokhov':
+    models = ['inception-3010', 'xx-inception-3010', 'xx-conf-3010', 'conf-100-13000', 'xx-conf-3025']
+    weights = np.array([[1/3, 0.95*1/3, 1/3],[1/3, 0.95*1/3, 1/3], [1/3, 0, 0], [0, 0.95*1/3, 0], [0,0,1/3]])
+'Isaac-Bashevis-Singer':
+    models = ['coral-100-11', 'coral-100-10', 'xx-conf-100-11', 'conf-15', 'xx-coral-100-10']
+    weights = np.array([[1/3,0.9/3,1/3], [1/3,0.9/3,1/3],[1/3,0,0],[0,0.95/3,0],[0,0,1/3]])
+'Bertrand-Russell':
+    models = ['coral-0', 'coral-1', 'coral-2', 'conf-0', 'conf-1', 'conf-2']
+    weights = np.array([[1/4, 1/4, 1/4], [1/4, 1/4, 1/4], [1/4, 1/4, 1/4], [1/4, 0, 0], [0, 1/4, 0], [0, 0, 1/4]])
+'Harold-Pinter':
+    models = ['coral-0', 'coral-1', 'coral-100-0', 'conf-100-0', 'coral-1-conf', 'conf-2']
+    weights = np.array([[1/4, 1/4, 1/4], [1/4, 1/4, 1/4], [1/4, 1/4, 1/4], [1/4, 0, 0], [0, 1/4, 0], [0, 0, 1/3]])
+
+CONSENSUS MODELS
+'trunk_con':
+    models = ['coral-2', 'conf-100-0', 'xx-conf-100-2']
+    weights = np.array([[0.7/2,0.9,1.1/2], [1.1/2, 0, 0], [0,0,1.1/2]])
+'hip_con':
+    models = ['coral-2', 'conf-100-0', 'xx-conf-100-2']
+    weights = np.array([[1/2,0.9,1.1/2], [1.2/2, 0, 0], [0,0,1.1/2]])
+'femval_con':
+    models = ['coral-2', 'conf-100-0', 'conf-2']
+    weights = np.array([[1/2,1,1.1/2], [1/2, 0, 0], [0,0,1.1/2]])
+'kmfp_con':
+    models = ['coral-3', 'xx-conf-100-0']
+    weights = np.array([[0,0.85,1.5], [1,0,0]])
+'fms_con':
+    models = ['coral-3', 'conf-0', 'xx-conf-2']
+    weights = np.array([[1/3,0.9,1.1/2], [2/3, 0, 0], [0,0,1.05/2]])
+'foot_con':
+    models = ['coral-3', ':::xx-conf-0', 'conf-2']
+    weights = np.array([[1.1/4,0.8,0.8/2], [3/4, 0, 0], [0,0,0.8/2]])
+    
+CONSENSUS MODELS WITH AUGMENTED DATA
+'trunk_aug':
+    models = ['coral-1', 'conf-0', 'conf-100-1', 'conf-2']
+    weights = np.array([[0.5,0.5,0.5], [0.5,0,0],[0,0.5,0],[0,0,0.5]])
+'hip_aug':
+    models = ['coral-1', 'conf-0', 'conf-100-1', 'conf-100-2']
+    weights = np.array([[0.5,0.5,0.6], [0.5, 0, 0], [0, 0.5, 0], [0,0,0.5]])
+'femval_aug':
+    models = ['coral-1', 'conf-0', 'conf-1', 'conf-2']
+    weights = np.array([[0.6,0.6,1],[0.4,0,0], [0,0.4,0],[0,0,0.1]])
+'kmfp_aug':
+    models = ['coral-1', 'conf-0', 'conf-2']
+    weights = np.array([[0.6,1.1,0.9], [0.4,0,0], [0,0,0.3]])
+'fms_aug':
+    models = ['coral-1', 'conf-0', 'conf-100-1']
+    weights = np.array([[0.6,0.6,1.1], [0.4,0,0], [0,0.4,0]])
+'foot_aug':
+    models = ['coral-1', 'conf-100-0', 'conf-100-2']
+    weights = np.array([[0.6,1,0.9], [0.4,0,0],[0,0,0.3]])
