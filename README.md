@@ -1,3 +1,9 @@
+I trained/evaluated the models using 10-fold cross validation along with a separate test set. The training is done in [`cross-val-train-classifier`](cross-val-train-classifier.py). I ended up using ensembles of different architectures, see thesis for more details. Hence I trained a number of different models for each dataset and ended up using models performing well on cross validation either overall or achieving good precision. Again, `cross-val-train-classifier.py` is a bit messy and is dependent on how the datasets are created/organised (seee motion analysis repo). I will make sure it matches with new code generating datasets, after doing this I will also provide some more instructions.
+
+How models then are evaluated depends again on data and models used. The most recent code for this can be found in [`eval_consensus_cuts.py`](utils/eval_consesnsus_cuts.py). This code is for data augmented by cutting in the beginning and end of the sequences. It will run all the different models for the different cuts and classify as the likeliest class for the summed predicted probabilities from the ensembles. The different models in the ensembles are also weighted differently depending on what they are trained to recognise. 
+
+
+
 # Deep Learning for Time Series Classification
 This is the companion repository for [our paper](https://link.springer.com/article/10.1007%2Fs10618-019-00619-1) titled "Deep learning for time series classification: a review" published in [Data Mining and Knowledge Discovery](https://link.springer.com/journal/10618), also available on [ArXiv](https://arxiv.org/pdf/1809.04356.pdf). 
 
