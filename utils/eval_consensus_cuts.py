@@ -1,15 +1,15 @@
 import numpy as np
-from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score
+# from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score
 from argparse import ArgumentParser, ArgumentTypeError
 import os
 import tensorflow.keras as keras
-import matplotlib.pyplot as plt
-import pandas as pd
+# import matplotlib.pyplot as plt
+# import pandas as pd
 import itertools
 
 import coral_ordinal as coral
 from confusion_utils import ConfusionCrossEntropy
-import seaborn
+# import seaborn
 
 uncert_data = ['femval', 'hip', 'KMFP', 'trunk']
 
@@ -38,8 +38,8 @@ def get_POE_field(info_file):
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
-                          title='Confusion matrix',
-                          cmap=plt.cm.Blues, savename=''):
+                          title='Confusion matrix'):#,
+                        #   cmap=plt.cm.Blues, savename=''):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
@@ -79,8 +79,8 @@ def plot_confusion_matrix(cm, classes,
 
 def plot_confusion_matrix_mean(all_matrices, classes,
                                 normalize=False,
-                                title='Confusion matrix',
-                                cmap=plt.cm.Blues, savename=''):
+                                title='Confusion matrix'):#,
+                                # cmap=plt.cm.Blues, savename=''):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
@@ -217,7 +217,7 @@ def main(args):
     cut_results = {}
 
     dp = f'/home/filipkr/Documents/xjob/data/datasets/data_{ds_name}.npz'
-
+    dp = f'/app/data/datasets/data_{ds_name}.npz'
     dataset = np.load(dp)
     y = dataset['labels']
     all_cut_preds = np.zeros((num_folds, len(cuts), len(y), 3))
@@ -257,6 +257,9 @@ def main(args):
         dp = f'/home/filipkr/Documents/xjob/data/datasets/data_{ds_name}{cut}.npz'
         dp100 = f'/home/filipkr/Documents/xjob/data/datasets/data_{ds_name}_len100{cut}.npz'
         info_file = f'/home/filipkr/Documents/xjob/data/datasets/data_{ds_name}-info.txt'
+        dp = f'/app/data/datasets/data_{ds_name}{cut}.npz'
+        dp100 = f'/app/data/datasets/data_{ds_name}_len100{cut}.npz'
+        info_file = f'/app/data/datasets/data_{ds_name}-info.txt'
 
         print(dp)
         print(dp100)
